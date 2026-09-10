@@ -275,6 +275,11 @@
     .card { border-color: #999; break-inside: avoid; }
     #app { max-width: none; padding: 0; }
   }
+  .slutt { margin-top: 12px; padding: 12px 14px; border: 1px dashed var(--line-strong); border-radius: 12px; background: var(--surface-2); }
+  .modepill.Mellom { border-color: var(--gold); background: var(--gold-soft); color: var(--gold-ink); }
+  .lights-mini i.Skip { background: var(--line); border: 1px dashed var(--line-strong); }
+  .sig.st-Skip { opacity: .7; }
+  .pill.skip { background: var(--surface-2); color: var(--muted); }
 </style>
 </head>
 <body>
@@ -300,11 +305,11 @@
 <script async src="vendor/confetti.browser.min.js"></script>
 <script>
 /* =====================================================================
-   Via ROMA v3 — 3 minutter per prosjekt.
-   Månedlig: 7 signaler (grønt/gult/rødt), få tall, 3 linjer viktigste
-   punkter, puls én gang per person. Dybde (30 spørsmål) åpnes bare ved
-   gult/rødt eller kvartalsvis. Innhold revidert med fagpersoner innen
-   prosjektsikring, arbeidsmiljø, kvalitet/miljø og ledelse.
+   Via ROMA v5 — 3 minutter per prosjekt, for alle typer konsulenter.
+   Kundeoppdrag og interne roller, mange små eller ett stort prosjekt,
+   og «mellom oppdrag». Belastning og tilhørighet måles én gang per
+   person. Innhold revidert med fagpersoner innen prosjektsikring,
+   arbeidsmiljø, kvalitet/miljø, ledelse, spilldesign og psykologi.
    Alle data ligger kun i brukerens egen nettleser (localStorage).
    ===================================================================== */
 
@@ -312,37 +317,58 @@ const LIMIT_SEC = 3 * 60;
 const STORE_KEY = "viaroma.v3";
 const OLD_KEYS = ["viaroma.v2", "viaroma.v1"];
 const STATUS = ["OK", "Risiko", "Krever tiltak"];
-const SC = { "OK": "OK", "Risiko": "Risiko", "Krever tiltak": "Tiltak" };
-const LIGHT = { "OK": "Grønt", "Risiko": "Gult", "Krever tiltak": "Rødt" };
-const LIGHT_EMOJI = { "OK": "🟢", "Risiko": "🟡", "Krever tiltak": "🔴" };
-const RANK = { "OK": 0, "Risiko": 1, "Krever tiltak": 2 };
+const NR = "Ikke relevant";
+const SC = { "OK": "OK", "Risiko": "Risiko", "Krever tiltak": "Tiltak", "Ikke relevant": "Skip" };
+const LIGHT = { "OK": "Grønt", "Risiko": "Gult", "Krever tiltak": "Rødt", "Ikke relevant": "Ikke relevant" };
+const LIGHT_EMOJI = { "OK": "🟢", "Risiko": "🟡", "Krever tiltak": "🔴", "Ikke relevant": "⚪" };
+const AMPEL_EMOJI = { "Rødt": "🔴", "Gult": "🟡", "Grønt": "🟢" };
+const RANK = { "OK": 0, "Risiko": 1, "Krever tiltak": 2, "Ikke relevant": -1 };
 const SCALE = [[1, "Misnøye", "Krever tiltak"], [2, "Uro", "Krever tiltak"], [3, "Nøytral", "Risiko"], [4, "Fornøyd", "OK"], [5, "Svært fornøyd", "OK"]];
-const KONTRAKTSTYPER = ["Timer uten ramme", "Timer med ramme", "Fastpris"];
+const KONTRAKTSTYPER = ["Timer uten ramme", "Timer med ramme", "Fastpris", "Rammeavtale, sporadisk"];
+const TYPER = [["prosjekt", "Kundeoppdrag"], ["intern", "Intern rolle"]];
+const SMALL_SHARE = 10;
+const MODE_LABEL = { Travel: "Travel måned", Balansert: "Balansert måned", Rolig: "Rolig måned", Mellom: "Mellom oppdrag" };
+   // andel ≤ 10 % gir kort runde
 
-/* ---------- de sju månedlige signalene ---------- */
+/* ---------- signaler per prosjekt (belastning og tilhørighet måles per person) ---------- */
 const SIGNALS = [
-  { id: "S1", roma: "R", name: "Belastning", t: "Jeg holder normal arbeidstid og kobler av i helgene.", deep: ["r1", "r2", "r3", "r4"], fields: [{ k: "timer_uke", l: "Timer per uke", u: "t" }], privacy: true },
-  { id: "S2", roma: "O", name: "Fremdrift", t: "Våre leveranser er på plan.", deep: ["o1", "o5", "k1", "k2"] },
-  { id: "S3", roma: "O", name: "Økonomi", t: "", deep: ["o2", "o3"], toggle: { k: "utestaende", l: "Utestående over 30 dager" } },
-  { id: "S4", roma: "A", name: "Omfang og rolle", t: "Alt jeg gjør er innenfor avtalt omfang og rolle, eller skriftlig bestilt.", deep: ["o3", "o4", "k4"] },
-  { id: "S5", roma: "M", name: "Kunde", t: "Kunden er fornøyd med oss.", deep: ["s1", "s3", "s4", "s2", "o5"] },
-  { id: "S6", roma: "M", name: "Trygghet", t: "Jeg har det bra i prosjektet.", deep: ["p1", "p2", "p3", "p4"], sensitive: true, privacy: true },
-  { id: "S7", roma: "A", name: "Neste fase", t: "Det er mer enn 3 måneder igjen, eller neste fase er avklart.", deep: ["v2", "v1", "v3"] }
+  { id: "S2", roma: "O", name: "Fremdrift", t: "Våre leveranser er på plan.", ti: "Mine interne leveranser og milepæler er på plan.", deep: ["o1", "o5", "k1", "k2"], deepIntern: ["k3", "l3"], short: false },
+  { id: "S3", roma: "O", name: "Økonomi", t: "", ti: "Tiden min fordeles som avtalt, og intern tid er godkjent i planen.", deep: ["o2", "o3"], deepIntern: ["l3"], toggle: { k: "utestaende", l: "Utestående over 30 dager" }, short: true },
+  { id: "S4", roma: "A", name: "Omfang og rolle", t: "Alt jeg gjør er innenfor avtalt omfang og rolle, eller skriftlig bestilt.", ti: "Jeg får gjort rollen min. Ad hoc-oppgaver går ikke ut over avtalte leveranser.", deep: ["o3", "o4", "k4"], deepIntern: ["p1", "k4"], short: true },
+  { id: "S5", roma: "M", name: "Kunde", ni: "Internt", t: "Kunden er fornøyd med oss.", ti: "Kollegene og ledelsen får det de trenger fra meg i tide.", deep: ["s1", "s3", "s4", "s2", "o5"], deepIntern: ["p1", "p2"], short: true },
+  { id: "S6", roma: "M", name: "Trygghet", t: "Jeg har det bra i prosjektet.", ti: "Jeg har det bra i rollen.", deep: ["p1", "p2", "p4"], deepIntern: ["p1", "p2", "p4"], sensitive: true, privacy: true, short: false },
+  { id: "S7", roma: "A", name: "Neste fase", t: "Det er mer enn 3 måneder igjen, eller neste fase er avklart.", ti: "Det er avklart hva jeg skal gjøre etter denne perioden, eller det er mer enn 3 måneder igjen.", deep: ["v2", "v1", "v3"], deepIntern: ["l1", "l2"], short: false }
 ];
 const SIG_BY = Object.fromEntries(SIGNALS.map(s => [s.id, s]));
-// Økonomi-signalet tilpasses kontraktstypen: uten ramme finnes det ikke noe budsjett å måle mot.
+const isIntern = p => (p && p.type) === "intern";
 function s3Config(p) {
+  if (isIntern(p)) return { t: SIG_BY.S3.ti, fields: [] };
   const kt = (p && p.kontraktstype) || "";
   if (kt === "Timer med ramme") return { t: "Timeforbruket er i takt med fremdriften.", fields: [{ k: "ramme", l: "Brukt av rammen, ca.", u: "%" }, { k: "fremdrift", l: "Ferdig med jobben, ca.", u: "%" }] };
   if (kt === "Fastpris") return { t: "Timeforbruket er i takt med fremdriften i kalkylen.", fields: [{ k: "ramme", l: "Brukt av kalkylen, ca.", u: "%" }, { k: "fremdrift", l: "Ferdig med jobben, ca.", u: "%" }] };
   return { t: "Alle timene mine faktureres.", fields: [] };
 }
-function sigText(S, s) { return S.id === "S3" ? s3Config(s.project).t : S.t; }
-function sigFields(S, s) { return S.id === "S3" ? s3Config(s.project).fields : (S.fields || []); }
+function sigText(S, s) { if (S.id === "S3") return s3Config(s.project).t; return isIntern(s.project) && S.ti ? S.ti : S.t; }
+function sigName(S, s) { return isIntern(s.project) && S.ni ? S.ni : S.name; }
+function sigFields(S, s) { return S.id === "S3" ? s3Config(s.project).fields : []; }
+function sigDeep(S, s) { return isIntern(s.project) ? S.deepIntern : S.deep; }
+function isShortRound(s) { return !isIntern(s.project) && num(s.project.andel) > 0 && num(s.project.andel) <= SMALL_SHARE && !s.fullRound; }
+function activeSignals(s) { return SIGNALS.filter(S => !isShortRound(s) || S.short); }
+
+/* ---------- personnivå ---------- */
+const PERSON = {
+  S1: { t: "Jeg holder normal arbeidstid og kobler av i helgene.", deep: ["r1", "r2", "r3", "r4"] },
+  N1: { t: "Jeg vet hva som skjer videre for meg, og når." },
+  N3: { t: "Jeg har meningsfulle oppgaver nå." }
+};
 const PUNKTER = [
   { k: "endret", l: "Endret siden sist", ph: "Ny PL hos byggherre 1.9, vil ha revidert plan innen 20.9", none: "Ikke noe nytt" },
   { k: "risiko", l: "Risiko nå", ph: "Tegningsunderlag fra entreprenør uteblir, ca. 1 uke bak", none: "Ingen nå" },
   { k: "trenger", l: "Trenger fra Involved", ph: "Sparring om NS 8401-ansvar før 15.9", none: "Ingenting" }
+];
+const PUNKTER_MELLOM = [
+  { k: "endret", l: "Gjør nå", ph: "FSE-kurs, bidrar i tilbud Bane NOR (12 t)", none: "Ikke noe spesielt" },
+  { k: "trenger", l: "Trenger fra Involved", ph: "En dato for når jeg får vite om neste oppdrag", none: "Ingenting" }
 ];
 const UTVIKLING = [
   { k: "sert", l: "Sertifisering", t: 40, d: "FSE/NEK 400, BREEAM-AP, PRINCE2, ISO 19650" },
@@ -356,22 +382,14 @@ const UTVIKLING = [
   { k: "fagdag", l: "Holde intern fagdag", t: 12, d: "én time for kollegene" }
 ];
 const UTV_BY = Object.fromEntries(UTVIKLING.map(u => [u.k, u]));
-const YEAR_HINTS = { 1: "Januar: medarbeidersamtale. Årsutskriften i Oversikt er din.", 5: "Mai: tid for kundeundersøkelse?", 6: "Juni: sjekk dekning i ferien under Neste fase.", 8: "Tilbudssesong: bidra i tilbud er verdifullt nå.", 9: "Tilbudssesong: bidra i tilbud er verdifullt nå.", 10: "Tilbudssesong: bidra i tilbud er verdifullt nå.", 11: "November: kundeundersøkelse og fag- og erfaringsrapport. Erfaringsnotater teller.", 12: "Desember: årsavslutning. Se året i Oversikt." };
-const ROMA_QUOTES = { Travel: "Roma ble ikke bygget på én dag. Denne måneden la du én stein.", Balansert: "Alle veier fører til Roma. Denne tok tre minutter.", Rolig: "Også Roma hadde rolige år. De bygde akvedukter." };
-function modeOf(pulse, lastTimer) { const b = (pulse || {}).belastning; if (!b) return "Balansert"; if (b >= 4) return "Travel"; if (b <= 1 || (b === 2 && lastTimer && num(lastTimer) <= 30)) return "Rolig"; return "Balansert"; }
-function isHeavy(pulse, sessions) { const pv = pulse || {}; return pv.belastning >= 5 || (pv.trivsel && pv.trivsel <= 2) || (sessions || []).some(x => x.sig && x.sig.S6 && x.sig.S6.status === "Krever tiltak"); }
-function personStreak(uptoDate) {
-  const months = Array.from(new Set(store.sessions.filter(x => x.date <= uptoDate).map(x => x.date.slice(0, 7)))).sort().reverse();
-  let streak = 0, cur = uptoDate.slice(0, 7);
-  for (const m of months) { if (m === cur) { streak++; cur = addMonths(cur + "-15", -1).slice(0, 7); } else if (m < cur) break; }
-  return streak;
-}
 const PULSE = [
   { k: "belastning", name: "Belastning", anchors: ["Ledig kapasitet", "Passe", "Travelt, men greit", "For mye over tid", "Uholdbart"] },
   { k: "trivsel", name: "Trivsel", anchors: ["Mistrives", "Lav", "Grei", "God", "Svært god"] }
 ];
-const PRIVACY_TEXT = "Alt lagres bare i denne nettleseren på denne enheten. Ingen server, ingen innlogging, ingen andre ser dataene dine. Data forlater maskinen først når du selv kopierer Teams-teksten eller laster ned en fil. Teams-tekst og ledereksport er kun til nærmeste leder. Prosjekt-Excel inneholder ikke puls eller Trygghet. Diktering bruker nettleserens taletjeneste (Google/Microsoft). Ingen helseopplysninger, navn på personer hos kunde eller private forhold i fritekst. På delt maskin: «Slett alle mine data» i Oversikt når du er ferdig. Nedlastede filer og utklippstavlen slettes ikke av appen.";
-const NOTHING = /^\s*(ingenting|ingen|ingen nå|ikke noe nytt|nei|ok|nope|[-–—.]*)\s*[.!]?\s*$/i;
+const YEAR_HINTS = { 1: "Januar: medarbeidersamtale. Årsutskriften i Oversikt er din.", 5: "Mai: tid for kundeundersøkelse på oppdragene?", 6: "Juni: sjekk dekning i ferien under Neste fase.", 11: "November: kundeundersøkelse og fag- og erfaringsrapport. Erfaringsnotater teller.", 12: "Desember: årsavslutning. Se året i Oversikt." };
+const ROMA_QUOTES = { Travel: "Roma ble ikke bygget på én dag. Denne måneden la du én stein.", Balansert: "Alle veier fører til Roma. Denne tok tre minutter.", Rolig: "Også Roma hadde rolige år. De bygde akvedukter." };
+const PRIVACY_TEXT = "Alt lagres bare i denne nettleseren på denne enheten. Ingen server, ingen innlogging, ingen andre ser dataene dine. Data forlater maskinen først når du selv kopierer Teams-teksten eller laster ned en fil. Teams-tekst og ledereksport er kun til nærmeste leder. Prosjekt-Excel inneholder ikke puls, belastning eller Trygghet. Diktering bruker nettleserens taletjeneste (Google/Microsoft). Ingen helseopplysninger, navn på personer hos kunde eller private forhold i fritekst. På delt maskin: «Slett alle mine data» i Oversikt når du er ferdig. Nedlastede filer og utklippstavlen slettes ikke av appen.";
+const NOTHING = /^\s*(ingenting|ingen|ingen nå|ikke noe nytt|ikke noe spesielt|nei|ok|nope|[-–—.]*)\s*[.!]?\s*$/i;
 const ID_OK = v => /^[A-Za-z0-9_-]{1,32}$/.test(String(v));
 
 /* ---------- dybde: full ROMA (30 spørsmål) ---------- */
@@ -440,31 +458,28 @@ const MONTHS = ["jan", "feb", "mar", "apr", "mai", "jun", "jul", "aug", "sep", "
 const fmtMonth = iso => iso ? `${MONTHS[Number(iso.slice(5, 7)) - 1]} ${iso.slice(0, 4)}` : "";
 const addDays = (iso, n) => { const d = new Date(iso + "T12:00:00"); d.setDate(d.getDate() + n); return isoOf(d); };
 const addMonths = (iso, n) => { const d = new Date(iso + "T12:00:00"); d.setMonth(d.getMonth() + n); return isoOf(d); };
-const fmtMin = s => { s = Math.max(0, Math.round(s || 0)); return `${Math.floor(s / 60)}:${pad(s % 60)}`; };
+const monthsBetween = (a, b) => (Number(b.slice(0, 4)) - Number(a.slice(0, 4))) * 12 + Number(b.slice(5, 7)) - Number(a.slice(5, 7));
 const uid = () => Math.random().toString(36).slice(2, 10);
 const slug = s => String(s || "prosjekt").replace(/æ/gi, "ae").replace(/ø/gi, "o").replace(/å/gi, "a").normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[^A-Za-z0-9]+/g, "_").replace(/^_|_$/g, "");
 const cmp = (a, b) => String(a ?? "").localeCompare(String(b ?? ""));
+const genitiv = n => n ? (/[sxz]$/i.test(n) ? n + "'" : n + "s") : "leders";
 let toastTimer;
-function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2400); }
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2600); }
+function pop() { if (window.confetti && !matchMedia("(prefers-reduced-motion: reduce)").matches) confetti({ particleCount: 60, spread: 60, origin: { y: .7 }, colors: ["#257A6B", "#C8912A", "#2E8B57", "#FFFFFF"] }); }
 
 /* ---------- lagring (kun i denne nettleseren) ---------- */
 let storageBroken = false;
-function emptyStore() { return { me: { konsulent: "", teamleder: "" }, projects: [], sessions: [], tiltak: [], best: {}, okt: null }; }
+function emptyStore() { return { me: { konsulent: "", teamleder: "" }, projects: [], sessions: [], tiltak: [], okt: null }; }
 function loadStore() {
   let s = null;
   try { const raw = localStorage.getItem(STORE_KEY); if (raw) s = JSON.parse(raw); } catch (e) { storageBroken = true; }
   if (!s || typeof s !== "object") {
     s = emptyStore();
-    try { // ta med prosjekter, deg og tiltak fra tidligere versjoner (runder tas ikke med, spørsmålene er nye)
+    try {
       for (const key of OLD_KEYS) {
         const old = JSON.parse(localStorage.getItem(key) || "null"); if (!old || typeof old !== "object") continue;
         if (old.me && old.me.konsulent) s.me = { konsulent: String(old.me.konsulent), teamleder: String(old.me.teamleder || "") };
-        (old.projects || []).forEach(p => {
-          if (!p || !p.prosjekt) return;
-          if (p.konsulent && !s.me.konsulent) s.me = { konsulent: String(p.konsulent), teamleder: String(p.teamleder || "") };
-          if (!s.projects.some(x => x.prosjekt === p.prosjekt)) s.projects.push({ id: String(p.id || uid()), prosjekt: String(p.prosjekt), prosjektnummer: String(p.prosjektnummer || ""), kunde: String(p.kunde || ""), rolle: String(p.rolle || ""), kontrakt: String(p.kontrakt || ""), kontraktstype: "", sluttdato: String(p.sluttdato || ""), ku_dato: String(p.ku_dato || ""), ku_score: String(p.ku_score || "") });
-        });
-        (old.tiltak || []).forEach(t => { if (t && t.tekst && !s.tiltak.some(x => x.id === t.id)) s.tiltak.push({ id: String(t.id || uid()), sessionId: "", projectId: String(t.projectId || (s.projects.find(p => p.prosjekt === t.prosjekt) || {}).id || ""), dato: String(t.dato || isoToday()), prosjekt: String(t.prosjekt || ""), tekst: String(t.tekst), ansvarlig: String(t.ansvarlig || ""), frist: String(t.frist || ""), status: t.status === "Lukket" ? "Lukket" : "Åpen", kommentar: String(t.kommentar || ""), area: String(t.area || "") }); });
+        (old.projects || []).forEach(p => { if (!p || !p.prosjekt) return; if (p.konsulent && !s.me.konsulent) s.me = { konsulent: String(p.konsulent), teamleder: String(p.teamleder || "") }; if (!s.projects.some(x => x.prosjekt === p.prosjekt)) s.projects.push(normProject(p)); });
         break;
       }
       OLD_KEYS.forEach(k => localStorage.removeItem(k));
@@ -472,39 +487,71 @@ function loadStore() {
   }
   const d = emptyStore();
   for (const k of Object.keys(d)) if (s[k] === undefined || s[k] === null) s[k] = d[k];
+  s.projects = s.projects.map(normProject).filter(Boolean);
+  s.sessions = s.sessions.map(normSession).filter(Boolean);
   return s;
+}
+function normProject(p) {
+  if (!p || typeof p !== "object" || !p.prosjekt) return null;
+  const o = { id: ID_OK(p.id) ? String(p.id) : uid(), type: p.type === "intern" ? "intern" : "prosjekt" };
+  ["prosjekt", "kunde", "prosjektnummer", "rolle", "kontrakt", "kontraktstype", "sluttdato", "ku_dato", "ku_score", "avsluttet", "plan", "mal"].forEach(k => { o[k] = String(p[k] || ""); });
+  o.andel = Math.max(0, Math.min(100, Number(p.andel) || 0));
+  o.oppstart = !!p.oppstart;
+  o.slutt = p.slutt && typeof p.slutt === "object" ? { levert: String(p.slutt.levert || ""), annerledes: String(p.slutt.annerledes || ""), uavsluttet: String(p.slutt.uavsluttet || "") } : null;
+  return o;
 }
 function saveStore() { try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) { if (!storageBroken) { storageBroken = true; toast("Lagring i nettleseren er ikke tilgjengelig. Ta JSON-sikkerhetskopi når du er ferdig."); } } }
 function wipeAll() { try { localStorage.removeItem(STORE_KEY); OLD_KEYS.forEach(k => localStorage.removeItem(k)); } catch (e) { /* tom */ } store = emptyStore(); okt = null; }
 let store = loadStore();
 const projectById = id => store.projects.find(p => p.id === id);
+const activeProjects = () => store.projects.filter(p => !p.avsluttet);
 const sessionsFor = pid => store.sessions.filter(s => s.projectId === pid).sort((a, b) => cmp(a.date, b.date) || cmp(a.finishedAt, b.finishedAt));
 const lastSessionFor = pid => { const l = sessionsFor(pid); return l[l.length - 1] || null; };
-const lastSessionAny = () => store.sessions.slice().sort((a, b) => cmp(a.date, b.date) || cmp(a.finishedAt, b.finishedAt)).pop() || null;
+const allSessionsSorted = () => store.sessions.slice().sort((a, b) => cmp(a.date, b.date) || cmp(a.finishedAt, b.finishedAt));
+const lastSessionAny = () => allSessionsSorted().pop() || null;
 const openTiltak = pid => store.tiltak.filter(t => t.projectId === pid && t.status === "Åpen");
-function streakFor(pid, uptoDate) {
-  const months = Array.from(new Set(sessionsFor(pid).filter(s => s.date <= uptoDate).map(s => s.date.slice(0, 7)))).sort().reverse();
+function personStreak(uptoDate) {
+  const months = Array.from(new Set(store.sessions.filter(x => x.date <= uptoDate).map(x => x.date.slice(0, 7)))).sort().reverse();
   let streak = 0, cur = uptoDate.slice(0, 7);
   for (const m of months) { if (m === cur) { streak++; cur = addMonths(cur + "-15", -1).slice(0, 7); } else if (m < cur) break; }
   return streak;
 }
 const lastDeepFor = pid => sessionsFor(pid).filter(s => s.deep).pop() || null;
+function monthsWithoutContact(uptoDate) {
+  // måneder på rad (bakover fra og med uptoDate) uten reell Involved-kontakt
+  const byMonth = {}; allSessionsSorted().forEach(x => { if (x.person && x.person.kontakt) byMonth[x.date.slice(0, 7)] = x.person.kontakt; });
+  let n = 0, cur = uptoDate.slice(0, 7);
+  while (byMonth[cur] === "nei") { n++; cur = addMonths(cur + "-15", -1).slice(0, 7); }
+  return n;
+}
+function lastMonthPerson() { const l = allSessionsSorted().filter(x => x.person); return l.length ? l[l.length - 1] : null; }
 
 /* ---------- økt ---------- */
-let okt = null;   // { id, date, queue, idx, pulse, sessions:{pid: session} }
+let okt = null;   // { id, date, queue, idx, pulse, person, utvikling, sessions:{pid: session} }
 let timerHandle = null;
 const cur = () => okt ? okt.sessions[okt.queue[okt.idx]] : null;
 function blankAnswer() { return { status: "OK", value: "", comment: "", tiltak: "", ansvarlig: "", frist: "", fields: {}, carried: false }; }
 function blankSig() { return { status: "OK", comment: "", tiltak: "", ansvarlig: "", frist: "" }; }
 function makeSession(project) {
-  const prev = lastSessionFor(project.id);
-  const sig = {}; SIGNALS.forEach(S => { const a = blankSig(); const pa = prev && prev.sig && prev.sig[S.id]; if (pa && !S.sensitive && STATUS.includes(pa.status) && pa.status !== "OK") Object.assign(a, { status: pa.status, comment: pa.comment || "", ansvarlig: pa.status === "Krever tiltak" && store.me.teamleder ? store.me.teamleder : store.me.konsulent, frist: addDays(isoToday(), 14) }); sig[S.id] = a; });
+  const prev = lastSessionFor(project.id); const lastDeep = lastDeepFor(project.id);
+  const sig = {};
+  SIGNALS.forEach(S => {
+    const a = blankSig(); const pa = prev && prev.sig && prev.sig[S.id];
+    // gult og rødt fra sist beholdes for det som ikke styres av tall (S3 settes på nytt fra tallene)
+    if (pa && !S.sensitive && S.id !== "S3" && (pa.status === "Risiko" || pa.status === "Krever tiltak")) Object.assign(a, { status: pa.status, comment: pa.comment || "", tiltak: pa.tiltak || "", ansvarlig: pa.status === "Krever tiltak" && store.me.teamleder ? store.me.teamleder : store.me.konsulent, frist: addDays(isoToday(), 14) });
+    sig[S.id] = a;
+  });
   const fields = {}; const prevFields = prev && prev.fields ? prev.fields : {};
   const projSnap = Object.assign({}, project, { konsulent: store.me.konsulent, teamleder: store.me.teamleder });
-  const s7 = sigAuto(SIG_BY.S7, { fields, project: projSnap, date: isoToday() });
-  if (s7 && RANK[s7] > RANK[sig.S7.status]) Object.assign(sig.S7, { status: s7, ansvarlig: store.me.konsulent, frist: addDays(isoToday(), 14) });
-  const answers = {}; ALL_Q.forEach(({ q }) => { const a = blankAnswer(); const pa = prev && prev.deep && prev.answers && prev.answers[q.id]; if (pa) { a.fields = Object.assign({}, pa.fields || {}); if (pa.status === "Risiko" || pa.status === "Krever tiltak") Object.assign(a, { status: pa.status, value: pa.value || "", comment: pa.comment || "", tiltak: pa.tiltak || "", ansvarlig: pa.ansvarlig || "", frist: pa.frist || "", carried: true }); } answers[q.id] = a; });
-  return { id: uid(), date: isoToday(), projectId: project.id, project: projSnap, sig, fields, prevFields, punkter: { endret: "", risiko: "", trenger: "" }, answers, deep: false, pulse: {}, elapsedBase: 0, startedAt: Date.now(), elapsed: 0, prevId: prev ? prev.id : null };
+  const s = { id: uid(), date: isoToday(), projectId: project.id, project: projSnap, sig, fields, prevFields, punkter: { endret: "", risiko: "", trenger: "" }, answers: {}, deep: false, fullRound: false, pulse: {}, person: null, elapsedBase: 0, startedAt: Date.now(), elapsed: 0, prevId: prev ? prev.id : null };
+  if (isShortRound(s)) SIGNALS.forEach(S => { if (!S.short) s.sig[S.id].status = NR; });
+  ALL_Q.forEach(({ q }) => { const a = blankAnswer(); const pa = lastDeep && lastDeep.answers && lastDeep.answers[q.id]; if (pa) { a.fields = Object.assign({}, pa.fields || {}); if ((pa.status === "Risiko" || pa.status === "Krever tiltak") && !q.sensitive) Object.assign(a, { status: pa.status, value: pa.value || "", comment: pa.comment || "", tiltak: pa.tiltak || "", ansvarlig: pa.ansvarlig || "", frist: addDays(isoToday(), 14), carried: true }); } s.answers[q.id] = a; });
+  const s7 = sigAuto(SIG_BY.S7, s);
+  if (s7 && s.sig.S7.status !== NR && RANK[s7] > RANK[s.sig.S7.status]) Object.assign(s.sig.S7, { status: s7, ansvarlig: store.me.konsulent, frist: addDays(isoToday(), 14) });
+  return s;
+}
+function makeMellomSession() {
+  return { id: uid(), date: isoToday(), projectId: "", project: { id: "", type: "mellom", prosjekt: "Mellom oppdrag", kunde: "", rolle: "", kontraktstype: "", kontrakt: "", sluttdato: "", andel: 0, konsulent: store.me.konsulent, teamleder: store.me.teamleder }, sig: {}, fields: {}, prevFields: {}, punkter: { endret: "", risiko: "", trenger: "" }, answers: {}, deep: false, fullRound: false, pulse: {}, person: null, elapsedBase: 0, startedAt: Date.now(), elapsed: 0, prevId: null };
 }
 function elapsedSec(s = cur()) { return s ? Math.floor((s.elapsedBase || 0) + (Date.now() - s.startedAt) / 1000) : 0; }
 function saveDraft() { if (!okt) return; const s = cur(); if (s) s.elapsed = elapsedSec(s); store.okt = okt; saveStore(); }
@@ -516,6 +563,10 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) saveD
 window.addEventListener("pagehide", saveDraft);
 window.addEventListener("beforeunload", saveDraft);
 
+/* ---------- modus ---------- */
+function modeOf(pulse, timer, mellom) { if (mellom) return "Mellom"; const b = (pulse || {}).belastning; if (!b) return "Balansert"; if (b >= 4 || num(timer) > 42.5) return "Travel"; if (b <= 1 || (b === 2 && timer && num(timer) <= 30)) return "Rolig"; return "Balansert"; }
+function isHeavy(pulse, person, sessions) { const pv = pulse || {}; return pv.belastning >= 5 || (pv.trivsel && pv.trivsel <= 2) || (person && person.S1 && person.S1.status === "Krever tiltak") || (sessions || []).some(x => x.sig && x.sig.S6 && x.sig.S6.status === "Krever tiltak"); }
+
 /* ---------- HUD ---------- */
 let hudMode = "idle";
 function renderHud() {
@@ -523,7 +574,7 @@ function renderHud() {
   if (hudMode === "run" && okt) {
     const s = cur(); const el = elapsedSec(s); const frac = Math.min(1, el / LIMIT_SEC);
     if (hud.dataset.mode !== "run") { hud.dataset.mode = "run"; hud.innerHTML = `<span class="stat" id="hud-proj"></span><div class="ring" id="hud-ring" title="3 minutter per prosjekt"><svg viewBox="0 0 40 40"><circle class="track" cx="20" cy="20" r="16"></circle><circle class="bar" cx="20" cy="20" r="16" stroke-dasharray="100.5" stroke-dashoffset="100.5"></circle></svg></div>`; }
-    $("#hud-proj").textContent = `${okt.idx + 1}/${okt.queue.length}`;
+    $("#hud-proj").textContent = okt.queue.length ? `${okt.idx + 1}/${okt.queue.length}` : "";
     const ring = $("#hud-ring"); $(".bar", ring).setAttribute("stroke-dashoffset", (100.5 * (1 - frac)).toFixed(1));
   } else { hud.dataset.mode = "idle"; hud.innerHTML = ""; }
 }
@@ -540,87 +591,124 @@ $$(".tab").forEach(t => t.addEventListener("click", () => { if (t.dataset.nav ==
    HJEM
    ===================================================================== */
 function projectForm(p, submitLabel, idp, compact) {
-  p = p || {};
+  p = p || {}; const type = p.type || "prosjekt";
   return `<div class="pform">
+    <div class="chips" role="group" aria-label="Type">${TYPER.map(([v, l]) => `<button type="button" class="chip opt" data-type="${v}" aria-pressed="${type === v}">${l}</button>`).join("")}<input type="hidden" id="${idp}-type" value="${type}"></div>
     <div class="grid-2">
-      <div class="field"><label for="${idp}-prosjekt">Prosjekt</label><input id="${idp}-prosjekt" value="${esc(p.prosjekt)}" required placeholder="F.eks. Nytt sykehus, ITB"></div>
-      <div class="field"><label for="${idp}-kontraktstype">Kontraktstype</label><select id="${idp}-kontraktstype" required>${["", ...KONTRAKTSTYPER].map(v => `<option value="${v}" ${(p.kontraktstype || "") === v ? "selected" : ""}>${v || "— Velg —"}</option>`).join("")}</select></div>
-      <div class="field"><label for="${idp}-kunde">Kunde (valgfritt)</label><input id="${idp}-kunde" value="${esc(p.kunde)}" placeholder="Byggherre eller oppdragsgiver"></div>
-      <div class="field"><label for="${idp}-sluttdato">Oppdraget løper ut (valgfritt)</label><input id="${idp}-sluttdato" type="date" value="${esc(p.sluttdato)}"></div>
+      <div class="field"><label for="${idp}-prosjekt" data-l="prosjekt">${type === "intern" ? "Rolle (f.eks. Kvalitetsleder)" : "Prosjekt"}</label><input id="${idp}-prosjekt" value="${esc(p.prosjekt)}" required placeholder="${type === "intern" ? "F.eks. Kvalitetsleder, tilbudsansvarlig" : "F.eks. Nytt sykehus, ITB"}"></div>
+      <div class="field"><label for="${idp}-andel">Andel av tiden din, ca.</label><div style="display:flex;gap:6px;align-items:center"><input id="${idp}-andel" type="number" min="0" max="100" step="5" value="${p.andel || ""}" placeholder="100" style="width:6em"><span class="muted small">% · under ${SMALL_SHARE} % gir kort runde</span></div></div>
+      <div class="field" data-only="prosjekt" ${type === "intern" ? "hidden" : ""}><label for="${idp}-kontraktstype">Kontraktstype</label><select id="${idp}-kontraktstype">${["", ...KONTRAKTSTYPER].map(v => `<option value="${v}" ${(p.kontraktstype || "") === v ? "selected" : ""}>${v || "— Velg —"}</option>`).join("")}</select></div>
+      <div class="field" data-only="prosjekt" ${type === "intern" ? "hidden" : ""}><label for="${idp}-kunde">Kunde (valgfritt)</label><input id="${idp}-kunde" value="${esc(p.kunde)}" placeholder="Byggherre eller oppdragsgiver"></div>
+      <div class="field" data-only="prosjekt" ${type === "intern" ? "hidden" : ""}><label for="${idp}-sluttdato">Oppdraget løper ut (valgfritt)</label><input id="${idp}-sluttdato" type="date" value="${esc(p.sluttdato)}"></div>
+      <div class="field" data-only="intern" ${type === "intern" ? "" : "hidden"}><label for="${idp}-plan">Avtalt fordeling (valgfritt)</label><input id="${idp}-plan" value="${esc(p.plan)}" placeholder="F.eks. 60 % kvalitet, 30 % tilbud, 10 % faggruppe"></div>
+      <div class="field" data-only="intern" ${type === "intern" ? "" : "hidden"}><label for="${idp}-mal">Mål denne perioden (valgfritt)</label><input id="${idp}-mal" value="${esc(p.mal)}" placeholder="F.eks. ISO 14001-resertifisering 1.12"></div>
+      <div class="field" data-only="intern" ${type === "intern" ? "" : "hidden"}><label for="${idp}-periode">Neste vurdering (valgfritt)</label><input id="${idp}-periode" type="date" value="${esc(p.sluttdato)}"></div>
       ${compact ? "" : `
-      <div class="field"><label for="${idp}-rolle">Din rolle</label><input id="${idp}-rolle" value="${esc(p.rolle)}" placeholder="F.eks. ITB-koordinator"></div>
-      <div class="field"><label for="${idp}-kontrakt">Kontrakt på SharePoint</label><select id="${idp}-kontrakt">${["", "Ja", "Nei", "Under arbeid"].map(v => `<option value="${v}" ${(p.kontrakt || "") === v ? "selected" : ""}>${v || "— Velg —"}</option>`).join("")}</select></div>
-      <div class="field"><label for="${idp}-prosjektnummer">Prosjektnummer</label><input id="${idp}-prosjektnummer" value="${esc(p.prosjektnummer)}" placeholder="P-nr"></div>
-      <div class="field"><label for="${idp}-ku">Siste kundeundersøkelse (dato · score)</label><div style="display:flex;gap:6px"><input id="${idp}-ku" type="date" value="${esc(p.ku_dato)}" aria-label="Dato" style="flex:1;min-width:0"><input id="${idp}-kus" value="${esc(p.ku_score)}" placeholder="Score" aria-label="Score" style="width:6em"></div></div>`}
+      <div class="field"><label for="${idp}-rolle">${type === "intern" ? "Kort om rollen" : "Din rolle i prosjektet"}</label><input id="${idp}-rolle" value="${esc(p.rolle)}" placeholder="${type === "intern" ? "Hva rollen innebærer" : "F.eks. ITB-koordinator"}"></div>
+      <div class="field" data-only="prosjekt" ${type === "intern" ? "hidden" : ""}><label for="${idp}-kontrakt">Kontrakt på SharePoint</label><select id="${idp}-kontrakt">${["", "Ja", "Nei", "Under arbeid"].map(v => `<option value="${v}" ${(p.kontrakt || "") === v ? "selected" : ""}>${v || "— Velg —"}</option>`).join("")}</select></div>
+      <div class="field" data-only="prosjekt" ${type === "intern" ? "hidden" : ""}><label for="${idp}-prosjektnummer">Prosjektnummer</label><input id="${idp}-prosjektnummer" value="${esc(p.prosjektnummer)}" placeholder="P-nr"></div>
+      <div class="field" data-only="prosjekt" ${type === "intern" ? "hidden" : ""}><label for="${idp}-ku">Siste kundeundersøkelse (dato · score)</label><div style="display:flex;gap:6px"><input id="${idp}-ku" type="date" value="${esc(p.ku_dato)}" aria-label="Dato" style="flex:1;min-width:0"><input id="${idp}-kus" value="${esc(p.ku_score)}" placeholder="Score" aria-label="Score" style="width:6em"></div></div>`}
     </div>
-    <div class="btn-row"><button type="submit" class="btn primary">${submitLabel}</button>${p.id ? `<button type="button" class="btn ghost" data-cancel>Avbryt</button><button type="button" class="btn ghost danger" data-archive="${esc(p.id)}">Fjern prosjekt</button>` : ""}</div>
+    <div class="btn-row"><button type="submit" class="btn primary">${submitLabel}</button>${p.id ? `<button type="button" class="btn ghost" data-cancel>Avbryt</button><button type="button" class="btn ghost danger" data-end="${esc(p.id)}">${type === "intern" ? "Avslutt rollen" : "Avslutt prosjektet"}</button>` : ""}</div>
+    ${p.id ? `<div class="slutt" data-slutt="${esc(p.id)}" hidden>
+      <p class="small"><b>Sluttevaluering</b> (rutinens trinn 4). Historikken beholdes i Oversikt og årsutskrift. Tre linjer, går til leder og fag- og erfaringsrapporten.</p>
+      <div class="field"><label for="${idp}-sl1">Hva ble levert, og hva sier kunden?</label><input id="${idp}-sl1" placeholder="Én setning. Be gjerne om referanse eller kundeundersøkelse."></div>
+      <div class="field"><label for="${idp}-sl2">Hva ville jeg gjort annerledes?</label><input id="${idp}-sl2" placeholder="Én setning til fag- og erfaringsrapporten."></div>
+      <div class="field"><label for="${idp}-sl3">Noe uavsluttet? Timer, endringsordre, dokumentasjon, åpne tiltak</label><input id="${idp}-sl3" placeholder="Eller «Nei»"></div>
+      <div class="btn-row"><button type="button" class="btn danger" data-end-confirm="${esc(p.id)}">Avslutt og lagre</button></div>
+    </div>` : ""}
   </div>`;
 }
+function bindTypeChips(form, idp) {
+  $$("[data-type]", form).forEach(b => b.addEventListener("click", () => {
+    const v = b.dataset.type; $(`#${idp}-type`, form).value = v; $$("[data-type]", form).forEach(x => x.setAttribute("aria-pressed", x === b));
+    $$("[data-only]", form).forEach(f => { f.hidden = f.dataset.only !== v; });
+    const l = $('[data-l="prosjekt"]', form); if (l) l.textContent = v === "intern" ? "Rolle (f.eks. Kvalitetsleder)" : "Prosjekt";
+    const inp = $(`#${idp}-prosjekt`, form); inp.placeholder = v === "intern" ? "F.eks. Kvalitetsleder, tilbudsansvarlig" : "F.eks. Nytt sykehus, ITB";
+    const rl = $(`#${idp}-rolle`, form); if (rl) rl.placeholder = v === "intern" ? "Hva rollen innebærer" : "F.eks. ITB-koordinator";
+  }));
+}
 function readProjectForm(el, idp, p) {
-  p = p || { id: uid() };
-  ["prosjekt", "kunde", "prosjektnummer", "rolle", "kontrakt", "kontraktstype", "sluttdato"].forEach(k => { const f = $(`#${idp}-${k}`, el); if (f) p[k] = f.value.trim(); else if (p[k] === undefined) p[k] = ""; });
-  const ku = $(`#${idp}-ku`, el); if (ku) { p.ku_dato = ku.value; p.ku_score = $(`#${idp}-kus`, el).value.trim(); } else { p.ku_dato = p.ku_dato || ""; p.ku_score = p.ku_score || ""; }
+  p = p || normProject({ id: uid(), prosjekt: "x" }); if (!p.prosjekt) p.prosjekt = "";
+  p.type = $(`#${idp}-type`, el).value === "intern" ? "intern" : "prosjekt";
+  ["prosjekt", "kunde", "prosjektnummer", "rolle", "kontrakt", "kontraktstype", "plan", "mal"].forEach(k => { const f = $(`#${idp}-${k}`, el); if (f) p[k] = f.value.trim(); });
+  const andel = $(`#${idp}-andel`, el); p.andel = andel && andel.value !== "" ? Math.max(0, Math.min(100, Number(andel.value) || 0)) : 0;
+  const sd = $(`#${idp}-${p.type === "intern" ? "periode" : "sluttdato"}`, el); if (sd) p.sluttdato = sd.value;
+  if (p.type === "intern") { p.kunde = ""; p.kontraktstype = ""; p.kontrakt = ""; p.prosjektnummer = ""; p.ku_dato = ""; p.ku_score = ""; }
+  const ku = $(`#${idp}-ku`, el); if (ku && p.type !== "intern") { p.ku_dato = ku.value; p.ku_score = $(`#${idp}-kus`, el).value.trim(); }
   return p;
 }
 function pulseBlock(pulse) {
-  return `<div class="pulse">${PULSE.map(pm => `<fieldset class="field"><legend>${pm.name}</legend><div class="scale" data-pulse="${pm.k}">${[1, 2, 3, 4, 5].map(v => `<button type="button" aria-pressed="${pulse[pm.k] === v}" data-v="${v}" title="${esc(pm.anchors[v - 1])}">${v}</button>`).join("")}</div><div class="anchor" id="anchor-${pm.k}">${esc(pm.anchors[pulse[pm.k] - 1])}</div></fieldset>`).join("")}</div>`;
+  return `<div class="pulse">${PULSE.map(pm => `<fieldset class="field"><legend>${pm.name}</legend><div class="scale" data-pulse="${pm.k}">${[1, 2, 3, 4, 5].map(v => `<button type="button" aria-pressed="${pulse[pm.k] === v}" data-v="${v}" title="${esc(pm.anchors[v - 1])}">${v}</button>`).join("")}</div><div class="anchor" id="anchor-${pm.k}">${pulse[pm.k] ? esc(pm.anchors[pulse[pm.k] - 1]) : "Velg 1–5"}</div></fieldset>`).join("")}</div>`;
 }
-function bindPulse(el, pulse) {
-  $$("[data-pulse]", el).forEach(g => $$("button", g).forEach(b => b.addEventListener("click", () => { pulse[g.dataset.pulse] = Number(b.dataset.v); $$("button", g).forEach(x => x.setAttribute("aria-pressed", x === b)); $(`#anchor-${g.dataset.pulse}`, el).textContent = PULSE.find(x => x.k === g.dataset.pulse).anchors[Number(b.dataset.v) - 1]; })));
-}
-let homePulse = null;
+function lightButtons(status, attr) { return STATUS.map((st, k) => `<button type="button" class="light ${SC[st]}" ${attr}="${st}" aria-pressed="${status === st}"><i></i>${LIGHT[st]}<kbd>${k + 1}</kbd></button>`).join(""); }
+let homePulse = null, homePerson = null, homeUtv = [], homeMellom = false;
 function renderHome() {
   if (okt) { saveDraft(); stopTimer(); okt = null; }
   hudMode = "idle"; renderHud(); show("home");
   const el = $("#screen-home"); const today = isoToday();
-  const first = !store.me.konsulent || store.projects.length === 0;
+  const first = !store.me.konsulent;
   let draft = null;
-  if (store.okt && Array.isArray(store.okt.queue)) { const q = store.okt.queue.filter(pid => projectById(pid) && store.okt.sessions[pid]); if (q.length) { store.okt.queue = q; store.okt.idx = Math.min(store.okt.idx, q.length - 1); draft = store.okt; } else { store.okt = null; saveStore(); } }
-  homePulse = {}; homeUtv = [];
-  const lastAny = lastSessionAny(); const lastTimer = lastAny && lastAny.fields ? lastAny.fields.timer_uke : "";
+  if (store.okt && Array.isArray(store.okt.queue)) { const q = store.okt.queue.filter(pid => projectById(pid) && store.okt.sessions[pid]); if (q.length || store.okt.queue.length === 0) { store.okt.queue = q; store.okt.idx = Math.min(store.okt.idx, Math.max(0, q.length - 1)); draft = store.okt; } else { store.okt = null; saveStore(); } }
+  const lastAny = lastSessionAny(); const lp = lastMonthPerson();
+  homePulse = {}; homePerson = { timer_uke: "", S1: blankSig(), kontakt: "", N1: blankSig(), N3: blankSig() }; homeUtv = [];
+  const act = activeProjects();
   const closedSince = lastAny ? store.tiltak.filter(t => t.status === "Lukket" && t.lukket && t.lukket >= lastAny.date).length : 0;
   const pStreak = lastAny ? personStreak(lastAny.date) : 0;
   const hint = YEAR_HINTS[Number(today.slice(5, 7))];
+  const sumAndel = act.reduce((n, p) => n + num(p.andel), 0);
+  const svarSession = lastAny && lastAny.lederSvar === undefined && store.me.teamleder ? lastAny : null;
   el.innerHTML = `
     <div class="home">
       <div class="home-head">
         <span class="eyebrow">Månedlig · 3 min per prosjekt</span>
-        <h1>${first ? "Tre minutter per prosjekt. Start med det første." : `Hei ${esc(store.me.konsulent.split(" ")[0])}. ${fmtDate(today)}.`}</h1>
-        <p class="muted">${first ? "Sju påstander, tre linjer. Uenig? Sett gult eller rødt. Forrige måned ligger klar neste gang." : "Huk av prosjektene du tar nå. Forrige måned vises som referanse, du setter fargene på nytt."}</p>
+        <h1>${first ? "Tre minutter per prosjekt. Start med deg." : act.length ? `Hei ${esc(store.me.konsulent.split(" ")[0])}. ${fmtDate(today)}.` : `Hei ${esc(store.me.konsulent.split(" ")[0])}. Ingen oppdrag nå.`}</h1>
+        <p class="muted">${first ? "Sju påstander, tre linjer. Uenig? Sett gult eller rødt. Forrige måned ligger klar neste gang." : act.length ? "Huk av det du tar nå. Forrige måned vises som referanse, du setter fargene på nytt." : "Det er Involveds ansvar å finne neste oppdrag, og ditt å si hva du trenger. Runden tar to minutter."}</p>
         ${!first && (closedSince || pStreak >= 2 || hint) ? `<p class="muted small">${[closedSince ? `Siden sist: ${closedSince} tiltak lukket.` : "", pStreak >= 2 ? `${pStreak} måneder på rad med ROMA.` : "", hint || ""].filter(Boolean).join(" ")}</p>` : ""}
       </div>
       ${first ? `<div class="roma-letters"><div><b>R</b>Ressurs</div><div><b>O</b>Oversikt</div><div><b>M</b>Menneske</div><div><b>A</b>Ansvar</div></div>` : ""}
-      ${draft ? `<div class="resume"><div><b>Påbegynt runde</b><br><span class="muted">${draft.queue.map(pid => esc((projectById(pid) || {}).prosjekt || "")).join(", ")} · ${fmtDate(draft.date)}</span></div><div class="btn-row"><button type="button" class="btn primary small" id="resume-btn">Fortsett der du slapp</button><button type="button" class="btn ghost small" id="discard-btn">Slett</button></div></div>` : ""}
+      ${draft ? `<div class="resume"><div><b>Påbegynt runde</b><br><span class="muted">${draft.queue.length ? draft.queue.map(pid => esc((projectById(pid) || {}).prosjekt || "")).join(", ") : "Mellom oppdrag"} · ${fmtDate(draft.date)}</span></div><div class="btn-row"><button type="button" class="btn primary small" id="resume-btn">Fortsett der du slapp</button><button type="button" class="btn ghost small" id="discard-btn">Slett</button></div></div>` : ""}
       ${first ? `
       <form class="card" id="first-form" autocomplete="off"><div class="pform">
-        <h2>Deg og det første prosjektet</h2>
+        <h2>Deg først</h2>
         <div class="grid-2">
           <div class="field"><label for="me-konsulent">Ditt navn</label><input id="me-konsulent" value="${esc(store.me.konsulent)}" required placeholder="Konsulent"></div>
           <div class="field"><label for="me-teamleder">Nærmeste leder (valgfritt)</label><input id="me-teamleder" value="${esc(store.me.teamleder)}" placeholder="Teamleder"></div>
         </div>
-        ${projectForm(null, "Lagre", "np", true)}
-        <p class="muted small">Flere prosjekter og detaljer som rolle, prosjektnummer og kontrakt legger du til etterpå.</p>
+        <div class="btn-row"><button type="submit" class="btn primary">Lagre</button></div>
+        <p class="muted small">Prosjekter og roller legger du til etterpå. Har du ingen akkurat nå, kjører du runden uten.</p>
       </div></form>` : `
       <div class="plist" id="plist">
-        ${store.projects.map(p => {
+        ${act.map(p => {
           const last = lastSessionFor(p.id); const next = last ? addMonths(last.date, 1) : null; const due = !last || last.date.slice(0, 7) < today.slice(0, 7);
-          const streak = last ? streakFor(p.id, last.date) : 0; const open = openTiltak(p.id).length;
+          const open = openTiltak(p.id).length; const small = !isIntern(p) && num(p.andel) > 0 && num(p.andel) <= SMALL_SHARE;
           return `<div class="pcard" data-pid="${esc(p.id)}">
             <input type="checkbox" id="chk-${esc(p.id)}" ${due ? "checked" : ""} aria-label="Ta med ${esc(p.prosjekt)}">
-            <label class="pname" for="chk-${esc(p.id)}"><b>${esc(p.prosjekt)}</b><span class="pmeta">${p.kunde ? `<span>${esc(p.kunde)}</span>` : ""}<span>${last ? `sist ${fmtDate(last.date)}` : "første runde"}</span>${last ? `<span class="${due ? "due" : ""}">${due ? "klar for ny runde" : "neste " + fmtMonth(next)}</span>` : ""}${streak >= 2 ? `<span class="streak">streak ×${streak}</span>` : ""}${open ? `<span>${open} åpne tiltak</span>` : ""}${!p.kontraktstype ? `<span class="due">kontraktstype mangler</span>` : ""}</span></label>
+            <label class="pname" for="chk-${esc(p.id)}"><b>${esc(p.prosjekt)}</b><span class="pmeta">${isIntern(p) ? `<span>intern rolle</span>` : p.kunde ? `<span>${esc(p.kunde)}</span>` : ""}${p.andel ? `<span>${p.andel} %${small ? " · kort runde" : ""}</span>` : ""}<span>${last ? `sist ${fmtDate(last.date)}` : "første runde"}</span>${last ? `<span class="${due ? "due" : ""}">${due ? "klar for ny runde" : "neste " + fmtMonth(next)}</span>` : ""}${open ? `<span>${open} åpne tiltak</span>` : ""}${!isIntern(p) && !p.kontraktstype ? `<span class="due">kontraktstype mangler</span>` : ""}</span></label>
             <button type="button" class="btn ghost small" data-edit="${esc(p.id)}">Endre</button>
           </div>
-          <form class="card" id="edit-${esc(p.id)}" hidden>${projectForm(p, "Lagre", "e" + p.id)}</form>`;
+          <form class="card" id="edit-${esc(p.id)}" hidden autocomplete="off">${projectForm(p, "Lagre", "e" + p.id)}</form>`;
         }).join("")}
+        ${!act.length ? `<div class="empty">Ingen aktive prosjekter eller roller. Legg til når du har noe, eller kjør runden uten.</div>` : ""}
+        ${sumAndel > 100 ? `<p class="muted small">Andelene summerer til ${sumAndel} %. Over 100 er i seg selv et signal.</p>` : ""}
       </div>
-      <div class="card" id="pulse-card"><div class="area-head" style="margin-bottom:8px"><div><span class="eyebrow">Puls i dag · én gang for deg, ikke per prosjekt</span></div><span class="muted small">Kun til nærmeste leder</span></div>${pulseBlock(homePulse)}<div id="modebox" style="margin-top:12px"></div></div>
-      ${lastAny && lastAny.lederSvar === undefined && store.me.teamleder ? `<div class="card" id="svarbox"><div class="area-head"><div><b>Fikk du svar fra ${esc(store.me.teamleder)} på runden i ${fmtMonth(lastAny.date)}?</b><br><span class="muted small">Ærlighet skal føre til noe. Svaret går i ledereksporten.</span></div><div class="btn-row"><button type="button" class="btn small" data-svar="Ja">Ja</button><button type="button" class="btn small" data-svar="Nei">Nei</button></div></div></div>` : ""}
+      ${svarSession ? `<div class="card" id="svarbox"><div class="area-head"><div><b>Fikk du svar fra ${esc(store.me.teamleder)} på runden i ${fmtMonth(svarSession.date)}?</b><br><span class="muted small">Ærlighet skal føre til noe. Svaret går i ledereksporten.</span></div><div class="btn-row"><button type="button" class="btn small" data-svar="Ja">Ja</button><button type="button" class="btn small" data-svar="Nei">Nei</button></div></div></div>` : ""}
+      <div class="card" id="pulse-card">
+        <div class="area-head" style="margin-bottom:8px"><div><span class="eyebrow">Deg denne måneden · én gang, ikke per prosjekt</span></div><span class="muted small">Kun til nærmeste leder</span></div>
+        ${pulseBlock(homePulse)}
+        <div class="sig" data-person="S1" style="margin-top:10px"><div class="sig-main"><div class="sig-text"><div class="lbl"><span class="roma">R</span><b>Belastning</b>${lp && lp.person && lp.person.S1 ? `<span class="sist">sist ${LIGHT[lp.person.S1.status].toLowerCase()}</span>` : ""}</div><p>${PERSON.S1.t}</p></div><div class="lights">${lightButtons("OK", "data-pst")}</div></div>
+          <div class="fields"><label class="fld"><span>Timer per uke, alle oppdrag, ca.</span><input type="number" inputmode="decimal" step="any" id="p-timer" placeholder="${lp && lp.person && lp.person.timer_uke ? "sist " + esc(lp.person.timer_uke) : ""}"><em>t</em></label></div>
+          <div class="detail" id="p-s1-detail" hidden><textarea id="p-s1-comment" placeholder="Hva skjer? Én setning. Tas muntlig med leder om du vil." aria-label="Kommentar" autocomplete="off"></textarea></div>
+        </div>
+        <div class="sig" data-person="kontakt"><div class="sig-main"><div class="sig-text"><div class="lbl"><span class="roma">M</span><b>Tilhørighet</b>${lp && lp.person && lp.person.kontakt ? `<span class="sist">sist ${lp.person.kontakt}</span>` : ""}</div><p>Jeg har hatt reell kontakt med kollega eller leder i Involved siste måned.</p></div><div class="lights"><button type="button" class="light OK" data-kontakt="ja" aria-pressed="false"><i></i>Ja</button><button type="button" class="light Risiko" data-kontakt="nei" aria-pressed="false"><i></i>Nei</button></div></div></div>
+        <div id="modebox" style="margin-top:12px"></div>
+      </div>
       <div class="startbar card">
         <div><b id="start-count"></b><br><span class="muted small">${esc(store.me.konsulent)}${store.me.teamleder ? ` · leder ${esc(store.me.teamleder)}` : ""} · <button type="button" class="btn ghost small" id="me-edit">endre</button></span></div>
-        <div class="btn-row"><button type="button" class="btn" id="add-btn">+ Prosjekt</button><button type="button" class="btn primary" id="start-btn">${draft ? "Start ny runde" : "Start"}</button></div>
+        <div class="btn-row"><button type="button" class="btn" id="add-btn">+ Prosjekt eller rolle</button><button type="button" class="btn primary" id="start-btn">${draft ? "Start ny runde" : "Start"}</button></div>
       </div>
       <form class="card" id="add-form" hidden autocomplete="off">${projectForm(null, "Legg til", "np", true)}</form>
-      <form class="card" id="me-form" hidden><div class="pform"><div class="grid-2">
+      <form class="card" id="me-form" hidden autocomplete="off"><div class="pform"><div class="grid-2">
         <div class="field"><label for="me-konsulent">Ditt navn</label><input id="me-konsulent" value="${esc(store.me.konsulent)}" required></div>
         <div class="field"><label for="me-teamleder">Nærmeste leder</label><input id="me-teamleder" value="${esc(store.me.teamleder)}"></div></div>
         <div class="btn-row"><button type="submit" class="btn primary">Lagre</button></div></div></form>`}
@@ -631,54 +719,67 @@ function renderHome() {
     $("#discard-btn", el).addEventListener("click", ev => { const b = ev.currentTarget; if (b.dataset.armed) { store.okt = null; okt = null; saveStore(); renderHome(); } else { b.dataset.armed = "1"; b.textContent = "Sikker? Slett"; b.classList.add("danger"); } });
   } else if (store.okt) { store.okt = null; saveStore(); }
   if (first) {
-    $("#first-form", el).addEventListener("submit", ev => { ev.preventDefault(); store.me.konsulent = $("#me-konsulent", el).value.trim(); store.me.teamleder = $("#me-teamleder", el).value.trim(); const p = readProjectForm(el, "np"); if (!p.prosjekt || !store.me.konsulent || !p.kontraktstype) { toast("Fyll inn navn, prosjekt og kontraktstype"); return; } store.projects.push(p); saveStore(); renderHome(); toast("Lagret. Sett puls og trykk Start."); });
+    $("#first-form", el).addEventListener("submit", ev => { ev.preventDefault(); store.me.konsulent = $("#me-konsulent", el).value.trim(); store.me.teamleder = $("#me-teamleder", el).value.trim(); if (!store.me.konsulent) { toast("Skriv navnet ditt"); return; } saveStore(); renderHome(); toast("Lagret. Legg til prosjekt eller rolle, eller kjør runden uten."); });
     return;
   }
-  bindPulse(el, homePulse);
-  $$("[data-pulse] button", el).forEach(b => b.addEventListener("click", () => renderModeBox(el, lastTimer)));
-  renderModeBox(el, lastTimer);
-  $$("[data-svar]", el).forEach(b => b.addEventListener("click", () => { lastAny.lederSvar = b.dataset.svar; saveStore(); const box = $("#svarbox", el); box.innerHTML = `<p class="muted small">${b.dataset.svar === "Ja" ? "Bra. Sløyfen er lukket." : "Notert. Det står i ledereksporten, og du kan minne leder på det i Teams."}</p>`; }));
-  const updateCount = () => { const n = $$("#plist input[type=checkbox]:checked", el).length; $("#start-count", el).textContent = n ? `${n} prosjekt${n > 1 ? "er" : ""} · ≈ ${n * 3} min` : "Velg minst ett prosjekt"; $("#start-btn", el).disabled = n === 0; $$(".pcard", el).forEach(c => c.classList.toggle("off", !$("input", c).checked)); };
+  $$("[data-pulse] button", el).forEach(b => b.addEventListener("click", () => { const g = b.closest("[data-pulse]"); homePulse[g.dataset.pulse] = Number(b.dataset.v); $$("button", g).forEach(x => x.setAttribute("aria-pressed", x === b)); $(`#anchor-${g.dataset.pulse}`, el).textContent = PULSE.find(x => x.k === g.dataset.pulse).anchors[Number(b.dataset.v) - 1]; renderModeBox(el); }));
+  $$("[data-pst]", el).forEach(b => b.addEventListener("click", () => { homePerson.S1.status = b.dataset.pst; $$("[data-pst]", el).forEach(x => x.setAttribute("aria-pressed", x === b)); const row = b.closest(".sig"); row.className = `sig st-${SC[homePerson.S1.status]}`; $("#p-s1-detail", el).hidden = homePerson.S1.status === "OK"; renderModeBox(el); }));
+  $("#p-s1-comment", el).addEventListener("input", ev => { homePerson.S1.comment = ev.target.value; });
+  $("#p-timer", el).addEventListener("change", ev => { homePerson.timer_uke = ev.target.value; const t = num(ev.target.value); const sug = t > 45 ? "Krever tiltak" : t > 40 ? "Risiko" : null; if (sug && RANK[sug] > RANK[homePerson.S1.status]) { $(`[data-pst="${sug}"]`, el).click(); toast(`Satt til ${LIGHT[sug].toLowerCase()} ut fra timene. Endre hvis det ikke stemmer.`); } else renderModeBox(el); });
+  $$("[data-kontakt]", el).forEach(b => b.addEventListener("click", () => { homePerson.kontakt = b.dataset.kontakt; $$("[data-kontakt]", el).forEach(x => x.setAttribute("aria-pressed", x === b)); b.closest(".sig").className = `sig st-${homePerson.kontakt === "nei" ? "Risiko" : "OK"}`; }));
+  $$("[data-svar]", el).forEach(b => b.addEventListener("click", () => { const m = svarSession.date.slice(0, 7); store.sessions.forEach(x => { if (x.date.slice(0, 7) === m) x.lederSvar = b.dataset.svar; }); saveStore(); $("#svarbox", el).innerHTML = `<p class="muted small">${b.dataset.svar === "Ja" ? "Bra. Sløyfen er lukket." : "Notert. Det står i ledereksporten, og du kan minne leder på det i Teams."}</p>`; }));
+  const updateCount = () => { const chk = $$("#plist input[type=checkbox]:checked", el); const n = chk.length; const mins = chk.reduce((m, c) => { const pr = projectById(c.closest(".pcard").dataset.pid); return m + (pr && !isIntern(pr) && num(pr.andel) > 0 && num(pr.andel) <= SMALL_SHARE ? 1 : 3); }, 0); $("#start-count", el).textContent = n ? `${n} valgt · ≈ ${mins} min` : act.length ? "Ingen prosjekter valgt: runde uten prosjekt, ≈ 2 min" : "Runde uten prosjekt, ≈ 2 min"; $$(".pcard", el).forEach(c => c.classList.toggle("off", !$("input", c).checked)); homeMellom = n === 0; renderModeBox(el); };
   $$("#plist input[type=checkbox]", el).forEach(c => c.addEventListener("change", updateCount)); updateCount();
   $("#start-btn", el).addEventListener("click", ev => {
-    const ids = $$("#plist input[type=checkbox]:checked", el).map(c => c.closest(".pcard").dataset.pid); if (!ids.length) return;
+    const ids = $$("#plist input[type=checkbox]:checked", el).map(c => c.closest(".pcard").dataset.pid);
     if (!PULSE.every(pm => homePulse[pm.k])) { toast("Sett puls først, begge skalaene"); $("#pulse-card", el).scrollIntoView({ block: "center" }); return; }
+    if (!homePerson.kontakt) { toast("Svar ja eller nei på tilhørighet"); $('[data-person="kontakt"]', el).scrollIntoView({ block: "center" }); return; }
     const b = ev.currentTarget; if (draft && !b.dataset.armed) { b.dataset.armed = "1"; b.textContent = "Sikker? Sletter påbegynt runde"; return; }
-    startOkt(ids, homePulse, homeUtv);
+    startOkt(ids);
   });
   $("#add-btn", el).addEventListener("click", () => { const f = $("#add-form", el); f.hidden = !f.hidden; if (!f.hidden) $("#np-prosjekt", f).focus(); });
-  $("#add-form", el).addEventListener("submit", ev => { ev.preventDefault(); const p = readProjectForm($("#add-form", el), "np"); if (!p.prosjekt || !p.kontraktstype) { toast("Fyll inn prosjekt og kontraktstype"); return; } store.projects.push(p); saveStore(); renderHome(); toast(`${p.prosjekt} lagt til`); });
+  bindTypeChips($("#add-form", el), "np");
+  $("#add-form", el).addEventListener("submit", ev => { ev.preventDefault(); const p = readProjectForm($("#add-form", el), "np"); if (!p.prosjekt || (p.type === "prosjekt" && !p.kontraktstype)) { toast(p.type === "prosjekt" ? "Fyll inn prosjekt og kontraktstype" : "Fyll inn rollen"); return; } store.projects.push(p); saveStore(); renderHome(); toast(`${p.prosjekt} lagt til`); });
   $("#me-edit", el).addEventListener("click", () => { const f = $("#me-form", el); f.hidden = !f.hidden; });
   $("#me-form", el).addEventListener("submit", ev => { ev.preventDefault(); const f = $("#me-form", el); store.me.konsulent = $("#me-konsulent", f).value.trim(); store.me.teamleder = $("#me-teamleder", f).value.trim(); saveStore(); renderHome(); });
   $$("[data-edit]", el).forEach(b => b.addEventListener("click", () => { const f = $(`#edit-${b.dataset.edit}`, el); f.hidden = !f.hidden; }));
-  store.projects.forEach(p => {
-    const f = $(`#edit-${p.id}`, el); if (!f) return;
+  act.forEach(p => {
+    const f = $(`#edit-${p.id}`, el); if (!f) return; bindTypeChips(f, "e" + p.id);
     f.addEventListener("submit", ev => { ev.preventDefault(); readProjectForm(f, "e" + p.id, p); saveStore(); renderHome(); toast("Lagret"); });
     $("[data-cancel]", f).addEventListener("click", () => { f.hidden = true; });
-    $("[data-archive]", f).addEventListener("click", ev => { const b = ev.currentTarget; if (b.dataset.armed) { store.projects = store.projects.filter(x => x.id !== p.id); saveStore(); renderHome(); } else { b.dataset.armed = "1"; b.textContent = "Sikker? Fjern"; } });
+    $("[data-end]", f).addEventListener("click", () => { const box = $("[data-slutt]", f); box.hidden = !box.hidden; if (!box.hidden) box.scrollIntoView({ block: "center" }); });
+    $("[data-end-confirm]", f).addEventListener("click", () => {
+      p.slutt = { levert: $(`#e${p.id}-sl1`, f).value.trim(), annerledes: $(`#e${p.id}-sl2`, f).value.trim(), uavsluttet: $(`#e${p.id}-sl3`, f).value.trim(), dato: today };
+      p.avsluttet = today; const open = openTiltak(p.id);
+      open.forEach(t => { if (p.slutt.uavsluttet && !NOTHING.test(p.slutt.uavsluttet)) return; t.status = "Lukket"; t.lukket = today; t.kommentar = [t.kommentar, "Lukket ved avslutning av prosjektet"].filter(Boolean).join(" · "); });
+      saveStore(); renderHome(); toast(`${p.prosjekt} avsluttet. Historikken ligger i Oversikt${open.length ? `, ${open.length} tiltak ${p.slutt.uavsluttet && !NOTHING.test(p.slutt.uavsluttet) ? "står åpne" : "lukket"}` : ""}.`);
+    });
   });
 }
-let homeUtv = [];
-function renderModeBox(el, lastTimer) {
+function renderModeBox(el) {
   const box = $("#modebox", el); if (!box) return;
   if (!PULSE.every(pm => homePulse[pm.k])) { box.innerHTML = ""; return; }
-  const mode = modeOf(homePulse, lastTimer); const heavy = isHeavy(homePulse, []);
+  const mode = modeOf(homePulse, homePerson.timer_uke, homeMellom); const heavy = isHeavy(homePulse, homePerson, []);
   const leder = store.me.teamleder || "leder";
-  let html = `<span class="modepill ${mode}">${mode === "Travel" ? "Travel måned" : mode === "Rolig" ? "Rolig måned" : "Balansert måned"}</span> <span class="muted small">${mode === "Travel" ? "Sju signaler, tre linjer. Resten kan vente." : mode === "Rolig" ? "Det er ikke et problem, det er en åpning." : ""}</span>`;
+  let html = `<span class="modepill ${mode}">${MODE_LABEL[mode]}</span> <span class="muted small">${heavy ? "" : mode === "Travel" ? "Sju signaler, tre linjer. Resten kan vente." : mode === "Rolig" ? "Det er ikke et problem, det er en åpning." : mode === "Mellom" ? "Det er Involveds ansvar å finne neste oppdrag, og ditt å si hva du trenger." : ""}</span>`;
   if (heavy) html += `<div class="note gold" style="margin-top:10px"><b>Takk for at du sier det.</b> Dette går bare til ${esc(leder)}. ${esc(leder)} ringer deg innen tre virkedager. Du trenger ikke skrive mer her enn du vil.</div>`;
-  const showUtv = mode === "Rolig" || box.dataset.utv === "1";
-  if (showUtv) html += `<div class="utv" style="margin-top:10px"><div><b>Du har rom nå. Hva vil du bruke det på?</b><br><span class="muted small">Fakturering svinger. Kompetanse gjør det ikke. Velg én eller to, leder ser valget og hjelper med tid.</span></div><div class="chips">${UTVIKLING.map(u => `<button type="button" class="chip opt" data-utv="${u.k}" aria-pressed="${homeUtv.some(x => x.k === u.k)}" title="${esc(u.d)}">${esc(u.l)} · ca. ${u.t} t</button>`).join("")}</div>${homeUtv.map(x => `<div class="chosen"><span>${esc(UTV_BY[x.k].l)}</span><label class="muted small">ca. <input type="number" data-utvt="${x.k}" value="${x.t}" min="1"> t</label><span class="muted small">klart ${fmtMonth(addMonths(isoToday(), 1))}</span></div>`).join("")}</div>`;
-  else html += ` <button type="button" class="btn ghost small" id="utv-toggle">Legg til utvikling</button>`;
+  const showUtv = !heavy && (mode === "Rolig" || mode === "Mellom" || box.dataset.utv === "1");
+  if (!showUtv && homeUtv.length && box.dataset.utv !== "1") homeUtv = [];
+  if (showUtv) html += `<div class="utv" style="margin-top:10px"><div><b>${mode === "Mellom" ? "Hvis du vil: hva har du lyst til å bruke tiden på?" : "Du har rom nå. Hva vil du bruke det på?"}</b><br><span class="muted small">Fakturering svinger. Kompetanse gjør det ikke. Velg én eller to, leder ser valget og hjelper med tid.</span></div><div class="chips">${UTVIKLING.map(u => `<button type="button" class="chip opt" data-utv="${u.k}" aria-pressed="${homeUtv.some(x => x.k === u.k)}" title="${esc(u.d)} · ca. ${u.t} t">${esc(u.l)}</button>`).join("")}</div>${homeUtv.map(x => `<div class="chosen"><span>${esc(UTV_BY[x.k].l)}</span><label class="muted small">ca. <input type="number" data-utvt="${x.k}" value="${x.t}" min="1"> t</label><label class="muted small">klart <input type="month" data-utvm="${x.k}" value="${x.m}"></label></div>`).join("")}</div>`;
+  else if (!heavy) html += ` <button type="button" class="btn ghost small" id="utv-toggle">Legg til utvikling</button>`;
   box.innerHTML = html;
-  const tg = $("#utv-toggle", box); if (tg) tg.addEventListener("click", () => { box.dataset.utv = "1"; renderModeBox(el, lastTimer); });
-  $$("[data-utv]", box).forEach(b => b.addEventListener("click", () => { const k = b.dataset.utv; const i = homeUtv.findIndex(x => x.k === k); if (i >= 0) homeUtv.splice(i, 1); else if (homeUtv.length < 2) homeUtv.push({ k, t: UTV_BY[k].t }); else { toast("Maks to. Én er ofte nok."); return; } renderModeBox(el, lastTimer); }));
+  const tg = $("#utv-toggle", box); if (tg) tg.addEventListener("click", () => { box.dataset.utv = "1"; renderModeBox(el); });
+  $$("[data-utv]", box).forEach(b => b.addEventListener("click", () => { const k = b.dataset.utv; const i = homeUtv.findIndex(x => x.k === k); if (i >= 0) homeUtv.splice(i, 1); else if (homeUtv.length < 2) homeUtv.push({ k, t: UTV_BY[k].t, m: addMonths(isoToday(), UTV_BY[k].t >= 30 ? 3 : 1).slice(0, 7) }); else { toast("Maks to. Én er ofte nok."); return; } renderModeBox(el); }));
   $$("[data-utvt]", box).forEach(inp => inp.addEventListener("change", () => { const x = homeUtv.find(y => y.k === inp.dataset.utvt); if (x) x.t = Math.max(1, Number(inp.value) || x.t); }));
+  $$("[data-utvm]", box).forEach(inp => inp.addEventListener("change", () => { const x = homeUtv.find(y => y.k === inp.dataset.utvm); if (x && /^\d{4}-\d{2}$/.test(inp.value)) x.m = inp.value; }));
 }
-function startOkt(ids, pulse, utv) {
-  okt = { id: uid(), date: isoToday(), queue: ids, idx: 0, pulse: Object.assign({}, pulse), utvikling: (utv || []).map(x => Object.assign({}, x)), sessions: {} };
+function startOkt(ids) {
+  const mellom = ids.length === 0;
+  okt = { id: uid(), date: isoToday(), queue: ids, idx: 0, pulse: Object.assign({}, homePulse), person: JSON.parse(JSON.stringify(homePerson)), utvikling: homeUtv.map(x => Object.assign({}, x)), mode: modeOf(homePulse, homePerson.timer_uke, mellom), sessions: {} };
   ids.forEach(pid => { okt.sessions[pid] = makeSession(projectById(pid)); });
-  okt.sessions[ids[0]].startedAt = Date.now();
-  saveDraft(); startTimer(); renderRun();
+  if (mellom) { okt.sessions[""] = makeMellomSession(); okt.queue = []; }
+  const s0 = mellom ? okt.sessions[""] : okt.sessions[ids[0]]; s0.startedAt = Date.now();
+  saveDraft(); startTimer(); if (mellom) renderMellom(); else renderRun();
 }
 
 /* =====================================================================
@@ -686,33 +787,33 @@ function startOkt(ids, pulse, utv) {
    ===================================================================== */
 function sigAuto(S, s) {
   const f = s.fields || {};
-  if (S.id === "S1") return num(f.timer_uke) > 45 ? "Krever tiltak" : num(f.timer_uke) > 40 ? "Risiko" : null;
-  if (S.id === "S3") { const hasNums = sigFields(S, s).length && f.ramme && f.fremdrift; return (hasNums && num(f.ramme) > 80 && num(f.fremdrift) < 60) ? "Krever tiltak" : ((hasNums && num(f.ramme) > num(f.fremdrift) + 10) || f.utestaende) ? "Risiko" : null; }
-  if (S.id === "S7") { const sd = s.project.sluttdato; return sd && sd < addDays(s.date, 90) ? "Risiko" : null; }
+  if (S.id === "S3") { if (isIntern(s.project)) return null; const hasNums = sigFields(S, s).length && f.ramme && f.fremdrift; return (hasNums && num(f.ramme) > 80 && num(f.fremdrift) < 60) ? "Krever tiltak" : ((hasNums && num(f.ramme) > num(f.fremdrift) + 10) || f.utestaende) ? "Risiko" : null; }
+  if (S.id === "S7") { if (isIntern(s.project)) return null; const sd = s.project.sluttdato; return sd && sd < addDays(s.date, 90) ? "Risiko" : null; }
   return null;
 }
 function renderSig(s, S) {
   const a = s.sig[S.id]; const prev = s.prevId ? store.sessions.find(x => x.id === s.prevId) : null; const pa = prev && prev.sig && prev.sig[S.id];
-  const flagged = a.status !== "OK"; const changed = pa && pa.status !== a.status;
-  const lights = STATUS.map((st, k) => `<button type="button" class="light ${SC[st]}" data-st="${st}" aria-pressed="${a.status === st}"><i></i>${LIGHT[st]}<kbd>${k + 1}</kbd></button>`).join("");
-  const flds = sigFields(S, s);
-  const pf = s.prevFields || {};
-  const fields = (flds.length || S.toggle || S.id === "S7") ? `<div class="fields">${flds.map(f => `<label class="fld"><span>${esc(f.l)}</span><input type="number" inputmode="decimal" step="any" data-fld="${f.k}" value="${esc(s.fields[f.k] || "")}" placeholder="${pf[f.k] ? "sist " + esc(pf[f.k]) : ""}"><em>${esc(f.u)}</em></label>`).join("")}${S.toggle ? `<label class="fld"><input type="checkbox" data-fld="${S.toggle.k}" ${s.fields[S.toggle.k] ? "checked" : ""}><span>${esc(S.toggle.l)}</span></label>` : ""}${S.id === "S3" && !s.project.kontraktstype ? `<span class="muted small">Sett kontraktstype under Endre prosjekt for å få tallfelt.</span>` : ""}${S.id === "S7" ? `<span class="fld"><span>Løper ut</span><b class="mono">${fmtDate(s.project.sluttdato) || "ikke satt"}</b></span>` : ""}</div>` : "";
+  const flagged = a.status === "Risiko" || a.status === "Krever tiltak"; const changed = pa && pa.status !== a.status && a.status !== NR;
+  const nr = a.status === NR;
+  const lights = nr ? `<button type="button" class="light" data-st="OK"><i></i>Ta med</button>` : lightButtons(a.status, "data-st");
+  const flds = sigFields(S, s); const pf = s.prevFields || {};
+  const fields = !nr && (flds.length || (S.toggle && !isIntern(s.project)) || (S.id === "S7" && !isIntern(s.project))) ? `<div class="fields">${flds.map(f => `<label class="fld"><span>${esc(f.l)}</span><input type="number" inputmode="decimal" step="any" data-fld="${f.k}" value="${esc(s.fields[f.k] || "")}" placeholder="${pf[f.k] ? "sist " + esc(pf[f.k]) : ""}"><em>${esc(f.u)}</em></label>`).join("")}${S.toggle && !isIntern(s.project) ? `<label class="fld"><input type="checkbox" data-fld="${S.toggle.k}" ${s.fields[S.toggle.k] ? "checked" : ""}><span>${esc(S.toggle.l)}</span></label>` : ""}${S.id === "S3" && !isIntern(s.project) && !s.project.kontraktstype ? `<span class="muted small">Sett kontraktstype under Endre for å få tallfelt.</span>` : ""}${S.id === "S7" && !isIntern(s.project) ? `<span class="fld"><span>Løper ut</span><b class="mono">${fmtDate(s.project.sluttdato) || "ikke satt"}</b></span>` : ""}</div>` : "";
+  const ku = S.id === "S5" && !isIntern(s.project) ? (s.project.ku_dato ? `<div class="muted small">Siste kundeundersøkelse ${fmtDate(s.project.ku_dato)}${s.project.ku_score ? `, score ${esc(s.project.ku_score)}` : ""}${monthsBetween(s.project.ku_dato, s.date) >= 12 ? " · over ett år siden, tid for ny?" : ""}</div>` : `<div class="muted small">Ingen kundeundersøkelse registrert. Legg inn dato under Endre når den er sendt.</div>`) : "";
   const fristOpts = [["+2 uker", addDays(s.date, 14)], ["Neste ROMA", addMonths(s.date, 1)]];
   const detail = flagged ? `<div class="detail">
       <textarea data-field="comment" placeholder="${S.sensitive ? "Kort, uten navn. Detaljene tas muntlig med leder." : a.status === "Krever tiltak" ? "Hva skjer? Én setning. Tiltak er valgfritt, leder tar det ellers." : "Hva skjer? Én setning."}" aria-label="Kommentar" autocomplete="off">${esc(a.comment)}</textarea>
-      ${S.sensitive && a.status === "Krever tiltak" ? `<p class="note red small"><b>Dette tas muntlig, ikke i tekst.</b> Ingen navn her. ${esc(store.me.teamleder || "Leder")} kontakter deg innen én uke, og saken går utenom tiltaksloggen.</p>` : `<div class="tiltak-grid">
+      ${S.sensitive ? (a.status === "Krever tiltak" ? `<p class="note red small"><b>Dette tas muntlig, ikke i tekst.</b> Ingen navn her. ${esc(store.me.teamleder || "Leder")} kontakter deg innen én uke, og saken går utenom tiltaksloggen.</p>` : `<p class="muted small">Går kun til nærmeste leder, ikke i prosjektmappen.</p>`) : `<div class="tiltak-grid">
         <input type="text" data-field="tiltak" placeholder="Tiltak (ansvarlig: ${esc(a.ansvarlig || store.me.konsulent)})" value="${esc(a.tiltak)}" aria-label="Tiltak" autocomplete="off">
         <div class="frist" role="group" aria-label="Frist">${fristOpts.map(([lab, d]) => `<button type="button" data-frist="${d}" aria-pressed="${a.frist === d}">${lab}</button>`).join("")}<input type="date" data-field="frist" value="${esc(a.frist)}" aria-label="Frist, dato"></div>
       </div>`}
-      <details class="deeper" data-deeper="${S.id}"><summary>Gå dypere (${S.deep.length} spørsmål)</summary><div class="qlist"></div></details>
+      <details class="deeper" data-deeper="${S.id}"><summary>Gå dypere (${sigDeep(S, s).length} spørsmål)</summary><div class="qlist"></div></details>
     </div>` : "";
   return `<div class="sig st-${SC[a.status]}" data-sig="${S.id}" tabindex="-1">
     <div class="sig-main">
-      <div class="sig-text"><div class="lbl"><span class="roma">${S.roma}</span><b>${esc(S.name)}</b>${pa ? `<span class="sist">sist ${LIGHT[pa.status] ? LIGHT[pa.status].toLowerCase() : "grønt"}</span>` : ""}${changed ? `<span class="chg">endret</span>` : ""}</div><p>${esc(sigText(S, s))}</p></div>
+      <div class="sig-text"><div class="lbl"><span class="roma">${S.roma}</span><b>${esc(sigName(S, s))}</b>${pa && pa.status !== NR ? `<span class="sist">sist ${LIGHT[pa.status] ? LIGHT[pa.status].toLowerCase() : "grønt"}</span>` : ""}${changed ? `<span class="chg">endret</span>` : ""}${nr ? `<span class="sist">ikke i kort runde</span>` : ""}</div><p>${esc(sigText(S, s))}</p></div>
       <div class="lights">${lights}</div>
     </div>
-    ${fields}${detail}
+    ${fields}${ku}${detail}
   </div>`;
 }
 function bindSig(s, S) {
@@ -725,7 +826,7 @@ function bindSig(s, S) {
     s.fields[inp.dataset.fld] = inp.type === "checkbox" ? (inp.checked ? "ja" : "") : inp.value; saveDraft();
     const sug = sigAuto(S, s); if (sug && RANK[sug] > RANK[a.status]) { setSig(s, S, sug, "auto"); toast(`Satt til ${LIGHT[sug].toLowerCase()} ut fra tallene. Endre hvis det ikke stemmer.`); }
   }));
-  const dd = $("[data-deeper]", row); if (dd) dd.addEventListener("toggle", () => { if (dd.open && !dd.dataset.built) { dd.dataset.built = "1"; const list = $(".qlist", dd); list.innerHTML = S.deep.map(id => renderRow(s, Q_AREA[id], Q_BY[id], Q_AREA[id].qs.indexOf(Q_BY[id]))).join(""); S.deep.forEach(id => bindRow(s, Q_AREA[id], Q_BY[id])); } });
+  const dd = $("[data-deeper]", row); if (dd) dd.addEventListener("toggle", () => { if (dd.open && !dd.dataset.built) { dd.dataset.built = "1"; const list = $(".qlist", dd); const ids = sigDeep(S, s); list.innerHTML = ids.map(id => renderRow(s, Q_AREA[id], Q_BY[id], Q_AREA[id].qs.indexOf(Q_BY[id]))).join(""); ids.forEach(id => bindRow(s, Q_AREA[id], Q_BY[id])); } });
 }
 function setSig(s, S, status, mode) {
   const a = s.sig[S.id]; const was = a.status; a.status = status;
@@ -735,64 +836,92 @@ function setSig(s, S, status, mode) {
   const old = $(`.sig[data-sig="${S.id}"]`); const hadCursor = old.classList.contains("cursor");
   const tmp = document.createElement("div"); tmp.innerHTML = renderSig(s, S); const fresh = tmp.firstElementChild; old.replaceWith(fresh); if (hadCursor) { fresh.classList.add("cursor"); cursorRow = fresh; }
   bindSig(s, S);
-  if (status !== "OK" && was === "OK" && mode === "click") { const ta = $("textarea", fresh); if (ta && matchMedia("(hover: hover)").matches) ta.focus(); }
+  if (status !== "OK" && (was === "OK" || was === NR) && mode === "click") { const ta = $("textarea", fresh); if (ta && matchMedia("(hover: hover)").matches) ta.focus(); }
   else if (mode === "click" || mode === "key") { const b = $(`[data-st="${status}"]`, fresh); if (b) b.focus(); }
+}
+function punkterBlock(s, prev, list, travel) {
+  return `<div class="card punkter" id="punkter">
+    <div class="area-head"><div><span class="eyebrow">Viktigste punkter</span><h3>Det leder leser</h3></div><span class="muted small">Datoer og tall hjelper.</span></div>
+    ${list.map(P => { const pv = prev && prev.punkter ? prev.punkter[P.k] : ""; return `<div class="prow"><label for="pk-${P.k}">${P.l}</label><input id="pk-${P.k}" data-pk="${P.k}" value="${esc(s.punkter[P.k])}" placeholder="${esc(P.k === "trenger" && travel ? "Hva kan tas bort denne måneden?" : P.ph)}" autocomplete="off"><button type="button" class="none" data-none="${P.k}" aria-pressed="${NOTHING.test(s.punkter[P.k]) && s.punkter[P.k].trim() ? "true" : "false"}">${P.none}</button><button type="button" class="mic" data-mic="pk-${P.k}" title="Dikter. Lyden sendes til nettleserens taletjeneste (Google/Microsoft)." aria-label="Dikter" hidden>🎤</button>${pv && !NOTHING.test(pv) ? `<div class="prev">Sist: <span>${esc(pv)}</span><button type="button" class="btn ghost small" data-copyprev="${P.k}">Hent</button></div>` : ""}</div>`; }).join("")}
+  </div>`;
+}
+function bindPunkter(el, s, prev, list) {
+  const pks = $$("[data-pk]", el);
+  pks.forEach((inp, i) => { inp.addEventListener("input", () => { s.punkter[inp.dataset.pk] = inp.value; const nb = $(`[data-none="${inp.dataset.pk}"]`, el); if (nb) nb.setAttribute("aria-pressed", "false"); }); inp.addEventListener("keydown", ev => { if (ev.key === "Enter" && !ev.ctrlKey && !ev.metaKey) { ev.preventDefault(); if (i < pks.length - 1) pks[i + 1].focus(); else { inp.blur(); $("#next-btn", el).focus(); } } }); });
+  $$("[data-none]", el).forEach(b => b.addEventListener("click", () => { const k = b.dataset.none; const inp = $(`#pk-${k}`, el); const on = b.getAttribute("aria-pressed") !== "true"; inp.value = on ? list.find(P => P.k === k).none : ""; s.punkter[k] = inp.value; b.setAttribute("aria-pressed", String(on)); saveDraft(); }));
+  $$("[data-copyprev]", el).forEach(b => b.addEventListener("click", () => { const k = b.dataset.copyprev; const inp = $(`#pk-${k}`, el); inp.value = prev.punkter[k]; s.punkter[k] = inp.value; inp.focus(); }));
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (SR) $$("[data-mic]", el).forEach(b => { b.hidden = false; b.addEventListener("click", () => { const inp = $(`#${b.dataset.mic}`, el); const r = new SR(); r.lang = "nb-NO"; r.interimResults = false; b.classList.add("on"); r.onresult = ev => { const t = ev.results[0][0].transcript; inp.value = (inp.value ? inp.value + " " : "") + t; s.punkter[inp.dataset.pk] = inp.value; }; r.onend = () => b.classList.remove("on"); r.onerror = () => { b.classList.remove("on"); toast("Diktering utilgjengelig"); }; r.start(); }); });
+}
+function footHtml(last) { return `<div class="run-foot"><div class="inner"><button type="button" class="btn ghost" id="pause-btn">Pause</button><span class="hint"><kbd>↑</kbd><kbd>↓</kbd> rad · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> grønt gult rødt · <kbd>Enter</kbd> ${last ? "fullfør" : "neste"}</span><button type="button" class="btn primary" id="next-btn">${last ? "Fullfør →" : "Neste prosjekt →"}</button></div></div>`; }
+function bindFoot(el) {
+  $("#next-btn", el).addEventListener("click", nextProject);
+  $("#pause-btn", el).addEventListener("click", () => { saveDraft(); stopTimer(); okt = null; toast("Lagret."); renderHome(); });
+  el.addEventListener("focusin", ev => { if (/^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName) && matchMedia("(max-width: 640px)").matches) document.body.classList.add("kb"); });
+  el.addEventListener("focusout", () => document.body.classList.remove("kb"));
 }
 
 function renderRun() {
+  if (okt.queue.length === 0) return renderMellom();
   hudMode = "run"; show("run"); renderHud();
   const s = cur(); const p = s.project; const prev = s.prevId ? store.sessions.find(x => x.id === s.prevId) : null;
   const el = $("#screen-run"); const last = okt.idx === okt.queue.length - 1; cursorRow = null;
-  const prevFlags = prev ? SIGNALS.filter(S => prev.sig && prev.sig[S.id] && prev.sig[S.id].status !== "OK").length : 0;
+  const prevFlags = prev ? SIGNALS.filter(S => prev.sig && prev.sig[S.id] && prev.sig[S.id].status !== "OK" && prev.sig[S.id].status !== NR).length : 0;
   const open = openTiltak(p.id); const lastDeep = lastDeepFor(p.id);
   const deepDue = !lastDeep || lastDeep.date < addMonths(s.date, -3);
   const hist = sessionsFor(p.id); const prev2 = hist.length >= 2 ? hist[hist.length - 2] : null;
   const sameAsBefore = prev && prev2 && SIGNALS.every(S => (prev.sig[S.id] || {}).status === (prev2.sig[S.id] || {}).status) && !PUNKTER.some(P => (prev.punkter || {})[P.k] && !NOTHING.test(prev.punkter[P.k]));
-  const travel = modeOf(okt.pulse) === "Travel";
+  const travel = okt.mode === "Travel"; const short = isShortRound(s); const intern = isIntern(p);
+  const single = okt.queue.length === 1 && activeProjects().length === 1 && !intern && num(p.andel) >= 80;
   el.innerHTML = `
     <div class="run">
-      <div class="run-head"><div><span class="eyebrow">Prosjekt ${okt.idx + 1} av ${okt.queue.length} · ${fmtDate(s.date)}</span><h1>${esc(p.prosjekt)}</h1><p class="muted small">${esc([p.kunde, p.rolle, p.kontraktstype].filter(Boolean).join(" · "))}</p></div></div>
-      ${prev ? `<div class="lastbox"><div><b>${fmtMonth(prev.date)}:</b> <span class="lights-mini">${SIGNALS.map(S => `<i class="${SC[(prev.sig && prev.sig[S.id] || {}).status || "OK"]}"></i>`).join("")}</span> ${prevFlags ? `${prevFlags} flagget` : "alt grønt"}${open.length ? ` · ${open.length} åpne tiltak` : ""}. Vises som referanse, sett hver farge på nytt.${prev.takeaway ? `<br><span class="muted">Du tok med deg: «${esc(prev.takeaway)}»</span>` : ""}${sameAsBefore ? `<br><span class="muted">Alt som sist, igjen. Stemmer det, eller er det raskest?</span>` : ""}</div><button type="button" class="btn small" id="unchanged-btn">Sjekket → punkter</button></div>` : `<div class="lastbox"><div>Første runde på dette prosjektet. Alt står grønt, du flagger det som ikke er det.</div></div>`}
-      <p class="muted small">Gult og rødt er informasjon, ikke karakter. Det er dette samtalen er til.</p>
+      <div class="run-head"><div><span class="eyebrow">${intern ? "Rolle" : "Prosjekt"} ${okt.idx + 1} av ${okt.queue.length} · ${fmtDate(s.date)}${short ? " · kort runde" : ""}</span><h1>${esc(p.prosjekt)}</h1><p class="muted small">${esc([intern ? "intern rolle" : p.kunde, p.rolle, intern ? p.plan : p.kontraktstype, p.andel ? p.andel + " %" : ""].filter(Boolean).join(" · "))}</p></div></div>
+      ${!p.oppstart && !intern ? `<div class="note gold small" id="oppstart"><b>Første runde på prosjektet: oppstartssjekk</b> (rutinens trinn 1). Kontrakt signert og på SharePoint · rolle og ansvarsbegrensning avklart (NS 8401/8402) · omfang, ramme og sluttdato kjent · hvem er kontraktspart og beslutningstaker · hva må jeg lære de første ukene. <button type="button" class="btn small" id="oppstart-ok">Gjennomgått</button></div>` : ""}
+      ${prev ? `<div class="lastbox"><div><b>${fmtMonth(prev.date)}:</b> <span class="lights-mini">${SIGNALS.map(S => `<i class="${SC[(prev.sig && prev.sig[S.id] || {}).status || "OK"]}"></i>`).join("")}</span> ${prevFlags ? `${prevFlags} flagget` : "alt grønt"}${open.length ? ` · ${open.length} åpne tiltak` : ""}. Gult og rødt fra sist er beholdt, alt annet grønt. Sjekk hver farge.${prev.takeaway ? `<br><span class="muted">Du tok med deg: «${esc(prev.takeaway)}»</span>` : ""}${sameAsBefore ? `<br><span class="muted">Alt som sist, igjen. Stemmer det, eller er det raskest?</span>` : ""}</div><button type="button" class="btn small" id="unchanged-btn">Sjekket → punkter</button></div>` : `<div class="lastbox"><div>Første runde. Alt står grønt, du flagger det som ikke er det.</div></div>`}
+      <p class="muted small">Gult og rødt er informasjon, ikke karakter. Det er dette samtalen er til.${short ? ` Kort runde for ${p.andel} %: økonomi, omfang og kunde. <button type="button" class="btn ghost small" id="full-btn">Vis alle</button>` : ""}</p>
       <div class="siglist" id="siglist">${SIGNALS.map(S => renderSig(s, S)).join("")}</div>
-      <div class="card punkter" id="punkter">
-        <div class="area-head"><div><span class="eyebrow">Viktigste punkter</span><h3>Det leder leser</h3></div><span class="muted small">Datoer og tall hjelper.</span></div>
-        ${PUNKTER.map(P => { const pv = prev && prev.punkter ? prev.punkter[P.k] : ""; return `<div class="prow"><label for="pk-${P.k}">${P.l}</label><input id="pk-${P.k}" data-pk="${P.k}" value="${esc(s.punkter[P.k])}" placeholder="${esc(P.k === "trenger" && travel ? "Hva kan tas bort denne måneden?" : P.ph)}" autocomplete="off"><button type="button" class="none" data-none="${P.k}" aria-pressed="${NOTHING.test(s.punkter[P.k]) && s.punkter[P.k].trim() ? "true" : "false"}">${P.none}</button><button type="button" class="mic" data-mic="pk-${P.k}" title="Dikter. Lyden sendes til nettleserens taletjeneste (Google/Microsoft)." aria-label="Dikter" hidden>🎤</button>${pv && !NOTHING.test(pv) ? `<div class="prev">Sist: <span>${esc(pv)}</span><button type="button" class="btn ghost small" data-copyprev="${P.k}">Hent</button></div>` : ""}</div>`; }).join("")}
-        ${open.length ? `<div class="prev muted small">Åpne tiltak: ${open.map(t => esc(t.tekst)).join(" · ")}</div>` : ""}
-      </div>
+      ${punkterBlock(s, prev, PUNKTER, travel)}
+      ${open.length ? `<div class="prev muted small">Åpne tiltak: ${open.map(t => esc(t.tekst)).join(" · ")}</div>` : ""}
       <details class="card" id="deep" ${s.deep ? "open" : ""}>
-        <summary>Full ROMA, 30 spørsmål${deepDue ? " · anbefalt nå (kvartal)" : ` · sist ${fmtDate(lastDeep.date)}`}</summary>
+        <summary>Full ROMA, 30 spørsmål${deepDue ? (single ? " · anbefalt annenhver måned for deg med ett prosjekt" : " · anbefalt nå (kvartal)") : ` · sist ${fmtDate(lastDeep.date)}`}</summary>
         <p class="muted small" style="margin:8px 0 12px">Brukes kvartalsvis, ved oppstart og ved avslutning. Alt står grønt, du flagger det som ikke er det. Teller som gjennomgått når du flagger noe eller trykker knappen nederst.</p>
         <div id="deeplist"></div>
         <div class="btn-row" style="margin-top:10px"><button type="button" class="btn small" id="deep-done">${s.deep ? "Full ROMA er gjennomgått ✓" : "Marker full ROMA som gjennomgått"}</button></div>
       </details>
     </div>
-    <div class="run-foot"><div class="inner">
-      <button type="button" class="btn ghost" id="pause-btn">Pause</button>
-      <span class="hint"><kbd>↑</kbd><kbd>↓</kbd> rad · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> grønt gult rødt · <kbd>Enter</kbd> ${last ? "fullfør" : "neste"}</span>
-      <button type="button" class="btn primary" id="next-btn">${last ? "Fullfør →" : "Neste prosjekt →"}</button>
-    </div></div>`;
+    ${footHtml(last)}`;
   SIGNALS.forEach(S => bindSig(s, S));
+  const ob = $("#oppstart-ok", el); if (ob) ob.addEventListener("click", () => { p.oppstart = true; const real = projectById(p.id); if (real) real.oppstart = true; saveStore(); $("#oppstart", el).remove(); toast("Oppstart gjennomgått"); });
+  const fb = $("#full-btn", el); if (fb) fb.addEventListener("click", () => { s.fullRound = true; SIGNALS.forEach(S => { if (s.sig[S.id].status === NR) s.sig[S.id].status = "OK"; }); saveDraft(); renderRun(); });
   const ub = $("#unchanged-btn", el); if (ub) ub.addEventListener("click", () => { $("#punkter").scrollIntoView({ block: "start" }); $("#pk-endret").focus(); });
-  const pks = $$("[data-pk]", el);
-  pks.forEach((inp, i) => { inp.addEventListener("input", () => { s.punkter[inp.dataset.pk] = inp.value; const nb = $(`[data-none="${inp.dataset.pk}"]`, el); if (nb) nb.setAttribute("aria-pressed", "false"); }); inp.addEventListener("keydown", ev => { if (ev.key === "Enter" && !ev.ctrlKey && !ev.metaKey) { ev.preventDefault(); if (i < pks.length - 1) pks[i + 1].focus(); else { inp.blur(); $("#next-btn", el).focus(); } } }); });
-  $$("[data-none]", el).forEach(b => b.addEventListener("click", () => { const k = b.dataset.none; const inp = $(`#pk-${k}`, el); const on = b.getAttribute("aria-pressed") !== "true"; inp.value = on ? PUNKTER.find(P => P.k === k).none : ""; s.punkter[k] = inp.value; b.setAttribute("aria-pressed", String(on)); saveDraft(); }));
-  $$("[data-copyprev]", el).forEach(b => b.addEventListener("click", () => { const k = b.dataset.copyprev; const inp = $(`#pk-${k}`, el); inp.value = prev.punkter[k]; s.punkter[k] = inp.value; inp.focus(); }));
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (SR) $$("[data-mic]", el).forEach(b => { b.hidden = false; b.addEventListener("click", () => {
-    const inp = $(`#${b.dataset.mic}`, el); const r = new SR(); r.lang = "nb-NO"; r.interimResults = false; b.classList.add("on");
-    r.onresult = ev => { const t = ev.results[0][0].transcript; inp.value = (inp.value ? inp.value + " " : "") + t; s.punkter[inp.dataset.pk] = inp.value; };
-    r.onend = () => b.classList.remove("on"); r.onerror = () => { b.classList.remove("on"); toast("Diktering utilgjengelig"); }; r.start();
-  }); });
+  bindPunkter(el, s, prev, PUNKTER);
   const deep = $("#deep", el);
   const buildDeep = () => { if (deep.dataset.built) return; deep.dataset.built = "1"; $("#deeplist", el).innerHTML = AREAS.map(a => `<section class="area" id="area-${a.id}"><div class="area-head"><div><span class="eyebrow"><span class="roma">${a.roma}</span></span><h3>${esc(a.name)}</h3></div></div>${a.privacy ? `<p class="note privacy muted small">Ingen navn, helseopplysninger eller private forhold i fritekst.</p>` : ""}${a.opportunity ? `<p class="note gold small">Her er «Tiltak» en god ting: en mulighet vi følger opp.</p>` : ""}<div class="qlist">${a.qs.map((q, i) => renderRow(s, a, q, i)).join("")}</div></section>`).join(""); AREAS.forEach(a => a.qs.forEach(q => bindRow(s, a, q))); saveDraft(); };
   deep.addEventListener("toggle", () => { if (deep.open) buildDeep(); });
   if (s.deep) buildDeep();
   $("#deep-done", el).addEventListener("click", ev => { s.deep = true; ev.currentTarget.textContent = "Full ROMA er gjennomgått ✓"; saveDraft(); toast("Full ROMA registrert som gjennomgått"); });
-  $("#next-btn", el).addEventListener("click", nextProject);
-  $("#pause-btn", el).addEventListener("click", () => { saveDraft(); stopTimer(); okt = null; toast("Lagret."); renderHome(); });
-  el.addEventListener("focusin", ev => { if (/^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName) && matchMedia("(max-width: 640px)").matches) document.body.classList.add("kb"); });
-  el.addEventListener("focusout", () => document.body.classList.remove("kb"));
+  bindFoot(el);
+}
+
+/* ---------- runde uten prosjekt ---------- */
+function renderMellom() {
+  hudMode = "run"; show("run"); renderHud();
+  const s = okt.sessions[""]; const el = $("#screen-run"); cursorRow = null;
+  const lp = lastMonthPerson(); const prevM = lp && lp.projectId === "" ? lp : null;
+  el.innerHTML = `
+    <div class="run">
+      <div class="run-head"><div><span class="eyebrow">Runde uten prosjekt · ${fmtDate(s.date)}</span><h1>Mellom oppdrag</h1><p class="muted small">Det er Involveds ansvar å finne neste oppdrag, og ditt å si hva du trenger.</p></div></div>
+      <div class="siglist">
+        ${["N1", "N3"].map(k => { const a = okt.person[k]; return `<div class="sig st-${SC[a.status]}" data-psig="${k}" tabindex="-1"><div class="sig-main"><div class="sig-text"><div class="lbl"><span class="roma">${k === "N1" ? "A" : "M"}</span><b>${k === "N1" ? "Neste oppdrag" : "Innhold i dagene"}</b></div><p>${PERSON[k].t}</p></div><div class="lights">${lightButtons(a.status, "data-pst2")}</div></div>${a.status !== "OK" ? `<div class="detail"><textarea data-pcomment="${k}" placeholder="Hva skjer? Én setning." aria-label="Kommentar" autocomplete="off">${esc(a.comment)}</textarea></div>` : ""}</div>`; }).join("")}
+      </div>
+      ${punkterBlock(s, prevM, PUNKTER_MELLOM, false)}
+    </div>
+    ${footHtml(true)}`;
+  const bind = () => $$("[data-pst2]", el).forEach(b => b.addEventListener("click", () => { const k = b.closest("[data-psig]").dataset.psig; okt.person[k].status = b.dataset.pst2; if (b.dataset.pst2 === "OK") okt.person[k].comment = ""; saveDraft(); renderMellom(); }));
+  bind();
+  $$("[data-pcomment]", el).forEach(t => t.addEventListener("input", () => { okt.person[t.dataset.pcomment].comment = t.value; }));
+  bindPunkter(el, s, prevM, PUNKTER_MELLOM);
+  bindFoot(el);
 }
 
 /* ---------- dybderader (full ROMA) ---------- */
@@ -803,9 +932,9 @@ function renderRow(s, a, q, i) {
   const scale = q.scale ? `<div class="chips">${SCALE.map(([v, lab, st]) => `<button type="button" class="chip opt" data-opt="${v}" data-optstatus="${st}" aria-pressed="${String(ans.value) === String(v)}">${v} ${lab}</button>`).join("")}</div>` : "";
   const fields = q.fields ? `<div class="fields">${q.fields.map(f => `<label class="fld"><span>${esc(f.l)}</span><input type="number" inputmode="decimal" step="any" data-fld="${f.k}" value="${esc(ans.fields[f.k] || "")}"><em>${esc(f.u)}</em></label>`).join("")}</div>` : "";
   let detail = "";
-  if (flagged) detail = `<div class="detail"><textarea data-field="comment" placeholder="${q.sensitive ? "Kort, uten navn." : "Hva skjer? Én setning."}" aria-label="Kommentar">${esc(ans.comment)}</textarea>${q.sensitive && ans.status === "Krever tiltak" ? `<p class="note red small">Går til varslingsrutinen, ikke tiltaksloggen.</p>` : `<input type="text" data-field="tiltak" placeholder="Tiltak (valgfritt)" value="${esc(ans.tiltak)}" aria-label="Tiltak">`}</div>`;
-  else if (q.commentOnOk) detail = `<div class="detail" style="border-top:0;padding-top:0"><input type="text" data-field="comment" placeholder="${q.scale ? "Grunnlag, én setning" : "Eksempel, én setning"}" value="${esc(ans.comment)}" aria-label="Kommentar"></div>`;
-  return `<div class="q st-${SC[ans.status]}" data-q="${q.id}" tabindex="-1"><div class="qtext"><span class="n">${i + 1}</span><p>${esc(q.t)}</p></div><div class="help">${esc(q.help)}</div>${choice}${scale}${fields}<div class="chips">${chips}</div>${detail}</div>`;
+  if (flagged) detail = `<div class="detail"><textarea data-field="comment" placeholder="${q.sensitive ? "Kort, uten navn." : "Hva skjer? Én setning."}" aria-label="Kommentar" autocomplete="off">${esc(ans.comment)}</textarea>${q.sensitive ? (ans.status === "Krever tiltak" ? `<p class="note red small">Går til varslingsrutinen, ikke tiltaksloggen.</p>` : "") : `<input type="text" data-field="tiltak" placeholder="Tiltak (valgfritt)" value="${esc(ans.tiltak)}" aria-label="Tiltak" autocomplete="off">`}</div>`;
+  else if (q.commentOnOk) detail = `<div class="detail" style="border-top:0;padding-top:0"><input type="text" data-field="comment" placeholder="${q.scale ? "Grunnlag, én setning" : "Eksempel, én setning"}" value="${esc(ans.comment)}" aria-label="Kommentar" autocomplete="off"></div>`;
+  return `<div class="q st-${SC[ans.status]}" data-q="${q.id}" tabindex="-1"><div class="qtext"><span class="n">${i + 1}</span><p>${esc(q.t)}</p></div><div class="help">${esc(q.help)}${ans.carried ? " · beholdt fra forrige full ROMA" : ""}</div>${choice}${scale}${fields}<div class="chips">${chips}</div>${detail}</div>`;
 }
 function setDeep(s, q, status) {
   const ans = s.answers[q.id]; ans.status = status; ans.carried = false; s.deep = true; const dd = $("#deep-done"); if (dd) dd.textContent = "Full ROMA er gjennomgått ✓";
@@ -834,19 +963,19 @@ function moveCursor(dir) {
 }
 document.addEventListener("keydown", ev => {
   if (!okt || $("#screen-run").hidden || ev.repeat || ev.altKey) return;
-  const mod = ev.ctrlKey || ev.metaKey; const tag = ev.target.tagName;
-  if (/^(INPUT|TEXTAREA|SELECT)$/.test(tag)) { if (ev.key === "Escape") ev.target.blur(); if (ev.key === "Enter" && mod) { ev.preventDefault(); ev.target.blur(); if (okt.idx === okt.queue.length - 1) { $("#next-btn").focus(); toast("Trykk Fullfør for å levere"); } else nextProject(); } return; }
+  const mod = ev.ctrlKey || ev.metaKey; const tag = ev.target.tagName; const last = okt.idx >= okt.queue.length - 1;
+  if (/^(INPUT|TEXTAREA|SELECT)$/.test(tag)) { if (ev.key === "Escape") ev.target.blur(); if (ev.key === "Enter" && mod) { ev.preventDefault(); ev.target.blur(); if (last) { $("#next-btn").focus(); toast("Trykk Fullfør for å levere"); } else nextProject(); } return; }
   if (mod) return; if (tag === "BUTTON" && ev.key === "Enter") return;
   const s = cur();
   if (ev.key === "ArrowDown" || ev.key === "j") { ev.preventDefault(); moveCursor(1); }
   else if (ev.key === "ArrowUp" || ev.key === "k") { ev.preventDefault(); moveCursor(-1); }
-  else if (["1", "2", "3"].includes(ev.key)) { if (!cursorRow) moveCursor(1); ev.preventDefault(); const st = STATUS[Number(ev.key) - 1]; if (cursorRow.dataset.sig) setSig(s, SIG_BY[cursorRow.dataset.sig], st, "key"); else if (cursorRow.dataset.q) setDeep(s, Q_BY[cursorRow.dataset.q], st); }
-  else if (ev.key === "Enter") { ev.preventDefault(); if (okt.idx === okt.queue.length - 1) { $("#next-btn").focus(); toast("Trykk Fullfør for å levere"); } else nextProject(); }
+  else if (["1", "2", "3"].includes(ev.key) && s) { if (!cursorRow) moveCursor(1); ev.preventDefault(); const st = STATUS[Number(ev.key) - 1]; if (cursorRow.dataset.sig) setSig(s, SIG_BY[cursorRow.dataset.sig], st, "key"); else if (cursorRow.dataset.q) setDeep(s, Q_BY[cursorRow.dataset.q], st); }
+  else if (ev.key === "Enter") { ev.preventDefault(); if (last) { $("#next-btn").focus(); toast("Trykk Fullfør for å levere"); } else nextProject(); }
 });
 let nudged = null;
 function nextProject() {
-  const s = cur();
-  if (flaggedSignals(s).length && !(s.punkter.risiko || "").trim() && nudged !== s.id) { nudged = s.id; const inp = $("#pk-risiko"); if (inp) { inp.scrollIntoView({ block: "center" }); inp.focus(); } toast("Noe er gult eller rødt. Én linje under «Risiko nå»? Trykk igjen for å gå videre."); return; }
+  const s = cur() || okt.sessions[""];
+  if (cur() && flaggedSignals(s).length && !(s.punkter.risiko || "").trim() && nudged !== okt.id) { nudged = okt.id; const inp = $("#pk-risiko"); if (inp) { inp.scrollIntoView({ block: "center" }); inp.focus(); } toast("Noe er gult eller rødt. Én linje under «Risiko nå»? Trykk igjen for å gå videre."); return; }
   s.elapsed = elapsedSec(s); s.elapsedBase = s.elapsed; s.startedAt = Date.now(); cursorRow = null;
   if (okt.idx < okt.queue.length - 1) { okt.idx++; const n = cur(); n.startedAt = Date.now(); n.elapsedBase = n.elapsed || 0; saveDraft(); toast("Lagret."); renderRun(); }
   else finishOkt();
@@ -855,7 +984,8 @@ function nextProject() {
 /* =====================================================================
    ANALYSE
    ===================================================================== */
-function flaggedSignals(s) { return SIGNALS.filter(S => s.sig[S.id] && s.sig[S.id].status !== "OK"); }
+function flaggedSignals(s) { return SIGNALS.filter(S => s.sig[S.id] && (s.sig[S.id].status === "Risiko" || s.sig[S.id].status === "Krever tiltak")); }
+function relevantSignals(s) { return SIGNALS.filter(S => s.sig[S.id] && s.sig[S.id].status !== NR); }
 function deepRows(s) { if (!s.deep) return []; return ALL_Q.map(({ area, q }) => ({ area, q, ans: s.answers[q.id], status: s.answers[q.id].status })); }
 function fieldText(q, ans) {
   const parts = [];
@@ -863,93 +993,117 @@ function fieldText(q, ans) {
   (q.fields || []).forEach(f => { const v = (ans.fields || {})[f.k]; if (v) parts.push(`${f.l}: ${v}${f.u ? " " + f.u : ""}`); });
   return parts.join(" · ");
 }
-function sigFieldText(S, s) { const f = s.fields || {}; const parts = []; sigFields(S, s).forEach(x => { if (f[x.k]) parts.push(`${x.l} ${f[x.k]} ${x.u}`); }); if (S.toggle && f[S.toggle.k]) parts.push(S.toggle.l); if (S.id === "S7" && s.project.sluttdato) parts.push(`løper ut ${fmtDate(s.project.sluttdato)}`); return parts.join(" · "); }
+function sigFieldText(S, s) { const f = s.fields || {}; const parts = []; sigFields(S, s).forEach(x => { if (f[x.k]) parts.push(`${x.l} ${f[x.k]} ${x.u}`); }); if (S.toggle && f[S.toggle.k]) parts.push(S.toggle.l); if (S.id === "S7" && !isIntern(s.project) && s.project.sluttdato) parts.push(`løper ut ${fmtDate(s.project.sluttdato)}`); return parts.join(" · "); }
 function collectTiltak(s) {
   const out = [];
-  SIGNALS.forEach(S => { const a = s.sig[S.id]; if (a.status === "OK" || S.sensitive) return; if (a.tiltak.trim() || a.status === "Krever tiltak") out.push({ area: S.name, tekst: a.tiltak.trim() || `Følg opp: ${S.name.toLowerCase()}`, ansvarlig: a.ansvarlig || store.me.konsulent, frist: a.frist, kommentar: a.comment }); });
+  if (s.projectId !== "") SIGNALS.forEach(S => { const a = s.sig[S.id]; if (!a || a.status === "OK" || a.status === NR || S.sensitive) return; if (a.tiltak.trim() || a.status === "Krever tiltak") out.push({ area: sigName(S, s), tekst: a.tiltak.trim() || `Følg opp: ${sigName(S, s).toLowerCase()}`, ansvarlig: a.ansvarlig || store.me.konsulent, frist: a.frist, kommentar: a.comment }); });
   const tr = (s.punkter.trenger || "").trim();
   if (tr && !NOTHING.test(tr)) out.push({ area: "Trenger fra Involved", tekst: tr, ansvarlig: store.me.teamleder || "Leder", frist: addDays(s.date, 14), kommentar: "" });
+  if (s.person && s.person.N1 && s.person.N1.status !== "OK" && !(tr && !NOTHING.test(tr))) out.push({ area: "Neste oppdrag", tekst: "Avklar neste oppdrag", ansvarlig: store.me.teamleder || "Leder", frist: addDays(s.date, 14), kommentar: s.person.N1.comment || "" });
   deepRows(s).forEach(r => { if (r.status === "OK" || r.q.sensitive) return; if ((r.ans.tiltak || "").trim() || r.status === "Krever tiltak") out.push({ area: r.area.name, tekst: (r.ans.tiltak || "").trim() || `Følg opp: ${r.q.t}`, ansvarlig: r.ans.ansvarlig || store.me.konsulent, frist: r.ans.frist, kommentar: r.ans.comment }); });
   return out;
 }
 function redFlags(s, withSensitive = true) {
-  const f = []; const F = s.fields || {}; const G = s.sig; const p = s.project; const hasNums = sigFields(SIG_BY.S3, s).length > 0;
-  if (num(F.timer_uke) > 45) f.push(`Over 45 timer per uke (${F.timer_uke} t)`);
-  if (hasNums && F.ramme && F.fremdrift && num(F.ramme) > 80 && num(F.fremdrift) < 60) f.push(`${p.kontraktstype === "Fastpris" ? "Kalkyle" : "Ramme"} ${F.ramme} % brukt med fremdrift ${F.fremdrift} %`);
-  if (F.utestaende) f.push("Utestående fakturaer over 30 dager");
-  if (G.S4.status === "Krever tiltak") f.push("Arbeid utenfor omfang eller rolle uten skriftlig bestilling, sjekk forsikringsdekning");
-  if (p.kontrakt && p.kontrakt !== "Ja") f.push("Kontrakt ikke signert og lagret på SharePoint");
-  if (G.S5.status === "Krever tiltak") f.push("Kunden er misfornøyd: ring kunden, klage meldes i avvikssystemet");
-  if (withSensitive && G.S6.status === "Krever tiltak") f.push("Uønsket atferd eller konflikt hos kunde: varslingsrutinen, leder tar kontakt innen én uke");
-  if (G.S7.status === "Krever tiltak" || (p.sluttdato && p.sluttdato < addDays(s.date, 90) && G.S7.status !== "OK")) f.push(`Oppdraget løper ut ${fmtDate(p.sluttdato) || "snart"} uten avklart neste fase`);
+  const f = []; const F = s.fields || {}; const G = s.sig; const p = s.project; const P = s.person || {};
+  if (s.projectId === "" || !G.S3) return Array.from(new Set(f));
+  const intern = isIntern(p); const hasNums = sigFields(SIG_BY.S3, s).length > 0;
+  if (!intern && hasNums && F.ramme && F.fremdrift && num(F.ramme) > 80 && num(F.fremdrift) < 60) f.push(`${p.kontraktstype === "Fastpris" ? "Kalkyle" : "Ramme"} ${F.ramme} % brukt med fremdrift ${F.fremdrift} %`);
+  if (!intern && F.utestaende) f.push("Utestående fakturaer over 30 dager");
+  if (G.S4.status === "Krever tiltak") f.push(intern ? "Rollen lar seg ikke gjennomføre som avtalt" : "Arbeid utenfor omfang eller rolle uten skriftlig bestilling, sjekk forsikringsdekning");
+  if (!intern && p.kontrakt === "Nei" && !p.oppstart) f.push("Kontrakt ikke signert og lagret på SharePoint");
+  if (G.S5.status === "Krever tiltak") f.push(intern ? "Interne leveranser svikter: avklar prioritering med leder" : "Kunden er misfornøyd: ring kunden, klage meldes i avvikssystemet");
+  if (withSensitive && G.S6.status === "Krever tiltak") f.push("Uønsket atferd eller konflikt: varslingsrutinen, leder tar kontakt innen én uke");
+  if (G.S7.status === "Krever tiltak") f.push(intern ? "Uavklart hva som skjer etter perioden" : `Oppdraget løper ut ${fmtDate(p.sluttdato) || "snart"} uten avklart neste fase`);
   if (s.deep) { const A = s.answers; if (num((A.o3.fields || {}).endringstimer) > 20) f.push("Over 20 timer arbeid uten bestilling"); if (A.s4.value === "Klage" || A.k2.status === "Krever tiltak") f.push("Klage eller reklamasjon: meld i avvikssystemet"); if (withSensitive && A.p4.status === "Krever tiltak") f.push("Uønsket atferd hos kunde: varslingsrutinen"); }
   return Array.from(new Set(f));
 }
 function pulseWarnings(s) {
   const w = []; const pv = s.pulse || {}; if (!pv.belastning) return w;
-  const prev = s.prevId ? store.sessions.find(x => x.id === s.prevId) : null; const pp = prev && prev.pulse && prev.pulse.belastning ? prev.pulse : null;
+  const prevP = allSessionsSorted().filter(x => x.pulse && x.pulse.belastning && x.date.slice(0, 7) < s.date.slice(0, 7)).pop(); const pp = prevP ? prevP.pulse : null;
   if (pv.belastning >= 4) w.push(`Belastning ${pv.belastning}/5: leder avtaler samtale innen én uke${pp && pp.belastning >= 4 ? ". To måneder på rad: skriftlig tiltak" : ""}`);
   if (pv.trivsel <= 2) w.push(`Trivsel ${pv.trivsel}/5: samtale innen én uke${pp && pp.trivsel <= 2 ? ". To måneder på rad: ledergruppen informeres" : ""}`);
   if (pp) { if (pv.belastning - pp.belastning >= 2) w.push(`Belastning ${pp.belastning} → ${pv.belastning}: spør hvorfor`); if (pp.trivsel - pv.trivsel >= 2) w.push(`Trivsel ${pp.trivsel} → ${pv.trivsel}: spør hvorfor`); }
+  if (s.person && s.person.S1 && s.person.S1.status !== "OK") w.push(`Belastning ${LIGHT[s.person.S1.status].toLowerCase()}${s.person.timer_uke ? ` (${s.person.timer_uke} t/uke)` : ""}${s.person.S1.comment ? ": " + s.person.S1.comment : ""}`);
+  else if (s.person && num(s.person.timer_uke) > 45) w.push(`Over 45 timer per uke (${s.person.timer_uke} t): leder avtaler samtale innen én uke`);
+  const mwc = s.person && s.person.kontakt === "nei" ? monthsWithoutContact(s.date) : 0;
+  if (mwc >= 3) w.push(`${mwc} måneder uten reell Involved-kontakt: avtal et fysisk møte`); else if (mwc >= 2) w.push(`${mwc} måneder uten reell Involved-kontakt`); else if (mwc === 1) w.push("Ingen reell Involved-kontakt denne måneden");
   return w;
 }
-function ampel(s, withSensitive = true) { const fl = flaggedSignals(s).filter(S => withSensitive || !S.sensitive); if (redFlags(s, withSensitive).length || fl.some(S => s.sig[S.id].status === "Krever tiltak")) return "Rødt"; return fl.length ? "Gult" : "Grønt"; }
-const AMPEL_EMOJI = { "Rødt": "🔴", "Gult": "🟡", "Grønt": "🟢" };
+function ampel(s, withSensitive = true) { if (s.projectId === "") { const P = s.person || {}; return (P.N1 && P.N1.status === "Krever tiltak") ? "Rødt" : (P.N1 && P.N1.status !== "OK") || (P.N3 && P.N3.status !== "OK") ? "Gult" : "Grønt"; } const fl = flaggedSignals(s).filter(S => withSensitive || !S.sensitive); if (redFlags(s, withSensitive).length || fl.some(S => s.sig[S.id].status === "Krever tiltak")) return "Rødt"; return fl.length ? "Gult" : "Grønt"; }
+function changedSignals(s) { const prev = s.prevId ? store.sessions.find(x => x.id === s.prevId) : null; if (!prev) return []; return SIGNALS.filter(S => prev.sig && prev.sig[S.id] && prev.sig[S.id].status !== s.sig[S.id].status && s.sig[S.id].status !== NR); }
 function teamsText(s) {
   const prev = s.prevId ? store.sessions.find(x => x.id === s.prevId) : null;
-  const changed = SIGNALS.filter(S => prev && prev.sig && prev.sig[S.id] && prev.sig[S.id].status !== s.sig[S.id].status);
   const lines = [];
-  const fl = flaggedSignals(s); const nG = SIGNALS.length - fl.length;
-  lines.push(`${AMPEL_EMOJI[ampel(s)]} ${s.project.prosjekt}${s.project.kunde ? ` (${s.project.kunde})` : ""} · ${s.project.konsulent} · ROMA ${fmtMonth(s.date)}`);
-  lines.push(`${nG} av 7 grønne${fl.length ? `, ${fl.map(S => `${S.name.toLowerCase()} ${LIGHT[s.sig[S.id].status].toLowerCase()}`).join(", ")}` : ""}${changed.length ? ` · endret siden sist: ${changed.map(S => `${S.name} ${LIGHT_EMOJI[prev.sig[S.id].status]}→${LIGHT_EMOJI[s.sig[S.id].status]}`).join(", ")}` : prev ? " · som sist" : ""}`);
-  redFlags(s).forEach(x => lines.push(`! ${x}`));
-  flaggedSignals(s).forEach(S => { const a = s.sig[S.id]; lines.push(`${LIGHT_EMOJI[a.status]} ${S.name}${sigFieldText(S, s) ? ` (${sigFieldText(S, s)})` : ""}${a.comment && !S.sensitive ? `: ${a.comment}` : S.sensitive ? ": tas muntlig" : ""}`); });
+  if (s.projectId === "") {
+    const P = s.person || {};
+    lines.push(`${AMPEL_EMOJI[ampel(s)]} Mellom oppdrag · ${s.project.konsulent} · ROMA ${fmtMonth(s.date)}`);
+    ["N1", "N3"].forEach(k => { const a = P[k]; if (a && a.status !== "OK") lines.push(`${LIGHT_EMOJI[a.status]} ${k === "N1" ? "Neste oppdrag" : "Innhold i dagene"}${a.comment ? ": " + a.comment : ""}`); });
+    PUNKTER_MELLOM.forEach(Pk => { const v = (s.punkter[Pk.k] || "").trim(); if (v && !NOTHING.test(v)) lines.push(`• ${Pk.l}: ${v}`); });
+    collectTiltak(s).forEach(t => lines.push(`→ Tiltak: ${t.tekst} (${t.ansvarlig}, ${fmtDate(t.frist) || "frist?"})`));
+    lines.push(`Neste ROMA: ${fmtDate(addMonths(s.date, 1))}`);
+    return lines.join("\n");
+  }
+  const changed = changedSignals(s); const fl = flaggedSignals(s); const rel = relevantSignals(s); const nG = rel.length - fl.length;
+  lines.push(`${AMPEL_EMOJI[ampel(s)]} ${s.project.prosjekt}${isIntern(s.project) ? " (intern rolle)" : s.project.kunde ? ` (${s.project.kunde})` : ""}${s.project.andel ? ` · ${s.project.andel} %` : ""} · ${s.project.konsulent} · ROMA ${fmtMonth(s.date)}`);
+  lines.push(`${nG} av ${rel.length} grønne${fl.length ? `, ${fl.map(S => `${sigName(S, s).toLowerCase()} ${LIGHT[s.sig[S.id].status].toLowerCase()}`).join(", ")}` : ""}${changed.length ? ` · endret siden sist: ${changed.map(S => `${sigName(S, s)} ${LIGHT_EMOJI[prev.sig[S.id].status]}→${LIGHT_EMOJI[s.sig[S.id].status]}`).join(", ")}` : prev ? " · som sist" : ""}`);
+  redFlags(s).filter(x => !/timer per uke|Uønsket atferd/.test(x)).forEach(x => lines.push(`! ${x}`));
+  fl.forEach(S => { const a = s.sig[S.id]; lines.push(`${LIGHT_EMOJI[a.status]} ${sigName(S, s)}${sigFieldText(S, s) ? ` (${sigFieldText(S, s)})` : ""}${a.comment && !S.sensitive ? `: ${a.comment}` : S.sensitive ? ": tas muntlig" : ""}`); });
   PUNKTER.forEach(P => { const v = (s.punkter[P.k] || "").trim(); if (v && !NOTHING.test(v)) lines.push(`• ${P.l}: ${v}`); });
   collectTiltak(s).forEach(t => lines.push(`→ Tiltak: ${t.tekst} (${t.ansvarlig}, ${fmtDate(t.frist) || "frist?"})`));
   if (s.deep) { const dr = deepRows(s).filter(r => r.status !== "OK"); lines.push(`Full ROMA gjennomgått: ${dr.length ? dr.map(r => `${LIGHT_EMOJI[r.status]} ${r.q.t}${r.ans.comment && !r.q.sensitive ? " – " + r.ans.comment : ""}`).join("; ") : "alt grønt"}`); }
   lines.push(`Neste ROMA: ${fmtDate(addMonths(s.date, 1))}`);
   return lines.join("\n");
 }
-function noAnswerTwice() { const l = store.sessions.slice().sort((a, b) => cmp(a.date, b.date) || cmp(a.finishedAt, b.finishedAt)); const months = []; for (let i = l.length - 1; i >= 0 && months.length < 2; i--) { if (!months.includes(l[i].date.slice(0, 7))) months.push(l[i].date.slice(0, 7)); } return months.length === 2 && months.every(m => l.some(x => x.date.slice(0, 7) === m && x.lederSvar === "Nei")); }
+function noAnswerTwice() { const l = allSessionsSorted(); const months = []; for (let i = l.length - 1; i >= 0 && months.length < 2; i--) { if (!months.includes(l[i].date.slice(0, 7))) months.push(l[i].date.slice(0, 7)); } return months.length === 2 && months.every(m => l.some(x => x.date.slice(0, 7) === m && x.lederSvar === "Nei")); }
+function leaderHead(s0) {
+  const pv = s0.pulse || {}; const pw = pulseWarnings(s0); const mode = s0.mode || "Balansert";
+  const utv = (s0.utvikling || []).map(u => UTV_BY[u.k] ? `${UTV_BY[u.k].l}, ca. ${u.t} t, klart ${u.m ? fmtMonth(u.m + "-01") : fmtMonth(addMonths(s0.date, 1))}` : "").filter(Boolean);
+  return `Kun til nærmeste leder, ikke i prosjektkanal.\nPuls ${fmtMonth(s0.date)} · ${store.me.konsulent}: belastning ${pv.belastning || "–"} · trivsel ${pv.trivsel || "–"}${s0.person && s0.person.timer_uke ? ` · ${s0.person.timer_uke} t/uke` : ""} · ${MODE_LABEL[mode].toLowerCase()}${s0.person && s0.person.kontakt ? ` · Involved-kontakt: ${s0.person.kontakt}` : ""}${pw.length ? "\n" + pw.map(x => `! ${x}`).join("\n") : ""}${utv.length ? "\nUtvikling denne måneden: " + utv.join("; ") : ""}${noAnswerTwice() ? "\n! Har ikke fått svar på ROMA to måneder på rad." : ""}`;
+}
+function newest(l) { return l.slice().sort((a, b) => cmp(a.date, b.date))[l.length - 1]; }
 function leaderText(sessions) {
-  const s0 = sessions[0]; const pv = s0.pulse || {}; const pw = pulseWarnings(s0); const mode = s0.mode || modeOf(pv);
-  const utv = (s0.utvikling || []).map(u => UTV_BY[u.k] ? `${UTV_BY[u.k].l}, ca. ${u.t} t, klart ${fmtMonth(addMonths(s0.date, 1))}` : "").filter(Boolean);
-  const head = `Kun til nærmeste leder, ikke i prosjektkanal.\nPuls ${fmtMonth(s0.date)} · ${store.me.konsulent}: belastning ${pv.belastning || "–"} · trivsel ${pv.trivsel || "–"} · ${mode.toLowerCase()} måned${pw.length ? "\n" + pw.map(x => `! ${x}`).join("\n") : ""}${utv.length ? "\nUtvikling denne måneden: " + utv.join("; ") : ""}${noAnswerTwice() ? "\n! Har ikke fått svar på ROMA to måneder på rad." : ""}`;
   const tail = "Svar gjerne med ett av: Har lest · Ringer deg · Tar dette videre.";
-  return [head, ...sessions.map(teamsText), tail].join("\n\n");
+  if (sessions.length >= 3) {
+    const need = sessions.filter(s => ampel(s) !== "Grønt" || changedSignals(s).length || collectTiltak(s).length || (s.person && s.projectId === ""));
+    const quiet = sessions.filter(s => !need.includes(s));
+    const summary = sessions.map(s => { const fl = flaggedSignals(s); if (s.projectId === "") { const P = s.person || {}; const pf = ["N1", "N3"].filter(k => P[k] && P[k].status !== "OK").map(k => `${k === "N1" ? "neste oppdrag" : "innhold i dagene"} ${LIGHT[P[k].status].toLowerCase()}`); return `${AMPEL_EMOJI[ampel(s)]} Mellom oppdrag${pf.length ? " · " + pf.join(", ") : " · ok"}${(s.punkter.trenger || "").trim() && !NOTHING.test(s.punkter.trenger) ? ` · Trenger: ${s.punkter.trenger.trim()}` : ""}`; } return `${AMPEL_EMOJI[ampel(s)]} ${s.project.prosjekt}${s.project.andel ? ` ${s.project.andel} %` : ""}${fl.length ? ` · ${fl.map(S => `${sigName(S, s).toLowerCase()} ${LIGHT[s.sig[S.id].status].toLowerCase()}`).join(", ")}` : " · grønt"}${(s.punkter.trenger || "").trim() && !NOTHING.test(s.punkter.trenger) ? ` · Trenger: ${s.punkter.trenger.trim()}` : ""}`; }).join("\n");
+    return [leaderHead(newest(sessions)), summary, ...need.map(teamsText), quiet.length ? `Grønt${quiet.every(s => s.prevId) ? " og som sist" : ""}: ${quiet.map(s => s.project.prosjekt).join(", ")}.` : "", tail].filter(Boolean).join("\n\n");
+  }
+  return [leaderHead(newest(sessions)), ...sessions.map(teamsText), tail].join("\n\n");
 }
 function firstSentence(s) {
-  const pv = s.pulse || {};
-  if (s.sig.S6.status === "Krever tiltak") return "Jeg ringer fordi du markerte trygghet. Du bestemmer hvor mye vi tar på telefon.";
-  if (pv.belastning >= 4) return `Du satte ${pv.belastning} på belastning. Fortell meg hvordan en typisk uke ser ut nå.`;
-  if ((s.mode || modeOf(pv)) === "Rolig") return "Du har rom. Hva har du lyst til å bli god på?";
-  const fl = flaggedSignals(s); if (fl.length) return `Jeg så ${fl[0].name.toLowerCase()} er ${LIGHT[s.sig[fl[0].id].status].toLowerCase()}. Hva trenger du fra meg?`;
+  const pv = s.pulse || {}; const P = s.person || {};
+  if (s.sig.S6 && s.sig.S6.status === "Krever tiltak") return "Jeg ringer fordi du markerte trygghet. Du bestemmer hvor mye vi tar på telefon.";
+  if (pv.trivsel && pv.trivsel <= 2) return `Jeg ringer fordi du satte trivsel ${pv.trivsel}. Hva er tyngst akkurat nå?`;
+  if (pv.belastning >= 4 || (P.S1 && P.S1.status === "Krever tiltak")) return `Du satte ${pv.belastning || "høy"} på belastning. Fortell meg hvordan en typisk uke ser ut nå.`;
+  if (s.projectId === "") return "Jeg har ikke glemt deg. Her er det jeg vet om neste oppdrag: …";
+  if ((s.mode || "Balansert") === "Rolig") return "Du har rom. Hva har du lyst til å bli god på?";
+  if (P.kontakt === "nei") return "Vi har ikke sett deg på en stund. Når passer det med lunsj eller et besøk?";
+  const fl = flaggedSignals(s); if (fl.length) return `Jeg så ${sigName(fl[0], s).toLowerCase()} er ${LIGHT[s.sig[fl[0].id].status].toLowerCase()}. Hva trenger du fra meg?`;
   return "Alt grønt, takk. Én ting jeg noterte fra teksten din: …";
 }
 
 function finishOkt() {
   stopTimer();
-  const finished = [];
-  okt.queue.forEach(pid => {
+  const finished = []; const ids = okt.queue.length ? okt.queue : [""];
+  ids.forEach(pid => {
     const s = okt.sessions[pid];
     if (!s.finishedAt) { s.elapsed = s.elapsed || elapsedSec(s); s.finishedAt = new Date().toISOString(); }
-    s.pulse = Object.assign({}, okt.pulse);
+    s.pulse = Object.assign({}, okt.pulse); s.person = JSON.parse(JSON.stringify(okt.person)); s.mode = okt.mode; s.utvikling = (okt.utvikling || []).map(u => ({ k: u.k, t: u.t, m: u.m }));
     store.sessions.push(s);
     collectTiltak(s).forEach(t => {
-      const dup = store.tiltak.find(x => x.projectId === pid && x.tekst === t.tekst && (x.status === "Åpen" || x.dato >= addDays(s.date, -90)));
-      if (dup) { if (dup.status === "Åpen") { dup.kommentar = t.kommentar || dup.kommentar; dup.frist = t.frist || dup.frist; } return; }
+      const dup = store.tiltak.find(x => x.projectId === pid && x.tekst === t.tekst && x.status === "Åpen");
+      if (dup) { dup.kommentar = t.kommentar || dup.kommentar; dup.frist = t.frist || dup.frist; return; }
       store.tiltak.push({ id: uid(), sessionId: s.id, projectId: pid, dato: s.date, prosjekt: s.project.prosjekt, tekst: t.tekst, ansvarlig: t.ansvarlig, frist: t.frist, status: "Åpen", kommentar: t.kommentar, area: t.area });
     });
     finished.push(s);
   });
-  (okt.utvikling || []).forEach(u => { const U = UTV_BY[u.k]; if (!U) return; const tekst = `Utvikling: ${U.l}, ca. ${u.t} t`; if (store.tiltak.some(x => x.status === "Åpen" && x.tekst === tekst)) return; store.tiltak.push({ id: uid(), sessionId: finished[0].id, projectId: "", dato: okt.date, prosjekt: "Utvikling", tekst, ansvarlig: store.me.konsulent, frist: addMonths(okt.date, 1), status: "Åpen", kommentar: `Avtalt med ${store.me.teamleder || "leder"} i rolig periode`, area: "Utvikling", timer: u.t }); });
-  finished.forEach(s => { s.utvikling = (okt.utvikling || []).map(u => ({ k: u.k, t: u.t })); s.mode = modeOf(okt.pulse, (s.fields || {}).timer_uke); });
+  (okt.utvikling || []).forEach(u => { const U = UTV_BY[u.k]; if (!U) return; const tekst = `${U.l}, ca. ${u.t} t`; if (store.tiltak.some(x => x.status === "Åpen" && x.area === "Utvikling" && x.tekst === tekst)) return; store.tiltak.push({ id: uid(), sessionId: finished[0].id, projectId: "", dato: okt.date, prosjekt: "Utvikling", tekst, ansvarlig: store.me.konsulent, frist: u.m ? u.m + "-28" : addMonths(okt.date, 1), status: "Åpen", kommentar: `Avtalt med ${store.me.teamleder || "leder"}`, area: "Utvikling", timer: u.t }); });
   const firstEver = store.sessions.length === finished.length;
   okt = null; store.okt = null; saveStore();
   renderDone(finished);
-  if (firstEver && !isHeavy(finished[0].pulse, finished) && window.confetti && !matchMedia("(prefers-reduced-motion: reduce)").matches) confetti({ particleCount: 90, spread: 70, origin: { y: .6 }, colors: ["#257A6B", "#C8912A", "#2E8B57", "#FFFFFF"] });
+  if (firstEver && !isHeavy(finished[0].pulse, finished[0].person, finished) && window.confetti && !matchMedia("(prefers-reduced-motion: reduce)").matches) confetti({ particleCount: 90, spread: 70, origin: { y: .6 }, colors: ["#257A6B", "#C8912A", "#2E8B57", "#FFFFFF"] });
 }
-function pop() { if (window.confetti && !matchMedia("(prefers-reduced-motion: reduce)").matches) confetti({ particleCount: 60, spread: 60, origin: { y: .7 }, colors: ["#257A6B", "#C8912A", "#2E8B57", "#FFFFFF"] }); }
 
 /* =====================================================================
    MÅL
@@ -957,43 +1111,43 @@ function pop() { if (window.confetti && !matchMedia("(prefers-reduced-motion: re
 function renderDone(sessions) {
   if (okt) { saveDraft(); stopTimer(); okt = null; }
   hudMode = "idle"; renderHud(); show("done");
-  const el = $("#screen-done"); const multi = sessions.length > 1;
-  const total = sessions.reduce((n, s) => n + (s.elapsed || 0), 0);
-  const nFlag = sessions.reduce((n, s) => n + flaggedSignals(s).length, 0);
-  const allFlags = sessions.flatMap(s => redFlags(s).map(x => ({ p: s.project.prosjekt, x })));
-  const pw = pulseWarnings(sessions[0]);
+  const el = $("#screen-done"); const multi = sessions.length > 1; const s0 = sessions[0];
+  const mellom = s0.projectId === "";
+  const nFlag = sessions.reduce((n, s) => n + flaggedSignals(s).length, 0) + (mellom && s0.person ? ["N1", "N3"].filter(k => s0.person[k] && s0.person[k].status !== "OK").length : 0);
+  const allFlags = sessions.flatMap(s => redFlags(s).filter(x => !/timer per uke/.test(x)).map(x => ({ p: s.project.prosjekt, x })));
+  const pw = pulseWarnings(s0);
   const allTiltak = sessions.flatMap(s => collectTiltak(s).map(t => Object.assign({ p: s.project.prosjekt }, t)));
-  const heavy = isHeavy(sessions[0].pulse, sessions);
-  const mode = sessions[0].mode || modeOf(sessions[0].pulse);
-  const firstEver = store.sessions.length === sessions.length;
-  const pStreak = personStreak(sessions[0].date);
-  const greenRun = sessions.filter(s => { const h = sessionsFor(s.projectId).slice(-3); return h.length === 3 && h.every(x => flaggedSignals(x).length === 0); }).map(s => s.project.prosjekt);
+  const heavy = isHeavy(s0.pulse, s0.person, sessions);
+  const mode = s0.mode || "Balansert"; const firstEver = store.sessions.length === sessions.length; const pStreak = personStreak(s0.date);
+  const greenRun = sessions.filter(s => { const h = sessionsFor(s.projectId).slice(-3); return s.projectId && h.length === 3 && h.every(x => flaggedSignals(x).length === 0); }).map(s => s.project.prosjekt);
   const firstRed = sessions.some(s => flaggedSignals(s).some(S => s.sig[S.id].status === "Krever tiltak")) && !store.sessions.some(x => !sessions.includes(x) && flaggedSignals(x).some(S => x.sig[S.id].status === "Krever tiltak"));
-  const utv = (sessions[0].utvikling || []).map(u => UTV_BY[u.k]).filter(Boolean);
+  const utv = (s0.utvikling || []).map(u => UTV_BY[u.k]).filter(Boolean);
+  const nThings = nFlag + (heavy ? 1 : 0) + (mellom ? 0 : 0);
   el.innerHTML = `
     <div class="done">
       <div>
-        <span class="eyebrow">Levert · ${fmtDate(sessions[0].date)}${mode !== "Balansert" ? ` · ${mode.toLowerCase()} måned` : ""}</span>
-        <h1>${heavy ? "Levert. Det viktigste står øverst." : nFlag === 0 && !allFlags.length ? "Levert. Leder får dette i dag." : `Levert. ${nFlag + allFlags.length === 1 ? "Én ting" : (nFlag + allFlags.length) + " ting"} leder må vite, de står øverst.`}</h1>
-        <p class="muted small">${heavy ? `Send Teams-teksten. Resten er ${esc(store.me.teamleder || "leders")} jobb.` : firstEver ? "Første runde levert. Neste måned ligger denne klar, og du endrer bare det som er nytt." : firstRed ? "Første røde. Det er dette samtalen er til. Leder får det øverst." : greenRun.length ? `Tre grønne måneder på ${esc(greenRun.join(", "))}. Er det stille, eller er det stille fordi ingen spør? Ta gjerne full ROMA neste gang.` : pStreak >= 2 ? `${pStreak} måneder på rad. Runden starter der du er.` : ""}</p>
-        ${!heavy ? `<p class="quote">${esc(ROMA_QUOTES[mode] || ROMA_QUOTES.Balansert)}</p>` : ""}
+        <span class="eyebrow">Levert · ${fmtDate(s0.date)} · ${MODE_LABEL[mode].toLowerCase()}</span>
+        <h1>${heavy ? "Levert. Det viktigste står øverst." : nThings === 0 && !allFlags.length ? "Levert. Leder får dette i dag." : `Levert. ${nThings + allFlags.length === 1 ? "Én ting" : (nThings + allFlags.length) + " ting"} leder må vite, de står øverst.`}</h1>
+        <p class="muted small">${heavy ? `Send Teams-teksten. Resten er ${esc(genitiv(store.me.teamleder))} jobb.` : mellom ? "Levert. Det er Involveds ansvar å finne neste oppdrag. Du har sagt hva du trenger." : firstEver ? "Første runde levert. Neste måned ligger denne klar, og du endrer bare det som er nytt." : firstRed ? "Første røde. Det er dette samtalen er til. Leder får det øverst." : greenRun.length ? `Tre grønne måneder på ${esc(greenRun.join(", "))}. Er det stille, eller er det stille fordi ingen spør? Ta gjerne full ROMA neste gang.` : pStreak >= 2 ? `${pStreak} måneder på rad. Runden starter der du er.` : ""}</p>
+        ${!heavy && !mellom ? `<p class="quote">${esc(ROMA_QUOTES[mode] || ROMA_QUOTES.Balansert)}</p>` : ""}
       </div>
       <div class="card export">
-        <div class="btn-row"><button type="button" class="btn primary" id="copy-all">Kopier til Teams${multi ? " (alle)" : ""}</button><button type="button" class="btn" id="xlsx-btn">Excel per prosjekt</button><button type="button" class="btn" id="leder-btn">Ledereksport med puls</button><button type="button" class="btn ghost" id="print-btn">Skriv ut / PDF</button></div>
-        <p class="muted small" style="margin-top:8px">Teams-teksten er nok, og går kun til nærmeste leder. Excel per prosjekt lagres i prosjektmappen og inneholder ikke puls eller Trygghet.</p>
+        <div class="btn-row"><button type="button" class="btn primary" id="copy-all">Kopier til Teams${multi ? " (samlet)" : ""}</button>${mellom ? "" : `<button type="button" class="btn" id="xlsx-btn">Excel per prosjekt</button>`}<button type="button" class="btn" id="leder-btn">Ledereksport med puls</button><button type="button" class="btn ghost" id="print-btn">Skriv ut / PDF</button></div>
+        <p class="muted small" style="margin-top:8px">Teams-teksten er nok, og går kun til nærmeste leder.${mellom ? "" : " Excel per prosjekt lagres i prosjektmappen og inneholder ikke puls, belastning eller Trygghet."}</p>
       </div>
       ${heavy && pw.length ? `<div class="note gold"><b>Puls</b><ul>${pw.map(x => `<li>${esc(x)}</li>`).join("")}</ul><p class="small" style="margin-top:6px">Dette går bare til ${esc(store.me.teamleder || "leder")}, som ringer deg innen tre virkedager.</p></div>` : ""}
       ${allFlags.length ? `<div class="note red"><b>${heavy ? "Røde flagg. Send Teams-teksten, resten er leders jobb." : "Røde flagg. Meld til leder, alvorlige forhold også i Planner."}</b><ul>${allFlags.map(f => `<li>${multi ? `<b>${esc(f.p)}:</b> ` : ""}${esc(f.x)}</li>`).join("")}</ul></div>` : ""}
-      ${!heavy && pw.length ? `<div class="note gold"><b>Puls som leder følger opp</b><ul>${pw.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>` : ""}
-      ${utv.length ? `<div class="note"><b>Utvikling denne måneden:</b> ${utv.map(u => esc(u.l)).join(", ")}. Ligger i tiltaksloggen med frist neste ROMA.</div>` : ""}
-      ${sessions.map(s => `<div class="card psum"><div class="head"><h3>${esc(s.project.prosjekt)}</h3><button type="button" class="btn small" data-copy="${esc(s.id)}">Kopier</button></div><pre class="teams" id="teams-${esc(s.id)}">${esc(teamsText(s))}</pre><div class="field"><label for="ta-${esc(s.id)}">Én setning du tar med deg til neste måned (valgfritt, vises bare for deg)</label><input id="ta-${esc(s.id)}" data-takeaway="${esc(s.id)}" value="${esc(s.takeaway || "")}" placeholder="F.eks. be om skriftlig bestilling før jeg sier ja" autocomplete="off"></div></div>`).join("")}
+      ${!heavy && pw.length ? `<div class="note gold"><b>Puls og belastning som leder følger opp</b><ul>${pw.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>` : ""}
+      ${utv.length ? `<div class="note"><b>Utvikling denne måneden:</b> ${utv.map(u => esc(u.l)).join(", ")}. Ligger i tiltaksloggen med frist.</div>` : ""}
+      ${multi ? `<div class="card psum"><div class="head"><h3>Samlet til leder</h3></div><pre class="teams">${esc(leaderText(sessions))}</pre></div>` : ""}
+      ${sessions.map(s => `<div class="card psum"><div class="head"><h3>${esc(s.project.prosjekt)}</h3><button type="button" class="btn small" data-copy="${esc(s.id)}">Kopier</button></div><pre class="teams" id="teams-${esc(s.id)}">${esc(multi ? teamsText(s) : leaderText([s]))}</pre>${s.projectId ? `<div class="field"><label for="ta-${esc(s.id)}">Én setning du tar med deg til neste måned (valgfritt, vises bare for deg)</label><input id="ta-${esc(s.id)}" data-takeaway="${esc(s.id)}" value="${esc(s.takeaway || "")}" placeholder="F.eks. be om skriftlig bestilling før jeg sier ja" autocomplete="off"></div>` : ""}</div>`).join("")}
       ${allTiltak.length ? `<div class="card"><div class="area-head" style="margin-bottom:8px"><h3>Tiltak</h3><span class="muted small">${allTiltak.length} stk i tiltaksloggen · alvorlige også i Planner</span></div><div class="table-wrap"><table><thead><tr>${multi ? "<th>Prosjekt</th>" : ""}<th>Fra</th><th>Tiltak</th><th>Ansvarlig</th><th>Frist</th></tr></thead><tbody>${allTiltak.map(t => `<tr>${multi ? `<td>${esc(t.p)}</td>` : ""}<td>${esc(t.area)}</td><td>${esc(t.tekst)}</td><td>${esc(t.ansvarlig)}</td><td class="mono">${fmtDate(t.frist)}</td></tr>`).join("")}</tbody></table></div></div>` : ""}
       <div class="btn-row no-print"><button type="button" class="btn" id="overview-btn">Se oversikt</button><button type="button" class="btn ghost" id="home-btn">Til forsiden</button></div>
     </div>`;
   const copy = async (text, label) => { try { await navigator.clipboard.writeText(text); toast(label); } catch (e) { toast("Kunne ikke kopiere. Marker teksten og kopier manuelt."); } };
   $("#copy-all", el).addEventListener("click", () => copy(leaderText(sessions), "Kopiert. Lim inn i Teams til leder."));
-  $$("[data-copy]", el).forEach(b => b.addEventListener("click", () => { const s = sessions.find(x => x.id === b.dataset.copy); copy(teamsText(s), "Kopiert"); }));
-  $("#xlsx-btn", el).addEventListener("click", async () => { for (const s of sessions) { const ok = await exportProject(s); if (!ok) break; } });
+  $$("[data-copy]", el).forEach(b => b.addEventListener("click", () => { const s = sessions.find(x => x.id === b.dataset.copy); copy(multi ? teamsText(s) : leaderText([s]), "Kopiert"); }));
+  const xb = $("#xlsx-btn", el); if (xb) xb.addEventListener("click", async () => { for (const s of sessions) { if (!s.projectId) continue; const ok = await exportProject(s); if (!ok) break; } });
   $("#leder-btn", el).addEventListener("click", () => exportLeader(sessions));
   $("#print-btn", el).addEventListener("click", () => window.print());
   $$("[data-takeaway]", el).forEach(inp => inp.addEventListener("input", () => { const s = sessions.find(x => x.id === inp.dataset.takeaway); if (s) { s.takeaway = inp.value; saveStore(); } }));
@@ -1014,19 +1168,22 @@ async function saveFile(filename, data) {
 const XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 function sheet(wb, name, rows, widths) { const ws = XLSX.utils.aoa_to_sheet(rows); ws["!cols"] = widths.map(w => ({ wch: w })); XLSX.utils.book_append_sheet(wb, ws, name); }
 function infoRows(sessions) {
-  const rows = [["Konsulent", "Teamleder", "Prosjekt", "Prosjektnummer", "Kunde", "Rolle", "Kontraktstype", "Kontrakt signert og lagret på SP?", "Oppdraget løper ut", "Kundeundersøkelse sendt", "Score siste kundeundersøkelse"]]; const seen = new Set();
-  sessions.forEach(s => { if (seen.has(s.projectId)) return; seen.add(s.projectId); const p = s.project; rows.push([p.konsulent, p.teamleder, p.prosjekt, p.prosjektnummer, p.kunde, p.rolle, p.kontraktstype || "", p.kontrakt, fmtDate(p.sluttdato), fmtDate(p.ku_dato), p.ku_score]); });
+  const rows = [["Konsulent", "Teamleder", "Prosjekt / rolle", "Type", "Andel %", "Prosjektnummer", "Kunde", "Rolle", "Kontraktstype", "Kontrakt signert og lagret på SP?", "Oppdraget løper ut / neste vurdering", "Avtalt fordeling", "Mål", "Kundeundersøkelse sendt", "Score siste kundeundersøkelse"]]; const seen = new Set();
+  sessions.forEach(s => { if (!s.projectId || seen.has(s.projectId)) return; seen.add(s.projectId); const p = s.project; rows.push([p.konsulent, p.teamleder, p.prosjekt, isIntern(p) ? "Intern rolle" : "Kundeoppdrag", p.andel || "", p.prosjektnummer, p.kunde, p.rolle, p.kontraktstype || "", p.kontrakt, fmtDate(p.sluttdato), p.plan || "", p.mal || "", fmtDate(p.ku_dato), p.ku_score]); });
   return rows;
 }
 function skjemaRows(sessions, withSensitive) {
   const rows = [["Dato", "Tema", "Spørsmål", "Status / Kommentar", "Tiltak / Ansvar", "Frist", "Endret siden sist", "Status (OK/Risiko/Tiltak)", "Verdi"]];
   sessions.forEach(s => {
     const prev = s.prevId ? store.sessions.find(x => x.id === s.prevId) : null;
-    SIGNALS.forEach(S => { const a = s.sig[S.id]; const hide = S.sensitive && a.status !== "OK" && !withSensitive; const changed = prev && prev.sig && prev.sig[S.id] ? (prev.sig[S.id].status !== a.status ? "Ja" : "Nei") : "";
-      rows.push([fmtDate(s.date), `${S.roma} · ${S.name}`, sigText(S, s), hide ? "Se ledereksport" : a.comment, hide || a.status === "OK" ? "" : (a.tiltak ? `${a.tiltak} / ${a.ansvarlig}` : ""), hide || a.status === "OK" ? "" : fmtDate(a.frist), hide ? "" : changed, hide ? "Se ledereksport" : a.status, hide ? "" : sigFieldText(S, s)]); });
-    PUNKTER.forEach(P => { if ((s.punkter[P.k] || "").trim() && !NOTHING.test(s.punkter[P.k])) rows.push([fmtDate(s.date), "Viktigste punkter", P.l, s.punkter[P.k].trim(), P.k === "trenger" ? `${s.punkter[P.k].trim()} / ${s.project.teamleder || "Leder"}` : "", "", "", "", ""]); });
+    if (s.projectId === "") { const P = s.person || {}; ["N1", "N3"].forEach(k => { const a = P[k] || {}; rows.push([fmtDate(s.date), "Mellom oppdrag", PERSON[k].t, a.comment || "", "", "", "", a.status || "OK", ""]); }); }
+    else SIGNALS.forEach(S => { const a = s.sig[S.id]; const hide = S.sensitive && a.status !== "OK" && !withSensitive; const changed = prev && prev.sig && prev.sig[S.id] ? (prev.sig[S.id].status !== a.status ? "Ja" : "Nei") : "";
+      rows.push([fmtDate(s.date), `${S.roma} · ${sigName(S, s)}`, sigText(S, s), hide ? "Se ledereksport" : a.comment, hide || a.status === "OK" || a.status === NR ? "" : (a.tiltak ? `${a.tiltak} / ${a.ansvarlig}` : ""), hide || a.status === "OK" || a.status === NR ? "" : fmtDate(a.frist), hide ? "" : changed, hide ? "Se ledereksport" : a.status, hide ? "" : sigFieldText(S, s)]); });
+    if (withSensitive && s.person) { rows.push([fmtDate(s.date), "R · Belastning (person)", PERSON.S1.t, s.person.S1 ? s.person.S1.comment : "", "", "", "", s.person.S1 ? s.person.S1.status : "", s.person.timer_uke ? `${s.person.timer_uke} t/uke` : ""]); rows.push([fmtDate(s.date), "M · Tilhørighet (person)", "Reell kontakt med Involved siste måned", "", "", "", "", s.person.kontakt === "nei" ? "Risiko" : "OK", s.person.kontakt || ""]); }
+    (s.projectId === "" ? PUNKTER_MELLOM : PUNKTER).forEach(P => { if ((s.punkter[P.k] || "").trim() && !NOTHING.test(s.punkter[P.k])) rows.push([fmtDate(s.date), "Viktigste punkter", P.l, s.punkter[P.k].trim(), P.k === "trenger" ? `${s.punkter[P.k].trim()} / ${s.project.teamleder || "Leder"}` : "", "", "", "", ""]); });
     const flags = redFlags(s, withSensitive); if (flags.length) rows.push([fmtDate(s.date), "Røde flagg", "", flags.join(" · "), "Meldt til leder / Planner", "", "", "Krever tiltak", ""]);
     if (s.deep) AREAS.forEach(a => { rows.push([fmtDate(s.date), `Full ROMA · ${a.name}`, "", "", "", "", "", "", ""]); a.qs.forEach(q => { const ans = s.answers[q.id]; const hide = q.sensitive && ans.status !== "OK" && !withSensitive; rows.push([fmtDate(s.date), `Full ROMA · ${a.name}`, q.t, hide ? "Se ledereksport" : ans.comment, hide || ans.status === "OK" ? "" : (ans.tiltak ? `${ans.tiltak} / ${ans.ansvarlig}` : ""), hide || ans.status === "OK" ? "" : fmtDate(ans.frist), "", hide ? "Se ledereksport" : ans.status, fieldText(q, ans)]); }); });
+    const p = projectById(s.projectId); if (p && p.slutt && p.avsluttet && p.avsluttet.slice(0, 7) === s.date.slice(0, 7)) { rows.push([fmtDate(p.avsluttet), "Sluttevaluering", "Hva ble levert, og hva sier kunden?", p.slutt.levert, "", "", "", "", ""]); rows.push([fmtDate(p.avsluttet), "Sluttevaluering", "Hva ville jeg gjort annerledes?", p.slutt.annerledes, "", "", "", "", ""]); rows.push([fmtDate(p.avsluttet), "Sluttevaluering", "Noe uavsluttet?", p.slutt.uavsluttet, "", "", "", "", ""]); }
   });
   return rows;
 }
@@ -1037,22 +1194,22 @@ function statusRows(sessions, withPulse) {
   return rows;
 }
 function kortRows(sessions) {
-  const rows = [["Ampel", "Prosjekt", "Konsulent", "Dato", "Belastning", "Trivsel", "Timer/uke", "Ramme/kalkyle %", "Fremdrift %", "Utestående >30 d", "Kunde", "Løper ut", "Åpne tiltak", "Over frist", "Endret siden sist", "Risiko nå", "Trenger fra leder", "Røde flagg", "Modus", "Fikk svar sist", "Forslag til første setning"]];
+  const rows = [["Ampel", "Prosjekt / rolle", "Type", "Andel %", "Konsulent", "Dato", "Modus", "Belastning", "Trivsel", "Timer/uke", "Involved-kontakt", "Ramme/kalkyle %", "Fremdrift %", "Utestående >30 d", "Kunde/internt", "Løper ut", "Åpne tiltak", "Over frist", "Endret siden sist", "Risiko nå", "Trenger fra leder", "Røde flagg", "Fikk svar sist", "Forslag til første setning"]];
   const ord = { "Rødt": 0, "Gult": 1, "Grønt": 2 };
-  sessions.slice().sort((a, b) => ord[ampel(a)] - ord[ampel(b)] || ((b.pulse || {}).belastning || 0) - ((a.pulse || {}).belastning || 0)).forEach(s => { const F = s.fields || {}; const ot = openTiltak(s.projectId); const hasNums = sigFields(SIG_BY.S3, s).length > 0; rows.push([ampel(s), s.project.prosjekt, s.project.konsulent, fmtDate(s.date), (s.pulse || {}).belastning || "", (s.pulse || {}).trivsel || "", F.timer_uke || "", hasNums ? F.ramme || "" : "", hasNums ? F.fremdrift || "" : "", F.utestaende ? "Ja" : "", LIGHT[s.sig.S5.status], fmtDate(s.project.sluttdato), ot.length, ot.filter(t => t.frist && t.frist < isoToday()).length, s.punkter.endret, s.punkter.risiko, s.punkter.trenger, redFlags(s).join(" · "), s.mode || modeOf(s.pulse), s.lederSvar || "", firstSentence(s)]); });
+  sessions.slice().sort((a, b) => ord[ampel(a)] - ord[ampel(b)] || ((b.pulse || {}).belastning || 0) - ((a.pulse || {}).belastning || 0) || num(b.project.andel) - num(a.project.andel)).forEach(s => { const F = s.fields || {}; const P = s.person || {}; const ot = openTiltak(s.projectId); const hasNums = s.projectId && sigFields(SIG_BY.S3, s).length > 0; rows.push([ampel(s), s.project.prosjekt, s.projectId === "" ? "Mellom oppdrag" : isIntern(s.project) ? "Intern rolle" : "Kundeoppdrag", s.project.andel || "", s.project.konsulent, fmtDate(s.date), MODE_LABEL[s.mode || "Balansert"], (s.pulse || {}).belastning || "", (s.pulse || {}).trivsel || "", P.timer_uke || "", P.kontakt || "", hasNums ? F.ramme || "" : "", hasNums ? F.fremdrift || "" : "", F.utestaende ? "Ja" : "", s.sig.S5 ? LIGHT[s.sig.S5.status] : "", fmtDate(s.project.sluttdato), ot.length, ot.filter(t => t.frist && t.frist < isoToday()).length, s.punkter.endret, s.punkter.risiko, s.punkter.trenger, redFlags(s).join(" · "), s.lederSvar || "", firstSentence(s)]); });
   return rows;
 }
-function buildProjectWorkbook(s) { const wb = XLSX.utils.book_new(); wb.Props = { Title: `ROMA-samtale ${s.project.prosjekt} ${fmtMonth(s.date)}` }; sheet(wb, "Prosjektinfo", infoRows([s]), [18, 18, 26, 14, 22, 18, 16, 30, 14, 16, 16]); sheet(wb, "ROMA-samtale", skjemaRows([s], false), [11, 22, 60, 40, 36, 11, 14, 22, 30]); sheet(wb, "Tiltak & Oppfølging", tiltakRows(store.tiltak.filter(t => t.projectId === s.projectId)), [13, 24, 50, 18, 11, 18, 40]); sheet(wb, "Statusoversikt", statusRows([s], false), [11, 18, 24, 12, 12, 16, 16, 16, 8, 50]); return wb; }
+function buildProjectWorkbook(s) { const wb = XLSX.utils.book_new(); const intern = isIntern(s.project); wb.Props = { Title: `ROMA-samtale ${s.project.prosjekt} ${fmtMonth(s.date)}` }; sheet(wb, intern ? "Rolleinfo" : "Prosjektinfo", infoRows([s]), [18, 18, 26, 14, 8, 14, 22, 18, 16, 30, 14, 30, 30, 16, 16]); sheet(wb, "ROMA-samtale", skjemaRows([s], false), [11, 22, 60, 40, 36, 11, 14, 22, 30]); sheet(wb, "Tiltak & Oppfølging", tiltakRows(store.tiltak.filter(t => t.projectId === s.projectId)), [13, 24, 50, 18, 11, 18, 40]); sheet(wb, "Statusoversikt", statusRows([s], false), [11, 18, 24, 12, 12, 16, 16, 16, 8, 50]); return wb; }
 function buildLeaderWorkbook(sessions) {
-  const wb = XLSX.utils.book_new(); wb.Props = { Title: "ROMA lederoversikt – kun til nærmeste leder (puls, trygghet)" }; const sorted = sessions.slice().sort((a, b) => cmp(b.date, a.date) || cmp(a.project.prosjekt, b.project.prosjekt));
-  sheet(wb, "Prosjektkort", [["KUN TIL NÆRMESTE LEDER. Inneholder puls og Trygghet. Skal ikke i prosjektmappen."], ...kortRows(sorted)], [7, 24, 16, 11, 10, 8, 10, 14, 11, 12, 8, 11, 10, 9, 40, 40, 40, 50, 10, 12, 60]);
+  const wb = XLSX.utils.book_new(); wb.Props = { Title: "ROMA lederoversikt – kun til nærmeste leder (puls, belastning, trygghet)" }; const sorted = sessions.slice().sort((a, b) => cmp(b.date, a.date) || cmp(a.project.prosjekt, b.project.prosjekt));
+  sheet(wb, "Prosjektkort", [["KUN TIL NÆRMESTE LEDER. Inneholder puls, belastning og Trygghet. Skal ikke i prosjektmappen."], ...kortRows(sorted)], [7, 24, 12, 8, 16, 11, 14, 10, 8, 10, 10, 14, 11, 12, 10, 11, 10, 9, 40, 40, 40, 50, 12, 60]);
   sheet(wb, "Statusoversikt", statusRows(sorted, true), [11, 18, 24, 12, 12, 16, 12, 12, 8, 50]);
-  sheet(wb, "Tiltak & Oppfølging", tiltakRows(store.tiltak.filter(t => sorted.some(s => s.projectId === t.projectId))), [13, 24, 50, 18, 11, 18, 40]);
+  sheet(wb, "Tiltak & Oppfølging", tiltakRows(store.tiltak.filter(t => t.area === "Utvikling" || sorted.some(s => s.projectId === t.projectId))), [13, 24, 50, 18, 11, 18, 40]);
   sheet(wb, "ROMA-samtale", skjemaRows(sorted, true), [11, 22, 60, 40, 36, 11, 14, 22, 30]);
   return wb;
 }
 function xlsxBlob(wb) { return new Blob([XLSX.write(wb, { type: "array", bookType: "xlsx" })], { type: XLSX_MIME }); }
-async function exportProject(s) { if (!window.XLSX) { toast("Excel-biblioteket er ikke lastet. Sjekk nett og prøv igjen."); return false; } try { return await saveFile(`${s.date.replace(/-/g, "")}_Involved_ROMAsamtale_${slug(s.project.prosjekt)}_${slug(s.project.konsulent)}.xlsx`, xlsxBlob(buildProjectWorkbook(s))); } catch (e) { console.error(e); toast("Excel-eksport feilet. Bruk «Kopier til Teams»."); return false; } }
+async function exportProject(s) { if (!window.XLSX) { toast("Excel-biblioteket er ikke lastet. Sjekk nett og prøv igjen."); return false; } try { return await saveFile(`${s.date.replace(/-/g, "")}_Involved_${isIntern(s.project) ? "ROMArolle" : "ROMAsamtale"}_${slug(s.project.prosjekt)}_${slug(s.project.konsulent)}.xlsx`, xlsxBlob(buildProjectWorkbook(s))); } catch (e) { console.error(e); toast("Excel-eksport feilet. Bruk «Kopier til Teams»."); return false; } }
 async function exportLeader(sessions) { if (!window.XLSX) { toast("Excel-biblioteket er ikke lastet. Sjekk nett og prøv igjen."); return false; } if (!sessions.length) { toast("Ingen runder å eksportere ennå"); return false; } try { return await saveFile(`${isoToday().replace(/-/g, "")}_Involved_ROMA_lederoversikt_${slug(store.me.konsulent)}.xlsx`, xlsxBlob(buildLeaderWorkbook(sessions))); } catch (e) { console.error(e); toast("Excel-eksport feilet."); return false; } }
 
 /* =====================================================================
@@ -1064,51 +1221,61 @@ function sparkSvg(list) {
   const path = k => pts.map((s, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(s.pulse[k]).toFixed(1)}`).join(" "); const li = pts.length - 1; const last = pts[li];
   return `<svg class="spark" viewBox="0 0 ${w} ${h}" role="img" aria-label="Trend for belastning og trivsel"><path class="bel" d="${path("belastning")}"></path><path class="triv" d="${path("trivsel")}"></path><circle style="fill:var(--tiltak)" cx="${x(li).toFixed(1)}" cy="${y(last.pulse.belastning).toFixed(1)}" r="3"></circle><circle style="fill:var(--accent)" cx="${x(li).toFixed(1)}" cy="${y(last.pulse.trivsel).toFixed(1)}" r="3"></circle></svg>`;
 }
-function validSession(s) {
-  if (!s || typeof s !== "object" || !ID_OK(s.id) || (s.prevId && !ID_OK(s.prevId)) || (s.projectId && !ID_OK(s.projectId)) || !/^\d{4}-\d{2}-\d{2}$/.test(String(s.date)) || !s.project || typeof s.project !== "object" || !s.sig || typeof s.sig !== "object") return null;
-  const o = { id: s.id, date: s.date, projectId: String(s.projectId || ""), project: {}, sig: {}, fields: {}, punkter: {}, answers: {}, deep: !!s.deep, pulse: {}, elapsed: Number(s.elapsed) || 0, finishedAt: String(s.finishedAt || ""), prevId: s.prevId ? String(s.prevId) : null, takeaway: String(s.takeaway || ""), mode: ["Travel", "Balansert", "Rolig"].includes(s.mode) ? s.mode : undefined, utvikling: Array.isArray(s.utvikling) ? s.utvikling.filter(u => u && UTV_BY[u.k]).map(u => ({ k: u.k, t: Number(u.t) || UTV_BY[u.k].t })) : [] };
-  if (s.lederSvar === "Ja" || s.lederSvar === "Nei") o.lederSvar = s.lederSvar;
-  ["konsulent", "teamleder", "prosjekt", "prosjektnummer", "kunde", "rolle", "kontrakt", "kontraktstype", "sluttdato", "ku_dato", "ku_score", "id"].forEach(k => { o.project[k] = String(s.project[k] || ""); });
-  SIGNALS.forEach(S => { const a = (s.sig[S.id] && typeof s.sig[S.id] === "object") ? s.sig[S.id] : {}; const b = blankSig(); b.status = STATUS.includes(a.status) ? a.status : "OK"; ["comment", "tiltak", "ansvarlig", "frist"].forEach(k => { b[k] = String(a[k] || ""); }); o.sig[S.id] = b; });
-  if (s.fields && typeof s.fields === "object") Object.entries(s.fields).forEach(([k, v]) => { o.fields[String(k)] = String(v || ""); });
-  PUNKTER.forEach(P => { o.punkter[P.k] = String((s.punkter || {})[P.k] || ""); });
-  PULSE.forEach(p => { const v = Number(s.pulse && s.pulse[p.k]); if (v >= 1 && v <= 5) o.pulse[p.k] = v; });
-  ALL_Q.forEach(({ q }) => { const a = (s.answers && s.answers[q.id] && typeof s.answers[q.id] === "object") ? s.answers[q.id] : {}; const b = blankAnswer(); b.status = STATUS.includes(a.status) ? a.status : "OK"; ["value", "comment", "tiltak", "ansvarlig", "frist"].forEach(k => { b[k] = String(a[k] || ""); }); b.fields = a.fields && typeof a.fields === "object" ? Object.fromEntries(Object.entries(a.fields).map(([k, v]) => [String(k), String(v)])) : {}; o.answers[q.id] = b; });
-  return o;
-}
 function yearDots(pid, today) {
   const out = []; for (let i = 11; i >= 0; i--) { const m = addMonths(today.slice(0, 7) + "-15", -i).slice(0, 7); const ss = sessionsFor(pid).filter(x => x.date.slice(0, 7) === m); const last = ss[ss.length - 1]; out.push(`<i class="${last ? (last.deep ? "deep " : "") + ({ "Rødt": "Tiltak", "Gult": "Risiko", "Grønt": "OK" })[ampel(last)] : ""}${i === 0 ? " now" : ""}" title="${MONTHS[Number(m.slice(5, 7)) - 1]}${last ? " " + ampel(last).toLowerCase() : ""}"></i>`); }
   return out.join("");
+}
+function normSession(s) {
+  if (!s || typeof s !== "object" || !ID_OK(s.id) || (s.prevId && !ID_OK(s.prevId)) || (s.projectId && !ID_OK(s.projectId)) || !/^\d{4}-\d{2}-\d{2}$/.test(String(s.date)) || !s.project || typeof s.project !== "object" || !s.sig || typeof s.sig !== "object") return null;
+  const o = { id: s.id, date: s.date, projectId: String(s.projectId || ""), project: {}, sig: {}, fields: {}, punkter: {}, answers: {}, deep: !!s.deep, fullRound: !!s.fullRound, pulse: {}, person: null, elapsed: Number(s.elapsed) || 0, finishedAt: String(s.finishedAt || ""), prevId: s.prevId ? String(s.prevId) : null, takeaway: String(s.takeaway || ""), mode: Object.keys(MODE_LABEL).includes(s.mode) ? s.mode : undefined, utvikling: Array.isArray(s.utvikling) ? s.utvikling.filter(u => u && UTV_BY[u.k]).map(u => ({ k: u.k, t: Number(u.t) || UTV_BY[u.k].t, m: /^\d{4}-\d{2}$/.test(String(u.m)) ? u.m : "" })) : [] };
+  if (s.lederSvar === "Ja" || s.lederSvar === "Nei") o.lederSvar = s.lederSvar;
+  ["konsulent", "teamleder", "prosjekt", "prosjektnummer", "kunde", "rolle", "kontrakt", "kontraktstype", "sluttdato", "ku_dato", "ku_score", "id", "plan", "mal"].forEach(k => { o.project[k] = String(s.project[k] || ""); });
+  o.project.type = s.project.type === "intern" ? "intern" : s.project.type === "mellom" ? "mellom" : "prosjekt"; o.project.andel = Number(s.project.andel) || 0; o.project.oppstart = !!s.project.oppstart;
+  const okStatus = v => STATUS.includes(v) ? v : v === NR ? NR : "OK";
+  if (o.projectId) SIGNALS.forEach(S => { const a = (s.sig[S.id] && typeof s.sig[S.id] === "object") ? s.sig[S.id] : {}; const b = blankSig(); b.status = okStatus(a.status); ["comment", "tiltak", "ansvarlig", "frist"].forEach(k => { b[k] = String(a[k] || ""); }); o.sig[S.id] = b; });
+  // eldre runder (før v5) hadde S1 per prosjekt: flytt til person
+  if (s.sig.S1 && typeof s.sig.S1 === "object" && !s.person) { o.person = { timer_uke: String((s.fields || {}).timer_uke || ""), S1: { status: okStatus(s.sig.S1.status), comment: String(s.sig.S1.comment || "") }, kontakt: "", N1: blankSig(), N3: blankSig() }; }
+  if (s.person && typeof s.person === "object") { const P = s.person; o.person = { timer_uke: String(P.timer_uke || ""), S1: { status: okStatus((P.S1 || {}).status), comment: String((P.S1 || {}).comment || "") }, kontakt: P.kontakt === "ja" || P.kontakt === "nei" ? P.kontakt : "", N1: { status: okStatus((P.N1 || {}).status), comment: String((P.N1 || {}).comment || "") }, N3: { status: okStatus((P.N3 || {}).status), comment: String((P.N3 || {}).comment || "") } }; }
+  if (s.fields && typeof s.fields === "object") Object.entries(s.fields).forEach(([k, v]) => { o.fields[String(k)] = String(v || ""); });
+  ["endret", "risiko", "trenger"].forEach(k => { o.punkter[k] = String((s.punkter || {})[k] || ""); });
+  PULSE.forEach(p => { const v = Number(s.pulse && s.pulse[p.k]); if (v >= 1 && v <= 5) o.pulse[p.k] = v; });
+  ALL_Q.forEach(({ q }) => { const a = (s.answers && s.answers[q.id] && typeof s.answers[q.id] === "object") ? s.answers[q.id] : {}; const b = blankAnswer(); b.status = STATUS.includes(a.status) ? a.status : "OK"; ["value", "comment", "tiltak", "ansvarlig", "frist"].forEach(k => { b[k] = String(a[k] || ""); }); b.fields = a.fields && typeof a.fields === "object" ? Object.fromEntries(Object.entries(a.fields).map(([k, v]) => [String(k), String(v)])) : {}; b.carried = !!a.carried; o.answers[q.id] = b; });
+  return o;
 }
 function yearReport() {
   const today = isoToday(); const from = addMonths(today, -12); const L = [];
   L.push(`Årsutskrift ROMA · ${store.me.konsulent} · ${fmtDate(from)} til ${fmtDate(today)}`);
   L.push("Til medarbeidersamtalen. Kun for deg og nærmeste leder.");
-  store.projects.forEach(p => { const ss = sessionsFor(p.id).filter(x => x.date >= from); if (!ss.length) return; L.push(""); L.push(`${p.prosjekt}${p.kunde ? " (" + p.kunde + ")" : ""}: ${ss.length} runder · ${ss.map(x => `${MONTHS[Number(x.date.slice(5, 7)) - 1]} ${AMPEL_EMOJI[ampel(x)]}`).join(" ")}`); const risks = ss.map(x => x.punkter && x.punkter.risiko).filter(v => v && !NOTHING.test(v)); if (risks.length) L.push(`  Risiko meldt: ${risks.slice(-3).join(" · ")}`); });
-  const ps = store.sessions.filter(x => x.date >= from && x.pulse && x.pulse.belastning); if (ps.length) { const byM = {}; ps.forEach(x => { byM[x.date.slice(0, 7)] = x.pulse; }); L.push(""); L.push(`Puls per måned: ${Object.keys(byM).sort().map(m => `${MONTHS[Number(m.slice(5, 7)) - 1]} ${byM[m].belastning}/${byM[m].trivsel}`).join(" · ")} (belastning/trivsel)`); }
+  const pids = Array.from(new Set(store.sessions.filter(x => x.date >= from).map(x => x.projectId)));
+  pids.forEach(pid => { const ss = store.sessions.filter(x => x.projectId === pid && x.date >= from).sort((a, b) => cmp(a.date, b.date)); if (!ss.length) return; const p = projectById(pid) || ss[ss.length - 1].project; L.push(""); L.push(`${p.prosjekt}${isIntern(p) ? " (intern rolle)" : p.kunde ? " (" + p.kunde + ")" : ""}${p.avsluttet ? ", avsluttet " + fmtDate(p.avsluttet) : ""}: ${ss.length} runde${ss.length > 1 ? "r" : ""} · ${ss.map(x => `${MONTHS[Number(x.date.slice(5, 7)) - 1]} ${AMPEL_EMOJI[ampel(x)]}`).join(" ")}`); const risks = ss.map(x => x.punkter && x.punkter.risiko).filter(v => v && !NOTHING.test(v)); if (risks.length) L.push(`  Risiko meldt: ${risks.slice(-3).join(" · ")}`); if (p.slutt && p.slutt.annerledes) L.push(`  Sluttevaluering: ${p.slutt.annerledes}`); });
+  const ps = store.sessions.filter(x => x.date >= from && x.pulse && x.pulse.belastning); if (ps.length) { const byM = {}; ps.forEach(x => { byM[x.date.slice(0, 7)] = x; }); L.push(""); L.push(`Puls per måned: ${Object.keys(byM).sort().map(m => `${MONTHS[Number(m.slice(5, 7)) - 1]} ${byM[m].pulse.belastning}/${byM[m].pulse.trivsel}${byM[m].person && byM[m].person.timer_uke ? " · " + byM[m].person.timer_uke + " t" : ""}`).join(" · ")} (belastning/trivsel)`); }
   const closed = store.tiltak.filter(t => t.status === "Lukket" && t.lukket && t.lukket >= from); const utv = store.tiltak.filter(t => t.area === "Utvikling" && t.dato >= from);
   L.push(""); L.push(`Tiltak lukket: ${closed.length}${closed.length ? ": " + closed.map(t => t.tekst).join(" · ") : ""}`);
   L.push(`Utvikling: ${utv.length ? utv.map(t => `${t.tekst} (${t.status.toLowerCase()})`).join(" · ") : "ingen registrert"}`);
-  const deep = store.sessions.filter(x => x.date >= from && x.deep).length; L.push(`Full ROMA gjennomført: ${deep} ganger`);
+  const deep = store.sessions.filter(x => x.date >= from && x.deep).length; L.push(`Full ROMA gjennomført: ${deep} ${deep === 1 ? "gang" : "ganger"}`);
   return L.join("\n");
 }
 function renderOverview() {
   if (okt) { saveDraft(); stopTimer(); okt = null; }
   hudMode = "idle"; renderHud(); show("overview");
   const el = $("#screen-overview"); const today = isoToday(); const openT = store.tiltak.filter(t => t.status === "Åpen");
+  const all = allSessionsSorted(); const act = activeProjects(); const ended = store.projects.filter(p => p.avsluttet);
+  const projRow = p => { const list = sessionsFor(p.id); const last = list[list.length - 1]; const next = last ? addMonths(last.date, 1) : null; const overdue = !p.avsluttet && next && next < today; const open = openTiltak(p.id).length;
+    return `<div class="card proj"><div><b>${esc(p.prosjekt)}</b> ${p.avsluttet ? `<span class="pill closed">avsluttet ${fmtDate(p.avsluttet)}</span>` : ""}<br><span class="muted small">${isIntern(p) ? "intern rolle" : esc(p.kunde)}${p.andel ? ` · ${p.andel} %` : ""}</span><br><span class="small">${last ? `sist <b class="mono">${fmtDate(last.date)}</b>${p.avsluttet ? "" : ` · neste <b class="mono" style="${overdue ? "color:var(--tiltak-ink)" : ""}">${fmtDate(next)}</b>${overdue ? " · forfalt" : ""}`}<br><span class="lights-mini">${SIGNALS.map(S => `<i class="${SC[(last.sig[S.id] || {}).status || "OK"]}"></i>`).join("")}</span> ${esc(ampel(last))}` : "ingen runder ennå"}</span></div><div><div class="kpi ${open ? "tiltak" : "ok"}"><b>${open}</b><small>Åpne tiltak</small></div><div class="year" style="margin-top:8px" title="Siste 12 måneder">${yearDots(p.id, today)}</div></div><div></div></div>`; };
   el.innerHTML = `
     <div class="overview">
       <div class="area-head">
-        <div><span class="eyebrow">Oversikt</span><h2>Dine prosjekter</h2><p class="muted">${store.sessions.length} runder levert${personStreak(today) >= 2 ? ` · ${personStreak(today)} måneder på rad` : ""}</p></div>
+        <div><span class="eyebrow">Oversikt</span><h2>Deg og prosjektene dine</h2><p class="muted">${store.sessions.length} runder levert${personStreak(today) >= 2 ? ` · ${personStreak(today)} måneder på rad` : ""}</p></div>
         <div class="btn-row"><button type="button" class="btn" id="all-leder-btn" ${store.sessions.length ? "" : "disabled"}>Ledereksport, alle runder</button><button type="button" class="btn ghost" id="backup-btn">Sikkerhetskopi (JSON)</button><button type="button" class="btn ghost" id="import-btn">Hent sikkerhetskopi</button><input type="file" id="import-inp" accept="application/json" hidden><button type="button" class="btn ghost" id="year-btn" ${store.sessions.length ? "" : "disabled"}>Årsutskrift</button></div>
       </div>
-      ${store.projects.length ? store.projects.map(p => { const list = sessionsFor(p.id); const last = list[list.length - 1]; const next = last ? addMonths(last.date, 1) : null; const overdue = next && next < today; const open = openTiltak(p.id).length;
-        return `<div class="card proj"><div><b>${esc(p.prosjekt)}</b><br><span class="muted small">${esc(p.kunde)}</span><br><span class="small">${last ? `sist <b class="mono">${fmtDate(last.date)}</b> · neste <b class="mono" style="${overdue ? "color:var(--tiltak-ink)" : ""}">${fmtDate(next)}</b>${overdue ? " · forfalt" : ""}${streakFor(p.id, last.date) >= 2 ? ` · streak ×${streakFor(p.id, last.date)}` : ""}<br><span class="lights-mini">${SIGNALS.map(S => `<i class="${SC[(last.sig[S.id] || {}).status || "OK"]}"></i>`).join("")}</span> ${esc(ampel(last))}` : "ingen runder ennå"}</span></div><div><div class="kpi ${open ? "tiltak" : "ok"}"><b>${open}</b><small>Åpne tiltak</small></div><div class="year" style="margin-top:8px" title="Siste 12 måneder">${yearDots(p.id, today)}</div></div><div>${last ? sparkSvg(list) + `<div class="legend"><span><i style="background:var(--tiltak)"></i>Belastning</span><span><i style="background:var(--accent)"></i>Trivsel</span></div>` : ""}</div></div>`; }).join("") : `<div class="empty">Ingen prosjekter ennå. Legg til det første på forsiden.</div>`}
+      ${all.some(s => s.pulse && s.pulse.belastning) ? `<div class="card proj"><div><b>Puls</b><br><span class="muted small">${all.filter(s => s.pulse && s.pulse.belastning).length} måneder</span></div><div class="year" title="Siste 12 måneder, alle runder">${yearDots("", today) && ""}</div><div>${sparkSvg(Object.values(all.filter(s => s.pulse && s.pulse.belastning).reduce((m, s) => { m[s.date.slice(0, 7)] = s; return m; }, {})).sort((a, b) => cmp(a.date, b.date)))}<div class="legend"><span><i style="background:var(--tiltak)"></i>Belastning</span><span><i style="background:var(--accent)"></i>Trivsel</span></div></div></div>` : ""}
+      ${act.length ? act.map(projRow).join("") : `<div class="empty">Ingen aktive prosjekter eller roller.</div>`}
+      ${ended.length ? `<details><summary class="muted small">Avsluttede (${ended.length})</summary><div style="margin-top:8px;display:flex;flex-direction:column;gap:10px">${ended.map(projRow).join("")}</div></details>` : ""}
       <div class="card">
         <div class="area-head" style="margin-bottom:8px"><h3>Tiltakslogg</h3><span class="muted small">${openT.length} åpne · huk av når det er lukket</span></div>
         ${store.tiltak.length ? `<div class="table-wrap"><table><thead><tr><th></th><th>Opprettet</th><th>Prosjekt</th><th>Tiltak</th><th>Ansvarlig</th><th>Frist</th><th>Status</th></tr></thead><tbody>${store.tiltak.slice().sort((a, b) => (a.status === b.status ? cmp(a.frist || "9", b.frist || "9") : a.status === "Åpen" ? -1 : 1)).map(t => `<tr><td><input type="checkbox" data-tiltak="${esc(t.id)}" ${t.status === "Lukket" ? "checked" : ""} aria-label="Lukk tiltak"></td><td class="mono">${fmtDate(t.dato)}</td><td>${esc(t.prosjekt)}${t.timer ? `<br><span class="muted small">ca. ${t.timer} t</span>` : ""}</td><td>${esc(t.tekst)}<br><span class="muted small">${esc(t.area)}${t.kommentar ? " · " + esc(t.kommentar) : ""}</span></td><td>${esc(t.ansvarlig)}</td><td class="mono" style="${t.status === "Åpen" && t.frist && t.frist < today ? "color:var(--tiltak-ink)" : ""}">${fmtDate(t.frist)}</td><td><span class="pill ${t.status === "Åpen" ? "open" : "closed"}">${esc(t.status)}</span></td></tr>`).join("")}</tbody></table></div>` : `<p class="muted">Ingen tiltak logget ennå.</p>`}
       </div>
-      ${store.sessions.length ? `<div class="card"><div class="area-head" style="margin-bottom:8px"><h3>Leverte runder</h3></div><div class="table-wrap"><table><thead><tr><th>Dato</th><th>Prosjekt</th><th>Signaler</th><th></th></tr></thead><tbody>${store.sessions.slice().sort((a, b) => cmp(b.date, a.date) || cmp(b.finishedAt, a.finishedAt)).map(s => `<tr><td class="mono">${fmtDate(s.date)}</td><td>${esc(s.project.prosjekt)}</td><td><span class="lights-mini">${SIGNALS.map(S => `<i class="${SC[(s.sig[S.id] || {}).status || "OK"]}"></i>`).join("")}</span>${s.deep ? ' <span class="muted small">+ full ROMA</span>' : ""}</td><td><button type="button" class="btn small" data-open="${esc(s.id)}">Åpne</button></td></tr>`).join("")}</tbody></table></div></div>` : ""}
+      ${store.sessions.length ? `<div class="card"><div class="area-head" style="margin-bottom:8px"><h3>Leverte runder</h3></div><div class="table-wrap"><table><thead><tr><th>Dato</th><th>Prosjekt</th><th>Signaler</th><th></th></tr></thead><tbody>${all.slice().reverse().map(s => `<tr><td class="mono">${fmtDate(s.date)}</td><td>${esc(s.project.prosjekt)}</td><td>${s.projectId ? `<span class="lights-mini">${SIGNALS.map(S => `<i class="${SC[(s.sig[S.id] || {}).status || "OK"]}"></i>`).join("")}</span>` : `<span class="muted small">${esc(ampel(s))}</span>`}${s.deep ? ' <span class="muted small">+ full ROMA</span>' : ""}</td><td><button type="button" class="btn small" data-open="${esc(s.id)}">Åpne</button></td></tr>`).join("")}</tbody></table></div></div>` : ""}
       <details class="card" id="yearbox" hidden><summary>Årsutskrift til medarbeidersamtalen</summary><pre class="teams" id="year-pre" style="margin-top:10px"></pre><div class="btn-row" style="margin-top:8px"><button type="button" class="btn small" id="year-copy">Kopier</button></div></details>
       <div class="card"><div class="area-head"><div><h3>Dine data</h3><p class="muted small">Alt ligger kun i denne nettleseren. Bytter du maskin, ta sikkerhetskopi først. Deler du maskin, slett når du er ferdig. Safari kan slette lokale data etter 7 dager uten besøk, så ta sikkerhetskopi jevnlig.</p></div><button type="button" class="btn ghost danger" id="wipe-btn">Slett alle mine data</button></div></div>
       <p class="note privacy muted small">${esc(PRIVACY_TEXT)}</p>
@@ -1123,13 +1290,12 @@ function renderOverview() {
     const f = ev.target.files[0]; if (!f) return; const r = new FileReader();
     r.onload = () => { try {
       const data = JSON.parse(r.result); if (!data || typeof data !== "object") throw new Error("format"); let n = 0;
-      (Array.isArray(data.projects) ? data.projects : []).forEach(p => { if (p && typeof p === "object" && p.prosjekt && (p.id === undefined || ID_OK(p.id)) && !store.projects.some(x => x.id === p.id)) { const o = { id: String(p.id || uid()) }; ["prosjekt", "kunde", "prosjektnummer", "rolle", "kontrakt", "kontraktstype", "sluttdato", "ku_dato", "ku_score"].forEach(k => { o[k] = String(p[k] || ""); }); store.projects.push(o); } });
+      (Array.isArray(data.projects) ? data.projects : []).forEach(p => { const o = normProject(p); if (o && !store.projects.some(x => x.id === o.id)) store.projects.push(o); });
       const have = new Set(store.sessions.map(s => s.id));
-      (Array.isArray(data.sessions) ? data.sessions : []).forEach(s => { const v = validSession(s); if (v && !have.has(v.id) && (projectById(v.projectId) || v.project.prosjekt)) { if (!projectById(v.projectId)) { const np = Object.assign({ id: v.projectId || uid() }, v.project); v.projectId = np.id; store.projects.push(np); } store.sessions.push(v); n++; } });
+      (Array.isArray(data.sessions) ? data.sessions : []).forEach(s => { const v = normSession(s); if (v && !have.has(v.id) && (!v.projectId || projectById(v.projectId) || v.project.prosjekt)) { if (v.projectId && !projectById(v.projectId)) { const np = normProject(Object.assign({ id: v.projectId }, v.project)); if (np) store.projects.push(np); } store.sessions.push(v); n++; } });
       const haveT = new Set(store.tiltak.map(t => t.id));
       (Array.isArray(data.tiltak) ? data.tiltak : []).forEach(t => { if (t && typeof t === "object" && t.tekst && (t.id === undefined || ID_OK(t.id)) && (!t.projectId || ID_OK(t.projectId)) && !haveT.has(String(t.id))) store.tiltak.push({ id: String(t.id || uid()), sessionId: String(t.sessionId || ""), projectId: String(t.projectId || ""), dato: /^\d{4}-\d{2}-\d{2}$/.test(String(t.dato)) ? t.dato : isoToday(), prosjekt: String(t.prosjekt || ""), tekst: String(t.tekst), ansvarlig: String(t.ansvarlig || ""), frist: /^\d{4}-\d{2}-\d{2}$/.test(String(t.frist)) ? t.frist : "", status: t.status === "Lukket" ? "Lukket" : "Åpen", kommentar: String(t.kommentar || ""), area: String(t.area || ""), lukket: /^\d{4}-\d{2}-\d{2}$/.test(String(t.lukket)) ? t.lukket : "", timer: Number(t.timer) || undefined }); });
       if (data.me && typeof data.me === "object" && !store.me.konsulent) { store.me.konsulent = String(data.me.konsulent || ""); store.me.teamleder = String(data.me.teamleder || ""); }
-      if (data.best && typeof data.best === "object") Object.entries(data.best).forEach(([k, v]) => { if (ID_OK(k) && Number(v) > 0 && (!store.best[k] || Number(v) < store.best[k])) store.best[k] = Number(v); });
       saveStore(); toast(`Hentet ${n} runder`); renderOverview();
     } catch (e) { toast("Kunne ikke lese filen"); } };
     r.readAsText(f);
@@ -1140,6 +1306,7 @@ function renderOverview() {
 
 /* ---------- oppstart ---------- */
 renderHome();
+
 </script>
 </body>
 </html>

@@ -14,14 +14,15 @@ Hvis siden ikke svarer etter første push: Settings → Pages → Source: «GitH
 
 ## Hva den gjør
 
-- **Dagens runde**: velg 1–3 prosjekter, kjør dem etter hverandre. Forrige måned ligger klar, du endrer bare det som er nytt.
-- **Sju signaler** (R Ressurs, O Oversikt, M Menneske, A Ansvar): belastning, fremdrift, økonomi, omfang og rolle, kunde, trygghet, neste fase. Grønt, gult eller rødt. Økonomi-signalet følger kontraktstypen (timer uten ramme, timer med ramme, fastpris).
+- **Dagens runde**: velg prosjektene du tar nå, kjør dem etter hverandre. Forrige måned ligger klar som referanse, du setter fargene på nytt.
+- **Ulike konsulenter, samme runde**: kundeoppdrag eller intern rolle (kvalitetsleder, tilbud, faggruppe) med egne signaltekster. Andel av tiden per prosjekt: under 10 % gir kort runde med bare økonomi, omfang og kunde. Mange prosjekter gir samlet ledertekst med én linje per prosjekt. Ingen prosjekt gir runden «Mellom oppdrag» (neste oppdrag, innhold i dagene, hva du trenger). «Avslutt prosjekt» tar tre linjer sluttevaluering og beholder historikken.
+- **Seks signaler per prosjekt** (O Oversikt, M Menneske, A Ansvar): fremdrift, økonomi, omfang og rolle, kunde eller internt, trygghet, neste fase. Grønt, gult eller rødt. Økonomi-signalet følger kontraktstypen (timer uten ramme, timer med ramme, fastpris).
+- **Deg denne måneden** (R Ressurs), én gang uansett antall prosjekter: puls (belastning og trivsel 1–5), belastning som signal med timer per uke, og om du har hatt reell kontakt med Involved. Modus Travel, Balansert, Rolig eller Mellom oppdrag styrer hvor mye appen ber om; rolige måneder åpner en utviklingsmeny.
 - **Viktigste punkter**: tre linjer per prosjekt: endret siden sist, risiko nå, trenger fra Involved. Diktering på mobil.
-- **Puls** én gang per person: belastning og trivsel 1–5 med terskler for oppfølging.
 - **Røde flagg** som alltid meldes til leder og Planner.
 - **Full ROMA** (30 spørsmål) som frivillig dybde ved gult/rødt, og kvartalsvis.
 - **Lever**: Teams-tekst per prosjekt, Excel per prosjekt (Prosjektinfo, ROMA-samtale, Tiltak & Oppfølging, Statusoversikt), ledereksport med prosjektkort og puls.
-- **Oversikt**: prosjekter med neste samtale, trend, tiltakslogg, historikk, sikkerhetskopi og «Slett alle mine data».
+- **Oversikt**: aktive og avsluttede prosjekter med neste samtale, siste 12 måneder som prikker, tiltakslogg, årsutskrift til medarbeidersamtalen, sikkerhetskopi og «Slett alle mine data».
 
 ## Personvern og sikkerhet
 
