@@ -6,7 +6,11 @@ Involveds månedlige ROMA-samtale som en interaktiv nettside: 10 minutter per pr
 
 Åpne `index.html` i en nettleser. Ingen installasjon, ingen server. Alt lagres lokalt i nettleseren; ta sikkerhetskopi (JSON) fra Oversikt-fanen før du bytter maskin.
 
-Publiser gjerne via GitHub Pages (Settings → Pages → branch `main`, mappe `/`), så kan hele teamet åpne den fra én lenke.
+Nettsiden publiseres automatisk med GitHub Pages ved hvert push til `main`:
+
+**https://forzacode00.github.io/roma/**
+
+Hvis siden ikke svarer etter første push: Settings → Pages → Source: «GitHub Actions», og kjør workflowen «Publiser Via ROMA» på nytt under Actions.
 
 ## Hva den gjør
 
