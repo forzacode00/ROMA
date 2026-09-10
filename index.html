@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Via ROMA</title>
-<meta name="description" content="Involveds månedlige ROMA-samtale på 10 minutter per prosjekt: alt er grønt til du flagger noe, forrige måned ligger klar, og resultatet går rett til Excel.">
+<meta name="description" content="Involveds månedlige ROMA-samtale på 3 minutter per prosjekt: sju signaler, tre tall, tre linjer med viktigste punkter, og eksport til leder og Excel.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap">
@@ -56,43 +56,37 @@
   button { cursor: pointer; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   h1, h2, h3 { font-family: var(--font-display); font-weight: 600; line-height: 1.15; margin: 0; text-wrap: balance; }
-  h1 { font-size: clamp(1.7rem, 4vw, 2.4rem); }
-  h2 { font-size: clamp(1.25rem, 2.4vw, 1.6rem); }
+  h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); }
+  h2 { font-size: clamp(1.2rem, 2.4vw, 1.5rem); }
   h3 { font-size: 1.05rem; }
   p { margin: 0; }
   .muted { color: var(--muted); }
   .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
   .eyebrow { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 600; color: var(--muted); }
   .small { font-size: .85rem; }
-  #app { max-width: 980px; margin: 0 auto; padding-block: 0 80px; padding-inline: clamp(16px, 3vw, 28px); }
+  #app { max-width: 860px; margin: 0 auto; padding-block: 0 90px; padding-inline: clamp(16px, 3vw, 28px); }
 
-  /* ---------- top bar ---------- */
-  .top { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-block: 12px 10px; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 6; background: var(--bg); min-height: 56px; }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-block: 10px; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 6; background: var(--bg); min-height: 54px; }
   .brand { display: flex; align-items: baseline; gap: 8px; white-space: nowrap; }
   .brand strong { font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; }
   .brand span { font-size: .72rem; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
   .tabs { display: flex; gap: 4px; }
   .tab { border: 1px solid transparent; background: transparent; padding: 6px 12px; border-radius: 999px; color: var(--muted); font-weight: 500; }
   .tab[aria-current="page"] { background: var(--surface); border-color: var(--line); color: var(--ink); }
-  .hud { display: flex; align-items: center; gap: 12px; }
-  .hud .stat { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; }
-  .hud .stat b { font-family: var(--font-mono); font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .hud .stat b.over { color: var(--tiltak); }
-  .hud .stat small { font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
-  .ring { width: 38px; height: 38px; flex: none; }
+  .hud { display: flex; align-items: center; gap: 10px; min-width: 40px; justify-content: flex-end; }
+  .hud .stat { font-family: var(--font-mono); font-size: .95rem; font-weight: 600; white-space: nowrap; }
+  .ring { width: 34px; height: 34px; flex: none; }
   .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
   .ring circle { fill: none; stroke-width: 4; }
   .ring .track { stroke: var(--line); }
-  .ring .bar { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset .6s ease; }
-  .ring.warn .bar { stroke: var(--risk); }
-  .ring.over .bar { stroke: var(--tiltak); }
-  @media (max-width: 560px) { .brand span { display: none; } .hud .stat small { display: none; } .tab { padding: 6px 9px; font-size: .9rem; } }
+  .ring .bar { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset .9s linear; }
+  .ring.over .bar { stroke: var(--risk); }
+  @media (max-width: 560px) { .brand span { display: none; } .tab { padding: 6px 9px; font-size: .9rem; } }
 
-  main { padding-block: 20px; }
+  main { padding-block: 18px; }
   section[hidden] { display: none !important; }
 
-  /* ---------- generic ---------- */
-  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--surface); font-weight: 600; min-height: 44px; transition: transform .08s ease, background .15s ease; }
   .btn:hover { background: var(--surface-2); }
   .btn:active { transform: translateY(1px); }
@@ -119,10 +113,6 @@
   .note.privacy { border-style: dashed; }
   .note ul { margin: 6px 0 0; padding-left: 20px; }
   .pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: .75rem; font-weight: 600; white-space: nowrap; }
-  .pill.OK { background: var(--ok-soft); color: var(--ok-ink); }
-  .pill.Risiko { background: var(--risk-soft); color: var(--risk-ink); }
-  .pill.Tiltak { background: var(--tiltak-soft); color: var(--tiltak-ink); }
-  .pill.Skip { background: var(--skip-soft); color: var(--muted); }
   .pill.open { background: var(--tiltak-soft); color: var(--tiltak-ink); }
   .pill.closed { background: var(--ok-soft); color: var(--ok-ink); }
   table { width: 100%; border-collapse: collapse; font-size: .9rem; }
@@ -130,18 +120,13 @@
   th { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
   .table-wrap { overflow-x: auto; }
   details > summary { cursor: pointer; font-weight: 600; }
-  .level-bar { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
-  .level-bar div { height: 100%; background: var(--gold); border-radius: 999px; }
-  .kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
   .kpi { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--surface); }
-  .kpi b { font-family: var(--font-mono); font-size: 1.35rem; font-weight: 600; display: block; line-height: 1.1; }
+  .kpi b { font-family: var(--font-mono); font-size: 1.3rem; font-weight: 600; display: block; line-height: 1.1; }
   .kpi small { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-  .kpi.ok b { color: var(--ok-ink); } .kpi.risk b { color: var(--risk-ink); } .kpi.tiltak b { color: var(--tiltak-ink); }
+  .kpi.ok b { color: var(--ok-ink); } .kpi.tiltak b { color: var(--tiltak-ink); }
 
-  /* ---------- home ---------- */
-  .home { display: flex; flex-direction: column; gap: 18px; }
-  .home-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
-  .home-head .lead { display: flex; flex-direction: column; gap: 6px; max-width: 60ch; }
+  .home { display: flex; flex-direction: column; gap: 16px; }
+  .home-head { display: flex; flex-direction: column; gap: 6px; max-width: 60ch; }
   .plist { display: flex; flex-direction: column; gap: 10px; }
   .pcard { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
   .pcard input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--accent); }
@@ -159,101 +144,116 @@
   .roma-letters b { font-family: var(--font-display); font-size: 1.4rem; color: var(--accent); display: block; line-height: 1; }
   @media (max-width: 520px) { .roma-letters { grid-template-columns: repeat(2, 1fr); } }
   .pform { display: flex; flex-direction: column; gap: 12px; }
-
-  /* ---------- project run ---------- */
-  .run { display: flex; flex-direction: column; gap: 18px; }
-  .strip { position: sticky; top: 56px; z-index: 5; background: var(--bg); padding-block: 8px; border-bottom: 1px solid var(--line); display: flex; gap: 6px; align-items: center; }
-  .strip .dot { flex: 1; min-width: 0; height: 30px; border-radius: 8px; border: 1px solid var(--line-strong); background: var(--surface); font-family: var(--font-mono); font-size: .78rem; font-weight: 600; display: grid; place-items: center; color: var(--muted); padding: 0; }
-  .strip .dot.OK { background: var(--ok-soft); border-color: var(--ok); color: var(--ok-ink); }
-  .strip .dot.Risiko { background: var(--risk-soft); border-color: var(--risk); color: var(--risk-ink); }
-  .strip .dot.Tiltak { background: var(--tiltak-soft); border-color: var(--tiltak); color: var(--tiltak-ink); }
-  .strip .dot.Skip { background: var(--skip-soft); color: var(--muted); text-decoration: line-through; }
-  .run-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
-  .pulse { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-  @media (max-width: 720px) { .pulse { grid-template-columns: 1fr; } }
+  .pulse { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  @media (max-width: 560px) { .pulse { grid-template-columns: 1fr; } }
   .scale { display: flex; gap: 4px; }
-  .scale button { flex: 1; border: 1px solid var(--line-strong); background: var(--surface); border-radius: 8px; padding: 6px 0; min-height: 44px; font-family: var(--font-mono); font-weight: 600; }
+  .scale button { flex: 1; border: 1px solid var(--line-strong); background: var(--surface); border-radius: 8px; padding: 6px 0; min-height: 42px; font-family: var(--font-mono); font-weight: 600; }
   .scale button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
   .anchor { font-size: .78rem; color: var(--muted); min-height: 1.2em; }
-  .area { display: flex; flex-direction: column; gap: 10px; scroll-margin-top: 110px; }
+
+  .run { display: flex; flex-direction: column; gap: 14px; }
+  .run-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+  .lastbox { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; background: var(--surface-2); font-size: .9rem; }
+  .lights-mini { display: inline-flex; gap: 3px; vertical-align: middle; }
+  .lights-mini i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; background: var(--line-strong); }
+  .lights-mini i.OK { background: var(--ok); } .lights-mini i.Risiko { background: var(--risk); } .lights-mini i.Tiltak { background: var(--tiltak); }
+  .siglist { display: flex; flex-direction: column; gap: 8px; }
+  .sig { border: 1px solid var(--line); border-left-width: 5px; border-left-color: var(--ok); border-radius: 12px; background: var(--surface); padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .sig.st-Risiko { border-left-color: var(--risk); }
+  .sig.st-Tiltak { border-left-color: var(--tiltak); }
+  .sig.cursor { box-shadow: 0 0 0 3px var(--accent-soft); border-color: var(--accent); }
+  .sig-main { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+  @media (max-width: 560px) { .sig-main { grid-template-columns: 1fr; } }
+  .sig-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .sig-text .lbl { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+  .sig-text .lbl .roma { color: var(--accent); font-family: var(--font-display); font-weight: 700; }
+  .sig-text .lbl b { font-size: .95rem; }
+  .sig-text .lbl .sist { font-size: .74rem; color: var(--muted); }
+  .sig-text .lbl .chg { font-size: .72rem; color: var(--gold-ink); font-weight: 600; }
+  .sig-text p { font-size: .92rem; }
+  .lights { display: flex; gap: 6px; }
+  .light { border: 1px solid var(--line-strong); background: var(--surface); border-radius: 999px; min-height: 40px; padding: 4px 12px; display: inline-flex; align-items: center; gap: 7px; font-weight: 600; font-size: .85rem; color: var(--muted); }
+  .light i { width: 14px; height: 14px; border-radius: 50%; display: inline-block; background: var(--line-strong); }
+  .light.OK i { background: var(--ok); } .light.Risiko i { background: var(--risk); } .light.Tiltak i { background: var(--tiltak); }
+  .light[aria-pressed="true"] { color: var(--ink); }
+  .light.OK[aria-pressed="true"] { background: var(--ok-soft); border-color: var(--ok); }
+  .light.Risiko[aria-pressed="true"] { background: var(--risk-soft); border-color: var(--risk); }
+  .light.Tiltak[aria-pressed="true"] { background: var(--tiltak-soft); border-color: var(--tiltak); }
+  .light kbd { font-family: var(--font-mono); font-size: .66rem; border: 1px solid var(--line-strong); border-radius: 4px; padding: 0 4px; color: var(--muted); }
+  @media (hover: none) { .light kbd { display: none; } .lights { width: 100%; } .light { flex: 1; justify-content: center; min-height: 44px; } }
+  .fields { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .fld { display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; color: var(--muted); border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; background: var(--surface-2); }
+  .fld input[type="number"] { width: 4.5em; border: 0; background: transparent; padding: 4px; font-family: var(--font-mono); text-align: right; }
+  .fld input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--tiltak); }
+  .detail { display: flex; flex-direction: column; gap: 8px; border-top: 1px dashed var(--line); padding-top: 8px; }
+  .detail textarea, .detail input[type="text"] { border: 1px solid var(--line-strong); border-radius: 8px; padding: 8px 10px; width: 100%; background: var(--surface-2); }
+  .detail textarea { min-height: 48px; resize: vertical; }
+  .tiltak-grid { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+  @media (max-width: 640px) { .tiltak-grid { grid-template-columns: 1fr; } }
+  .frist { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+  .frist button { border: 1px solid var(--line-strong); background: var(--surface); border-radius: 999px; padding: 4px 9px; font-size: .78rem; min-height: 32px; }
+  .frist button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+  .frist input[type="date"] { border: 1px solid var(--line-strong); border-radius: 8px; padding: 4px 6px; background: var(--surface-2); }
+  .deeper { font-size: .8rem; color: var(--muted); }
+  .deeper summary { font-weight: 500; }
+  .deeper .qlist { margin-top: 8px; }
+  .punkter { display: flex; flex-direction: column; gap: 10px; }
+  .prow { display: grid; grid-template-columns: 150px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+  @media (max-width: 640px) { .prow { grid-template-columns: 1fr; } .prow .mic { justify-self: end; } }
+  .prow label { font-size: .82rem; font-weight: 600; color: var(--muted); }
+  .prow input { border: 1px solid var(--line-strong); border-radius: 9px; padding: 9px 11px; width: 100%; background: var(--surface); }
+  .prow .prev { grid-column: 2; font-size: .8rem; color: var(--muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  @media (max-width: 640px) { .prow .prev { grid-column: 1; } }
+  .mic { border: 1px solid var(--line-strong); background: var(--surface); border-radius: 999px; width: 40px; height: 40px; display: grid; place-items: center; }
+  .mic.on { background: var(--tiltak-soft); border-color: var(--tiltak); }
+  .run-foot { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--bg); border-top: 1px solid var(--line); padding: 10px clamp(16px, 3vw, 28px); }
+  .run-foot .inner { max-width: 860px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .run-foot .hint { font-size: .78rem; color: var(--muted); }
+  .run-foot .hint kbd { font-family: var(--font-mono); border: 1px solid var(--line-strong); border-radius: 4px; padding: 0 5px; font-size: .7rem; }
+  @media (max-width: 640px) { .run-foot .hint { display: none; } .run-foot .inner .btn.primary { flex: 1; } }
+  body.kb .run-foot { display: none; }
+
+  .area { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
   .area-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
   .area-head .roma { color: var(--accent); font-family: var(--font-display); font-size: 1rem; letter-spacing: 0; text-transform: none; margin-right: 6px; }
-  .area-head .acts { display: flex; gap: 8px; align-items: center; font-size: .82rem; color: var(--muted); }
-  .area.skipped .qlist, .area.skipped .note { display: none; }
   .qlist { display: flex; flex-direction: column; gap: 8px; }
-  .q { border: 1px solid var(--line); border-left-width: 4px; border-left-color: var(--ok); border-radius: 12px; background: var(--surface); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .q { border: 1px solid var(--line); border-left-width: 4px; border-left-color: var(--ok); border-radius: 12px; background: var(--surface); padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
   .q.st-Risiko { border-left-color: var(--risk); }
   .q.st-Tiltak { border-left-color: var(--tiltak); }
   .q.cursor { box-shadow: 0 0 0 3px var(--accent-soft); border-color: var(--accent); }
   .q .qtext { display: flex; gap: 8px; align-items: baseline; }
   .q .qtext .n { font-family: var(--font-mono); font-size: .75rem; color: var(--muted); min-width: 1.6em; }
-  .q .qtext p { font-weight: 500; }
-  .q .help { font-size: .8rem; color: var(--muted); padding-left: calc(1.6em + 8px); }
+  .q .qtext p { font-weight: 500; font-size: .92rem; }
+  .q .help { font-size: .78rem; color: var(--muted); padding-left: calc(1.6em + 8px); }
   .chips { display: flex; gap: 6px; flex-wrap: wrap; }
-  .chip { border: 1px solid var(--line-strong); background: var(--surface); border-radius: 999px; padding: 6px 12px; font-size: .85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; }
-  .chip kbd { font-family: var(--font-mono); font-size: .66rem; border: 1px solid var(--line-strong); border-radius: 4px; padding: 0 4px; color: var(--muted); }
-  @media (hover: none) { .chip kbd { display: none; } .chip { min-height: 44px; flex: 1; justify-content: center; } }
+  .chip { border: 1px solid var(--line-strong); background: var(--surface); border-radius: 999px; padding: 5px 11px; font-size: .84rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; min-height: 34px; }
   .chip:hover { background: var(--surface-2); }
   .chip.OK[aria-pressed="true"] { background: var(--ok-soft); border-color: var(--ok); color: var(--ok-ink); }
   .chip.Risiko[aria-pressed="true"] { background: var(--risk-soft); border-color: var(--risk); color: var(--risk-ink); }
   .chip.Tiltak[aria-pressed="true"] { background: var(--tiltak-soft); border-color: var(--tiltak); color: var(--tiltak-ink); }
   .chip.opt { font-weight: 500; }
   .chip.opt[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
-  .fields { display: flex; gap: 8px; flex-wrap: wrap; }
-  .fld { display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; color: var(--muted); border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; background: var(--surface-2); }
-  .fld input { width: 5.5em; border: 0; background: transparent; padding: 4px; font-family: var(--font-mono); text-align: right; }
-  .fld input[type="date"] { width: auto; font-family: var(--font-body); }
-  .q .detail { display: flex; flex-direction: column; gap: 8px; border-top: 1px dashed var(--line); padding-top: 8px; }
-  .q .detail textarea, .q .detail input[type="text"] { border: 1px solid var(--line-strong); border-radius: 8px; padding: 8px 10px; width: 100%; background: var(--surface-2); }
-  .q .detail textarea { min-height: 52px; resize: vertical; }
-  .tiltak-grid { display: grid; grid-template-columns: 2fr 1fr auto; gap: 8px; align-items: center; }
-  @media (max-width: 720px) { .tiltak-grid { grid-template-columns: 1fr; } }
-  .q .last { font-size: .8rem; color: var(--muted); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  .q .last b { color: var(--ink); font-weight: 600; }
-  .frist { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
-  .frist button { border: 1px solid var(--line-strong); background: var(--surface); border-radius: 999px; padding: 4px 9px; font-size: .78rem; min-height: 32px; }
-  .frist button[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
-  .frist input[type="date"] { border: 1px solid var(--line-strong); border-radius: 8px; padding: 4px 6px; background: var(--surface-2); }
-  .run-foot { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--bg); border-top: 1px solid var(--line); padding: 10px clamp(16px, 3vw, 28px); }
-  .run-foot .inner { max-width: 980px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-  .run-foot .hint { font-size: .78rem; color: var(--muted); }
-  .run-foot .hint kbd { font-family: var(--font-mono); border: 1px solid var(--line-strong); border-radius: 4px; padding: 0 5px; font-size: .7rem; }
-  @media (max-width: 640px) { .run-foot .hint { display: none; } .run-foot .inner .btn.primary { flex: 1; } }
-  body.kb .run-foot { display: none; }
 
-  /* ---------- done ---------- */
-  .done { display: flex; flex-direction: column; gap: 18px; }
-  .export { display: flex; flex-direction: column; gap: 10px; }
-  .export .btn-row .btn { flex: 1 1 200px; }
-  .summary-text { font-family: var(--font-mono); font-size: .8rem; white-space: pre-wrap; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px; max-height: 260px; overflow: auto; }
-  .pgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 12px; }
+  .done { display: flex; flex-direction: column; gap: 16px; }
+  .export .btn-row .btn { flex: 1 1 180px; }
+  .teams { font-family: var(--font-mono); font-size: .82rem; white-space: pre-wrap; background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px; overflow: auto; margin: 0; }
   .psum { display: flex; flex-direction: column; gap: 10px; }
-  .radar { width: 100%; max-width: 260px; margin: 0 auto; display: block; }
-  .radar .grid { fill: none; stroke: var(--line); }
-  .radar .axis { stroke: var(--line); }
-  .radar .area-fill { fill: var(--accent); fill-opacity: .25; stroke: var(--accent); stroke-width: 2; }
-  .radar .dot { fill: var(--accent); }
-  .radar .dot.flag { fill: var(--risk); }
-  .radar text { font-family: var(--font-body); font-size: 10px; fill: var(--muted); }
-  .badges { display: flex; gap: 8px; flex-wrap: wrap; }
-  .badge { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--gold); background: var(--gold-soft); border-radius: 999px; padding: 6px 12px 6px 8px; font-weight: 600; font-size: .86rem; color: var(--ink); }
-  .badge i { font-style: normal; width: 22px; height: 22px; border-radius: 50%; background: var(--gold); color: #1B1300; display: grid; place-items: center; font-size: .78rem; font-family: var(--font-display); }
-  .badge.locked { border-color: var(--line); background: transparent; color: var(--muted); font-weight: 500; }
-  .badge.locked i { background: var(--line); color: var(--muted); }
+  .psum .head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .stats { display: flex; gap: 14px; flex-wrap: wrap; font-size: .9rem; color: var(--muted); }
+  .stats b { color: var(--ink); font-family: var(--font-mono); }
 
-  /* ---------- overview ---------- */
   .overview { display: flex; flex-direction: column; gap: 16px; }
-  .proj { display: grid; grid-template-columns: minmax(0, 1.4fr) 150px 200px; gap: 14px; align-items: center; }
+  .proj { display: grid; grid-template-columns: minmax(0, 1.4fr) 140px 200px; gap: 14px; align-items: center; }
   @media (max-width: 720px) { .proj { grid-template-columns: 1fr; } }
   .spark { width: 100%; height: 48px; }
   .spark path { fill: none; stroke-width: 2; }
-  .spark .bel { stroke: var(--tiltak); } .spark .triv { stroke: var(--accent); } .spark .ene { stroke: var(--gold); }
+  .spark .bel { stroke: var(--tiltak); } .spark .triv { stroke: var(--accent); }
   .legend { display: flex; gap: 10px; font-size: .74rem; color: var(--muted); flex-wrap: wrap; }
   .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
   .empty { padding: 26px; text-align: center; color: var(--muted); border: 1px dashed var(--line-strong); border-radius: var(--radius); }
 
   @media print {
-    .top, .run-foot, .export, .tabs, .no-print, .strip { display: none !important; }
+    .top, .run-foot, .export, .tabs, .no-print { display: none !important; }
     body { background: #fff; color: #000; }
     .card { border-color: #999; break-inside: avoid; }
     #app { max-width: none; padding: 0; }
@@ -283,86 +283,108 @@
 <script async src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.3/confetti.browser.min.js"></script>
 <script>
 /* =====================================================================
-   Via ROMA v2 — Involveds ROMA-samtale på 10 minutter per prosjekt.
-   Innhold revidert med fagpersoner innen prosjektsikring, arbeidsmiljø
-   og kvalitet/miljø. Eksport speiler ROMAsamtaleskjema V1.10 (arkene
-   Forside, Prosjektinfo, ROMA-samtale, Tiltak & Oppfølging, Statusoversikt).
+   Via ROMA v3 — 3 minutter per prosjekt.
+   Månedlig: 7 signaler (grønt/gult/rødt), få tall, 3 linjer viktigste
+   punkter, puls én gang per person. Dybde (30 spørsmål) åpnes bare ved
+   gult/rødt eller kvartalsvis. Innhold revidert med fagpersoner innen
+   prosjektsikring, arbeidsmiljø, kvalitet/miljø og ledelse.
+   Alle data ligger kun i brukerens egen nettleser (localStorage).
    ===================================================================== */
 
-const LIMIT_SEC = 10 * 60;       // maks per prosjekt
-const WARN_SEC = 8 * 60;
-const STORE_KEY = "viaroma.v2";
-const OLD_KEY = "viaroma.v1";
+const LIMIT_SEC = 3 * 60;
+const STORE_KEY = "viaroma.v3";
+const OLD_KEYS = ["viaroma.v2", "viaroma.v1"];
 const STATUS = ["OK", "Risiko", "Krever tiltak"];
-const SKIP = "Ikke gjennomgått";
-const SC = { "OK": "OK", "Risiko": "Risiko", "Krever tiltak": "Tiltak", "Ikke gjennomgått": "Skip" };
+const SC = { "OK": "OK", "Risiko": "Risiko", "Krever tiltak": "Tiltak" };
+const LIGHT = { "OK": "Grønt", "Risiko": "Gult", "Krever tiltak": "Rødt" };
+const LIGHT_EMOJI = { "OK": "🟢", "Risiko": "🟡", "Krever tiltak": "🔴" };
+const RANK = { "OK": 0, "Risiko": 1, "Krever tiltak": 2 };
 const SCALE = [[1, "Misnøye", "Krever tiltak"], [2, "Uro", "Krever tiltak"], [3, "Nøytral", "Risiko"], [4, "Fornøyd", "OK"], [5, "Svært fornøyd", "OK"]];
-const SCALE_HELP = "1 misnøye uttrykt · 2 uro og kritiske spørsmål · 3 ingen signaler · 4 positiv tilbakemelding, tillit · 5 anerkjennelse, anbefaler eller utvider";
+const KONTRAKTSTYPER = ["Timer uten ramme", "Timer med ramme", "Fastpris"];
 
+/* ---------- de sju månedlige signalene ---------- */
+const SIGNALS = [
+  { id: "S1", roma: "R", name: "Belastning", t: "Jeg jobber under 40 timer i uka og kobler av i helgene.", deep: ["r1", "r2", "r3", "r4"], fields: [{ k: "timer_uke", l: "Timer per uke", u: "t" }], privacy: true },
+  { id: "S2", roma: "O", name: "Fremdrift", t: "Leveransene ligger på plan, og ingen forsinkelse kan legges på oss.", deep: ["o1", "o5", "k1", "k2"] },
+  { id: "S3", roma: "O", name: "Økonomi", t: "", deep: ["o2", "o3"], toggle: { k: "utestaende", l: "Utestående over 30 dager" } },
+  { id: "S4", roma: "A", name: "Omfang og rolle", t: "Alt jeg gjør er innenfor avtalt omfang og rolle, eller skriftlig bestilt.", deep: ["o3", "o4", "k4"] },
+  { id: "S5", roma: "M", name: "Kunde", t: "Kunden er fornøyd, og jeg får svar og beslutninger når jeg trenger dem.", deep: ["s1", "s3", "s4", "s2", "o5"] },
+  { id: "S6", roma: "M", name: "Trygghet", t: "Jeg har det bra i prosjektet og er trygg på folkene rundt meg.", deep: ["p1", "p2", "p3", "p4"], sensitive: true, privacy: true },
+  { id: "S7", roma: "A", name: "Neste fase", t: "Neste fase eller forlengelse er avklart, eller det er mer enn 3 måneder til slutt.", deep: ["v2", "v1", "v3"] }
+];
+const SIG_BY = Object.fromEntries(SIGNALS.map(s => [s.id, s]));
+// Økonomi-signalet tilpasses kontraktstypen: uten ramme finnes det ikke noe budsjett å måle mot.
+function s3Config(p) {
+  const kt = (p && p.kontraktstype) || "";
+  if (kt === "Timer med ramme") return { t: "Timeforbruket er i takt med fremdriften, og alt jeg gjør faktureres.", fields: [{ k: "ramme", l: "Ramme brukt", u: "%" }, { k: "fremdrift", l: "Fremdrift", u: "%" }] };
+  if (kt === "Fastpris") return { t: "Timeforbruket er i takt med fremdriften i kalkylen, og delfakturering går som avtalt.", fields: [{ k: "ramme", l: "Kalkyle brukt", u: "%" }, { k: "fremdrift", l: "Fremdrift", u: "%" }] };
+  return { t: "Alle timene mine faktureres, og kunden betaler i tide.", fields: [] };
+}
+function sigText(S, s) { return S.id === "S3" ? s3Config(s.project).t : S.t; }
+function sigFields(S, s) { return S.id === "S3" ? s3Config(s.project).fields : (S.fields || []); }
+const PUNKTER = [
+  { k: "endret", l: "Endret siden sist", ph: "Ny PL hos byggherre 1.9, vil ha revidert plan innen 20.9" },
+  { k: "risiko", l: "Risiko nå", ph: "Tegningsunderlag fra entreprenør uteblir, ca. 1 uke bak" },
+  { k: "trenger", l: "Trenger fra Involved", ph: "Ingenting · eller: sparring om NS 8401-ansvar før 15.9" }
+];
+const PULSE = [
+  { k: "belastning", name: "Belastning", anchors: ["Ledig kapasitet", "Passe", "Travelt, men håndterbart", "For mye over tid, går ut over kvalitet eller fritid", "Uholdbart, jeg klarer ikke mer"], def: 2 },
+  { k: "trivsel", name: "Trivsel", anchors: ["Mistrives, vurderer å slutte", "Lav", "Grei", "God", "Svært god, anbefaler oppdraget"], def: 4 }
+];
+const PRIVACY_TEXT = "Alt du skriver ligger kun i din egen nettleser på denne enheten, ingen server. Tall og statuser deles kun med nærmeste leder når du selv kopierer eller laster ned. Puls og alt under Trygghet går i en egen ledereksport, ikke i prosjektmappen. Skriv ikke helseopplysninger, navn på personer hos kunde eller private forhold i fritekst.";
+
+/* ---------- dybde: full ROMA (30 spørsmål) ---------- */
 const AREAS = [
-  { id: "oppdrag", roma: "O", romaName: "Oversikt", name: "Oppdrag og leveranse", tag: "Fremdrift, økonomi, omfang, ansvar", qs: [
+  { id: "oppdrag", roma: "O", name: "Oppdrag og leveranse", qs: [
     { id: "o1", t: "Ligger våre leveranser og prosjektet på plan?", help: "Forskjøvne milepæler, og om forsinkelsen kan legges på Involved.", choice: [["På plan", "OK"], ["Under 2 uker bak", "Risiko"], ["Over 2 uker bak", "Krever tiltak"]] },
-    { id: "o2", t: "Er timeforbruk i takt med fremdrift, og faktureres alt vi gjør?", help: "Forbruk som løper foran fremdrift, ikke-fakturerte timer, fakturaer over forfall.", fields: [{ k: "timer", l: "Timer brukt av ramme", u: "%" }, { k: "fremdrift", l: "Fremdrift", u: "%" }, { k: "utestaende", l: "Utestående over 30 dager", u: "kr" }],
-      auto: f => (num(f.timer) > 80 && num(f.fremdrift) < 60 && f.fremdrift) || num(f.utestaende) > 0 ? "Krever tiltak" : (f.timer && f.fremdrift && num(f.timer) > num(f.fremdrift) + 10) ? "Risiko" : null },
-    { id: "o3", t: "Gjør vi arbeid utenfor avtalt omfang uten skriftlig bestilling?", help: "OK = nei. «Bare hjelp litt»-oppgaver, bestillinger fra andre enn kontraktspart, manglende endringsordre.", fields: [{ k: "endringer", l: "Åpne endringer uten bestilling", u: "stk" }, { k: "endringstimer", l: "Anslått verdi", u: "timer" }],
-      auto: f => num(f.endringstimer) > 20 ? "Krever tiltak" : num(f.endringer) > 0 ? "Risiko" : null },
+    { id: "o2", t: "Er timeforbruk i takt med fremdrift, og faktureres alt vi gjør?", help: "Forbruk som løper foran fremdrift, ikke-fakturerte timer, fakturaer over forfall." },
+    { id: "o3", t: "Gjør vi arbeid utenfor avtalt omfang uten skriftlig bestilling?", help: "OK = nei. «Bare hjelp litt»-oppgaver, bestillinger fra andre enn kontraktspart, manglende endringsordre.", fields: [{ k: "endringer", l: "Åpne endringer uten bestilling", u: "stk" }, { k: "endringstimer", l: "Anslått verdi", u: "timer" }], auto: f => num(f.endringstimer) > 20 ? "Krever tiltak" : num(f.endringer) > 0 ? "Risiko" : null },
     { id: "o4", t: "Er rollen du faktisk fyller den kontrakten beskriver, og dekker kontrakt og forsikring den?", help: "Rolleglidning (rådgiver → ansvarlig prosjekterende, ITB-ansvarlig, SHA), manglende ansvarsbegrensning etter NS 8401/8402, usignert kontrakt." },
-    { id: "o5", t: "Får du beslutninger og underlag fra kunde og andre fag i tide?", help: "Avklaringer åpne over 14 dager, uklar beslutningstaker, forsinkelser hos andre fag som ikke er varslet skriftlig.", fields: [{ k: "avklaringer", l: "Avklaringer åpne over 14 dager", u: "stk" }],
-      auto: f => num(f.avklaringer) > 2 ? "Krever tiltak" : num(f.avklaringer) > 0 ? "Risiko" : null }
+    { id: "o5", t: "Får du beslutninger og underlag fra kunde og andre fag i tide?", help: "Avklaringer åpne over 14 dager, uklar beslutningstaker, forsinkelser hos andre fag som ikke er varslet skriftlig.", fields: [{ k: "avklaringer", l: "Avklaringer åpne over 14 dager", u: "stk" }], auto: f => num(f.avklaringer) > 2 ? "Krever tiltak" : num(f.avklaringer) > 0 ? "Risiko" : null }
   ]},
-  { id: "kvalitet", roma: "R", romaName: "Ressurs", name: "Kvalitet og faglig støtte", tag: "Sparring, leveransekvalitet, system, ryggdekning", qs: [
+  { id: "kvalitet", roma: "R", name: "Kvalitet og faglig støtte", qs: [
     { id: "k1", t: "Er det leveranser eller vurderinger du bør ha sparring eller sidemannskontroll på?", help: "OK = nei. Oppgaver utenfor egen kjernekompetanse, leveranser som går ut uten KS." },
     { id: "k2", t: "Går leveransene ut kvalitetssikret, dokumentert og sporbart?", help: "Uformelle leveranser på e-post og Teams, manglende referat eller beslutningslogg, tilbakemelding eller reklamasjon fra kunde." },
     { id: "k3", t: "Er det avklart hvilket styringssystem som gjelder, og har du malene, verktøyene og tilgangene du trenger?", help: "Kundens KS-krav vi ikke etterlever, egne løsninger utenom systemet, tilganger som blokkerer arbeid." },
     { id: "k4", t: "Er det faglige valg eller uenigheter med kunde eller andre fag der Involved bør stå bak deg?", help: "OK = nei. Press på å godkjenne noe du ikke er trygg på, konflikt om ansvar mellom fag." }
   ]},
-  { id: "miljo", roma: "O", romaName: "Oversikt", name: "Miljø", tag: "Reise, rådgivning som påvirker bygget, miljøkrav", qs: [
+  { id: "miljo", roma: "O", name: "Miljø", qs: [
     { id: "m1", t: "Planlegges reiser samlet og møter digitalt der det er faglig forsvarlig?", help: "Hyppige enkeltreiser, fly der tog eller digitalt fungerer, befaringer som kunne vært slått sammen." },
-    { id: "m2", t: "Har vi i perioden påvirket valg som betyr noe for byggets energibruk, materialer eller levetid?", help: "Energikonsept, dimensjonering, gjenbruk, ITB-valg, og om miljøhensynet er løftet til kunden. Skriv eksempelet, det går rett i fag- og erfaringsrapporten.", commentOnOk: true },
+    { id: "m2", t: "Har vi i perioden påvirket valg som betyr noe for byggets energibruk, materialer eller levetid?", help: "Energikonsept, dimensjonering, gjenbruk, ITB-valg. Skriv eksempelet, det går rett i fag- og erfaringsrapporten.", commentOnOk: true },
     { id: "m3", t: "Er det miljøkrav i prosjektet (BREEAM, TEK17, klimagassregnskap, kundens krav) som berører vår leveranse, og har vi kontroll på dem?", help: "Krav vi ikke kjenner, eller som ikke er tydelig fordelt." }
   ]},
-  { id: "kunde", roma: "M", romaName: "Menneske", name: "Kunde og samarbeid", tag: "Samarbeidsklima, samhandling, opplevd tilfredshet", qs: [
+  { id: "kunde", roma: "M", name: "Kunde og samarbeid", qs: [
     { id: "s1", t: "Samarbeidsklima med kunden: hvordan fungerer dialogen?", help: "Responstid, tone, om avklaringer faktisk tas.", scale: true },
     { id: "s2", t: "Fungerer samhandlingen mellom aktørene (byggherre, entreprenør, rådgivere, ITB)?", help: "Uavklarte grensesnitt, beslutninger som stopper, informasjon som ikke når fram." },
-    { id: "s3", t: "Opplevd kundetilfredshet: hvilke signaler har du sett siste måned?", help: "Sett tallet og skriv én setning om grunnlaget. Det er setningen som har verdi ved revisjon.", scale: true, commentOnOk: true },
-    { id: "s4", t: "Har kunden gitt konkret tilbakemelding siden sist (ros, kritikk, klage)?", help: "Noter kort. Formell klage meldes i avvikssystemet, ikke her.", choice: [["Ingen eller ros", "OK"], ["Kritikk", "Risiko"], ["Klage", "Krever tiltak"]] }
+    { id: "s3", t: "Opplevd kundetilfredshet: hvilke signaler har du sett siste måned?", help: "Sett tallet og skriv én setning om grunnlaget.", scale: true, commentOnOk: true },
+    { id: "s4", t: "Har kunden gitt konkret tilbakemelding siden sist (ros, kritikk, klage)?", help: "Formell klage meldes i avvikssystemet, ikke her.", choice: [["Ingen eller ros", "OK"], ["Kritikk", "Risiko"], ["Klage", "Krever tiltak"]] }
   ]},
-  { id: "trivsel", roma: "M", romaName: "Menneske", name: "Psykososial trivsel", tag: "Rolleklarhet, støtte, tilhørighet, trygghet", privacy: true, qs: [
+  { id: "trivsel", roma: "M", name: "Psykososial trivsel", privacy: true, qs: [
     { id: "p1", t: "Vet du hva som forventes av deg i rollen, og kan du påvirke hvordan du løser oppgavene?", help: "Uklare bestillinger, flere «sjefer» hos kunde, oppgaver utenfor kontrakt." },
     { id: "p2", t: "Får du støtte fra nærmeste leder i Involved når du trenger det?", help: "Vet du hvem du skal ringe, og kommer svaret i tide?" },
     { id: "p3", t: "Har du hatt reell kontakt med Involved-kolleger siste måned?", help: "«Nei, bare Teams-varsler» er et isolasjonssignal." },
-    { id: "p4", t: "Har du opplevd konflikt, utfrysing eller uønsket atferd hos kunde?", help: "OK = nei. Bagatellisering («det er bare kulturen der») er et signal. Leder eier oppfølgingen, ikke kunden. «Krever tiltak» går til varslingsrutinen, ikke tiltaksloggen. Ingen navn i fritekst.", sensitive: true }
+    { id: "p4", t: "Har du opplevd konflikt, utfrysing eller uønsket atferd hos kunde?", help: "OK = nei. «Krever tiltak» går til varslingsrutinen, ikke tiltaksloggen. Ingen navn i fritekst.", sensitive: true }
   ]},
-  { id: "ressurs", roma: "R", romaName: "Ressurs", name: "Ressurs og belastning", tag: "Timer, parallelle oppdrag, restitusjon, avlastning", privacy: true, qs: [
-    { id: "r1", t: "Hvor mange timer jobbet du i snitt per uke siste måned, inkludert reise?", help: "Over 42,5 timer flere uker på rad, eller overtid som ikke registreres.", fields: [{ k: "timer_uke", l: "Timer per uke", u: "t" }],
-      auto: f => num(f.timer_uke) > 45 ? "Krever tiltak" : num(f.timer_uke) > 40 ? "Risiko" : null },
+  { id: "ressurs", roma: "R", name: "Ressurs og belastning", privacy: true, qs: [
+    { id: "r1", t: "Hvor mange timer jobbet du i snitt per uke siste måned, inkludert reise?", help: "Over 42,5 timer flere uker på rad, eller overtid som ikke registreres." },
     { id: "r2", t: "Jobber du på flere prosjekter eller for flere bestillere samtidig?", help: "Kontekstbytte, og at ingen ser totalen.", choice: [["Ett oppdrag", "OK"], ["Flere, håndterbart", "Risiko"], ["Flere, for mye", "Krever tiltak"]] },
-    { id: "r3", t: "Kobler du av fra jobb i fritid og helg?", help: "Jobbing på kvelden, søvnproblemer, «alt er greit» sagt flatt. Tidlige tegn på utbrenthet." },
+    { id: "r3", t: "Kobler du av fra jobb i fritid og helg?", help: "Jobbing på kvelden, søvnproblemer, «alt er greit» sagt flatt." },
     { id: "r4", t: "Trenger du avlastning eller tilført ressurs nå?", help: "OK = nei. Sjekk om «nei» skyldes lojalitet til kunden heller enn reell kapasitet." }
   ]},
-  { id: "merverdi", roma: "A", romaName: "Ansvar", name: "Kundebehov og merverdi", tag: "Muligheter, forlengelse, relasjon", opportunity: true, qs: [
-    { id: "v1", t: "Er det behov hos kunden (kommende faser, ledige roller, oppgaver de sliter med) vi bør tilby?", help: "Testing, ferdigstillelse, overtakelse, drift, ubesatte roller, samme behov i andre prosjekter hos kunden.", fields: [{ k: "mulighet_timer", l: "Anslått omfang", u: "timer" }], tiltak: "Følg opp mulighet hos kunden" },
-    { id: "v2", t: "Når løper oppdraget ut, og er neste fase avklart?", help: "Kontrakt utløper om under 3 måneder, eller rammen er nesten brukt uten avklaring.", choice: [["Over 3 mnd igjen, eller avklart", "OK"], ["Under 3 mnd, dialog i gang", "Risiko"], ["Under 3 mnd, uavklart", "Krever tiltak"]], fields: [{ k: "sluttdato", l: "Sluttdato", type: "date" }], tiltak: "Avklar neste fase med kunden" },
+  { id: "merverdi", roma: "A", name: "Kundebehov og merverdi", opportunity: true, qs: [
+    { id: "v1", t: "Er det behov hos kunden (kommende faser, ledige roller, oppgaver de sliter med) vi bør tilby?", help: "Testing, ferdigstillelse, overtakelse, drift, ubesatte roller. «Krever tiltak» = en mulighet vi følger opp.", fields: [{ k: "mulighet_timer", l: "Anslått omfang", u: "timer" }], tiltak: "Følg opp mulighet hos kunden" },
+    { id: "v2", t: "Når løper oppdraget ut, og er neste fase avklart?", help: "Kontrakt utløper om under 3 måneder, eller rammen er nesten brukt uten avklaring.", choice: [["Over 3 mnd igjen, eller avklart", "OK"], ["Under 3 mnd, dialog i gang", "Risiko"], ["Under 3 mnd, uavklart", "Krever tiltak"]], tiltak: "Avklar neste fase med kunden" },
     { id: "v3", t: "Hvem hos kunden bør Involved-ledelsen ha kontakt med, og kan kunden brukes som referanse?", help: "Beslutningstakere over ditt nivå som vi ikke kjenner.", tiltak: "Sett opp kontakt mellom Involved-ledelsen og kunden" }
   ]},
-  { id: "laering", roma: "A", romaName: "Ansvar", name: "Læring og forbedring", tag: "Utvikling, erfaringsdeling, friksjon", opportunity: true, qs: [
-    { id: "l1", t: "Får du utviklet deg faglig i oppdraget?", help: "Mange måneder med samme rutineoppgaver. Hva vil du lære eller gjøre annerledes de neste 3 månedene?" },
+  { id: "laering", roma: "A", name: "Læring og forbedring", opportunity: true, qs: [
+    { id: "l1", t: "Får du utviklet deg faglig i oppdraget?", help: "Mange måneder med samme rutineoppgaver. Hva vil du lære de neste 3 månedene?" },
     { id: "l2", t: "Har du erfaringer som bør deles i faggruppen?", help: "Konkrete løsninger, feil eller kundekrav andre kan lære av.", tiltak: "Del erfaring i faggruppen" },
-    { id: "l3", t: "Er det noe i Involveds prosesser, maler eller verktøy som hindrer deg?", help: "OK = nei. Friksjon som gjentar seg fra måned til måned. Går til kvalitetsleder.", tiltak: "Meld forbedringsforslag til kvalitetsleder" }
+    { id: "l3", t: "Er det noe i Involveds prosesser, maler eller verktøy som hindrer deg?", help: "OK = nei. Friksjon som gjentar seg. Går til kvalitetsleder.", tiltak: "Meld forbedringsforslag til kvalitetsleder" }
   ]}
 ];
-const AREA_BY = Object.fromEntries(AREAS.map(a => [a.id, a]));
 const ALL_Q = AREAS.flatMap(a => a.qs.map(q => ({ area: a, q })));
 const Q_AREA = Object.fromEntries(ALL_Q.map(x => [x.q.id, x.area]));
 const Q_BY = Object.fromEntries(ALL_Q.map(x => [x.q.id, x.q]));
-
-const PULSE = [
-  { k: "belastning", name: "Belastning", anchors: ["Ledig kapasitet", "Passe", "Travelt, men håndterbart", "For mye over tid, går ut over kvalitet eller fritid", "Uholdbart, jeg klarer ikke mer"], def: 2 },
-  { k: "trivsel", name: "Trivsel", anchors: ["Mistrives, vurderer å slutte", "Lav", "Grei", "God", "Svært god, anbefaler oppdraget"], def: 4 },
-  { k: "energi", name: "Energi", anchors: ["Utslitt, henter meg ikke inn", "Sliten det meste av tiden", "Varierer", "Stort sett uthvilt", "Full tank"], def: 4 }
-];
-const LEVELS = [[0, "Peregrinus"], [400, "Legionær"], [1200, "Centurion"], [2500, "Tribun"], [5000, "Legat"], [9000, "Consul"]];
-const PRIVACY_TEXT = "Tall og statuser deles kun med nærmeste leder. Pulsverdiene går i en egen ledereksport, ikke i prosjektmappen. Skriv ikke helseopplysninger, navn på personer hos kunde eller private forhold i fritekst. Ta det muntlig. Utkastet ligger bare i din nettleser til du eksporterer.";
 
 /* ---------- hjelpere ---------- */
 const $ = (sel, el = document) => el.querySelector(sel);
@@ -373,85 +395,76 @@ const pad = n => String(n).padStart(2, "0");
 const isoOf = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const isoToday = () => isoOf(new Date());
 const fmtDate = iso => { if (!iso || !/^\d{4}-\d{2}-\d{2}/.test(iso)) return ""; const [y, m, d] = iso.slice(0, 10).split("-"); return `${d}.${m}.${y}`; };
+const MONTHS = ["jan", "feb", "mar", "apr", "mai", "jun", "jul", "aug", "sep", "okt", "nov", "des"];
+const fmtMonth = iso => iso ? `${MONTHS[Number(iso.slice(5, 7)) - 1]} ${iso.slice(0, 4)}` : "";
 const addDays = (iso, n) => { const d = new Date(iso + "T12:00:00"); d.setDate(d.getDate() + n); return isoOf(d); };
 const addMonths = (iso, n) => { const d = new Date(iso + "T12:00:00"); d.setMonth(d.getMonth() + n); return isoOf(d); };
 const fmtMin = s => { s = Math.max(0, Math.round(s || 0)); return `${Math.floor(s / 60)}:${pad(s % 60)}`; };
 const uid = () => Math.random().toString(36).slice(2, 10);
 const slug = s => String(s || "prosjekt").replace(/æ/gi, "ae").replace(/ø/gi, "o").replace(/å/gi, "a").normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[^A-Za-z0-9]+/g, "_").replace(/^_|_$/g, "");
 const cmp = (a, b) => String(a ?? "").localeCompare(String(b ?? ""));
-function levelFor(xp) {
-  let i = 0; for (let k = 0; k < LEVELS.length; k++) if (xp >= LEVELS[k][0]) i = k;
-  const next = LEVELS[i + 1];
-  return { name: LEVELS[i][1], next: next ? next[0] : null, pct: next ? Math.round(((xp - LEVELS[i][0]) / (next[0] - LEVELS[i][0])) * 100) : 100 };
-}
 let toastTimer;
 function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2400); }
 
-/* ---------- lagring ---------- */
+/* ---------- lagring (kun i denne nettleseren) ---------- */
 let storageBroken = false;
-function emptyStore() { return { me: { konsulent: "", teamleder: "" }, projects: [], sessions: [], tiltak: [], xp: 0, best: {}, okt: null }; }
+function emptyStore() { return { me: { konsulent: "", teamleder: "" }, projects: [], sessions: [], tiltak: [], best: {}, okt: null }; }
 function loadStore() {
   let s = null;
   try { const raw = localStorage.getItem(STORE_KEY); if (raw) s = JSON.parse(raw); } catch (e) { storageBroken = true; }
   if (!s || typeof s !== "object") {
     s = emptyStore();
-    try { // ta med prosjekter, tiltak og XP fra v1 (spørsmålssettet er nytt, så gamle runder tas ikke med)
-      const old = JSON.parse(localStorage.getItem(OLD_KEY) || "null");
-      if (old && typeof old === "object") {
+    try { // ta med prosjekter, deg og tiltak fra tidligere versjoner (runder tas ikke med, spørsmålene er nye)
+      for (const key of OLD_KEYS) {
+        const old = JSON.parse(localStorage.getItem(key) || "null"); if (!old || typeof old !== "object") continue;
+        if (old.me && old.me.konsulent) s.me = { konsulent: String(old.me.konsulent), teamleder: String(old.me.teamleder || "") };
         (old.projects || []).forEach(p => {
-          if (p && p.prosjekt) s.projects.push({ id: uid(), prosjekt: String(p.prosjekt), prosjektnummer: String(p.prosjektnummer || ""), kunde: String(p.kunde || ""), rolle: String(p.rolle || ""), kontrakt: String(p.kontrakt || ""), ku_dato: "", ku_score: "" });
-          if (p && p.konsulent && !s.me.konsulent) { s.me.konsulent = String(p.konsulent); s.me.teamleder = String(p.teamleder || ""); }
+          if (!p || !p.prosjekt) return;
+          if (p.konsulent && !s.me.konsulent) s.me = { konsulent: String(p.konsulent), teamleder: String(p.teamleder || "") };
+          if (!s.projects.some(x => x.prosjekt === p.prosjekt)) s.projects.push({ id: String(p.id || uid()), prosjekt: String(p.prosjekt), prosjektnummer: String(p.prosjektnummer || ""), kunde: String(p.kunde || ""), rolle: String(p.rolle || ""), kontrakt: String(p.kontrakt || ""), kontraktstype: "", sluttdato: String(p.sluttdato || ""), ku_dato: String(p.ku_dato || ""), ku_score: String(p.ku_score || "") });
         });
-        (old.tiltak || []).forEach(t => { if (t && t.tekst) s.tiltak.push({ id: String(t.id || uid()), sessionId: "", projectId: (s.projects.find(p => p.prosjekt === t.prosjekt) || {}).id || "", dato: String(t.dato || isoToday()), prosjekt: String(t.prosjekt || ""), tekst: String(t.tekst), ansvarlig: String(t.ansvarlig || ""), frist: String(t.frist || ""), status: t.status === "Lukket" ? "Lukket" : "Åpen", kommentar: String(t.kommentar || ""), area: String(t.area || ""), xpGiven: true }); });
-        s.xp = Number(old.xp) || 0;
+        (old.tiltak || []).forEach(t => { if (t && t.tekst && !s.tiltak.some(x => x.id === t.id)) s.tiltak.push({ id: String(t.id || uid()), sessionId: "", projectId: String(t.projectId || (s.projects.find(p => p.prosjekt === t.prosjekt) || {}).id || ""), dato: String(t.dato || isoToday()), prosjekt: String(t.prosjekt || ""), tekst: String(t.tekst), ansvarlig: String(t.ansvarlig || ""), frist: String(t.frist || ""), status: t.status === "Lukket" ? "Lukket" : "Åpen", kommentar: String(t.kommentar || ""), area: String(t.area || "") }); });
+        break;
       }
-    } catch (e) { /* ingen v1 */ }
+      OLD_KEYS.forEach(k => localStorage.removeItem(k));
+    } catch (e) { /* ingen eldre data */ }
   }
   const d = emptyStore();
   for (const k of Object.keys(d)) if (s[k] === undefined || s[k] === null) s[k] = d[k];
   return s;
 }
 function saveStore() { try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) { if (!storageBroken) { storageBroken = true; toast("Lagring i nettleseren er ikke tilgjengelig. Ta JSON-sikkerhetskopi når du er ferdig."); } } }
+function wipeAll() { try { localStorage.removeItem(STORE_KEY); OLD_KEYS.forEach(k => localStorage.removeItem(k)); } catch (e) { /* tom */ } store = emptyStore(); okt = null; }
 let store = loadStore();
 const projectById = id => store.projects.find(p => p.id === id);
 const sessionsFor = pid => store.sessions.filter(s => s.projectId === pid).sort((a, b) => cmp(a.date, b.date) || cmp(a.finishedAt, b.finishedAt));
 const lastSessionFor = pid => { const l = sessionsFor(pid); return l[l.length - 1] || null; };
-const openTiltakCount = pid => store.tiltak.filter(t => t.projectId === pid && t.status === "Åpen").length;
+const lastSessionAny = () => store.sessions.slice().sort((a, b) => cmp(a.date, b.date) || cmp(a.finishedAt, b.finishedAt)).pop() || null;
+const openTiltak = pid => store.tiltak.filter(t => t.projectId === pid && t.status === "Åpen");
 function streakFor(pid, uptoDate) {
   const months = Array.from(new Set(sessionsFor(pid).filter(s => s.date <= uptoDate).map(s => s.date.slice(0, 7)))).sort().reverse();
   let streak = 0, cur = uptoDate.slice(0, 7);
   for (const m of months) { if (m === cur) { streak++; cur = addMonths(cur + "-15", -1).slice(0, 7); } else if (m < cur) break; }
   return streak;
 }
+const lastDeepFor = pid => sessionsFor(pid).filter(s => s.deep).pop() || null;
 
-/* ---------- økt (dagens runde) ---------- */
-let okt = null;          // { id, date, queue:[pid], idx, sessions:{pid: session} }
+/* ---------- økt ---------- */
+let okt = null;   // { id, date, queue, idx, pulse, sessions:{pid: session} }
 let timerHandle = null;
-let warned = false;
 const cur = () => okt ? okt.sessions[okt.queue[okt.idx]] : null;
-
-function blankAnswer() { return { status: "OK", value: "", comment: "", tiltak: "", ansvarlig: "", frist: "", oppfolging: "", fields: {}, carried: false }; }
+function blankAnswer() { return { status: "OK", value: "", comment: "", tiltak: "", ansvarlig: "", frist: "", fields: {}, carried: false }; }
+function blankSig() { return { status: "OK", comment: "", tiltak: "", ansvarlig: "", frist: "" }; }
 function makeSession(project) {
   const prev = lastSessionFor(project.id);
-  const answers = {};
-  ALL_Q.forEach(({ q }) => {
-    const a = blankAnswer();
-    const pa = prev && prev.answers && prev.answers[q.id];
-    if (pa) {
-      a.fields = Object.assign({}, pa.fields || {});
-      if (pa.status === "Risiko" || pa.status === "Krever tiltak") {
-        Object.assign(a, { status: pa.status, value: pa.value || "", comment: pa.comment || "", tiltak: pa.tiltak || "", ansvarlig: pa.ansvarlig || "", frist: pa.frist || "", oppfolging: "Følges opp videre", carried: true });
-      } else if (q.scale && pa.value) { a.value = pa.value; }
-    }
-    answers[q.id] = a;
-  });
-  const pulse = {};
-  PULSE.forEach(p => { pulse[p.k] = prev && prev.pulse && prev.pulse[p.k] ? prev.pulse[p.k] : p.def; });
-  return { id: uid(), date: isoToday(), projectId: project.id, project: Object.assign({}, project, { konsulent: store.me.konsulent, teamleder: store.me.teamleder }), pulse, answers, skipped: [], elapsedBase: 0, startedAt: Date.now(), elapsed: 0, xp: 0, badges: [], comment: "", prevId: prev ? prev.id : null };
+  const sig = {}; SIGNALS.forEach(S => { const a = blankSig(); const pa = prev && prev.sig && prev.sig[S.id]; if (pa) Object.assign(a, { status: STATUS.includes(pa.status) ? pa.status : "OK", comment: pa.comment || "", tiltak: pa.tiltak || "", ansvarlig: pa.ansvarlig || "", frist: pa.frist || "" }); sig[S.id] = a; });
+  const fields = Object.assign({}, prev && prev.fields ? prev.fields : {});
+  const answers = {}; ALL_Q.forEach(({ q }) => { const a = blankAnswer(); const pa = prev && prev.deep && prev.answers && prev.answers[q.id]; if (pa) { a.fields = Object.assign({}, pa.fields || {}); if (pa.status === "Risiko" || pa.status === "Krever tiltak") Object.assign(a, { status: pa.status, value: pa.value || "", comment: pa.comment || "", tiltak: pa.tiltak || "", ansvarlig: pa.ansvarlig || "", frist: pa.frist || "", carried: true }); } answers[q.id] = a; });
+  return { id: uid(), date: isoToday(), projectId: project.id, project: Object.assign({}, project, { konsulent: store.me.konsulent, teamleder: store.me.teamleder }), sig, fields, punkter: { endret: "", risiko: "", trenger: "" }, answers, deep: false, pulse: {}, elapsedBase: 0, startedAt: Date.now(), elapsed: 0, prevId: prev ? prev.id : null };
 }
 function elapsedSec(s = cur()) { return s ? Math.floor((s.elapsedBase || 0) + (Date.now() - s.startedAt) / 1000) : 0; }
 function saveDraft() { if (!okt) return; const s = cur(); if (s) s.elapsed = elapsedSec(s); store.okt = okt; saveStore(); }
-function startTimer() { stopTimer(); timerHandle = setInterval(() => { renderHud(); const s = cur(); if (s && elapsedSec(s) >= WARN_SEC && !warned) { warned = true; toast("2 minutter igjen på dette prosjektet"); } }, 1000); }
+function startTimer() { stopTimer(); timerHandle = setInterval(renderHud, 1000); }
 function stopTimer() { if (timerHandle) clearInterval(timerHandle); timerHandle = null; }
 let saveTick = 0;
 setInterval(() => { if (okt && !$("#screen-run").hidden && ++saveTick % 10 === 0) saveDraft(); }, 1000);
@@ -464,131 +477,115 @@ let hudMode = "idle";
 function renderHud() {
   const hud = $("#hud");
   if (hudMode === "run" && okt) {
-    const s = cur(); const el = elapsedSec(s); const left = LIMIT_SEC - el;
-    const frac = Math.min(1, el / LIMIT_SEC);
-    if (hud.dataset.mode !== "run") {
-      hud.dataset.mode = "run";
-      hud.innerHTML = `<div class="stat"><b id="hud-proj"></b><small>Prosjekt</small></div><div class="stat"><b id="hud-time" class="mono"></b><small>Igjen</small></div><div class="ring" id="hud-ring" title="10 minutter per prosjekt"><svg viewBox="0 0 40 40"><circle class="track" cx="20" cy="20" r="16"></circle><circle class="bar" cx="20" cy="20" r="16" stroke-dasharray="100.5" stroke-dashoffset="100.5"></circle></svg></div>`;
-    }
+    const s = cur(); const el = elapsedSec(s); const frac = Math.min(1, el / LIMIT_SEC);
+    if (hud.dataset.mode !== "run") { hud.dataset.mode = "run"; hud.innerHTML = `<span class="stat" id="hud-proj"></span><div class="ring" id="hud-ring" title="3 minutter per prosjekt"><svg viewBox="0 0 40 40"><circle class="track" cx="20" cy="20" r="16"></circle><circle class="bar" cx="20" cy="20" r="16" stroke-dasharray="100.5" stroke-dashoffset="100.5"></circle></svg></div>`; }
     $("#hud-proj").textContent = `${okt.idx + 1}/${okt.queue.length}`;
-    const t = $("#hud-time"); t.textContent = left >= 0 ? fmtMin(left) : `+${fmtMin(-left)}`; t.classList.toggle("over", left < 0);
-    const ring = $("#hud-ring"); $(".bar", ring).setAttribute("stroke-dashoffset", (100.5 * (1 - frac)).toFixed(1));
-    ring.classList.toggle("warn", el >= WARN_SEC && left >= 0); ring.classList.toggle("over", left < 0);
-  } else {
-    const lv = levelFor(store.xp);
-    hud.dataset.mode = "idle";
-    hud.innerHTML = `<div class="stat"><b>${esc(lv.name)}</b><small>Nivå</small></div><div class="stat"><b class="mono">${store.xp}</b><small>XP</small></div>`;
-  }
+    const ring = $("#hud-ring"); $(".bar", ring).setAttribute("stroke-dashoffset", (100.5 * (1 - frac)).toFixed(1)); ring.classList.toggle("over", el > LIMIT_SEC);
+  } else { hud.dataset.mode = "idle"; hud.innerHTML = ""; }
 }
 
 /* ---------- navigasjon ---------- */
 function show(name) {
   ["home", "run", "done", "overview"].forEach(n => { $(`#screen-${n}`).hidden = n !== name; });
   $$(".tab").forEach(t => t.setAttribute("aria-current", (t.dataset.nav === name || (t.dataset.nav === "home" && (name === "run" || name === "done"))) ? "page" : "false"));
-  document.body.classList.remove("kb");
-  window.scrollTo({ top: 0, behavior: "auto" });
+  document.body.classList.remove("kb"); window.scrollTo({ top: 0, behavior: "auto" });
 }
-$$(".tab").forEach(t => t.addEventListener("click", () => {
-  if (t.dataset.nav === "home") { if (okt) renderRun(); else renderHome(); }
-  else { if (okt) { saveDraft(); stopTimer(); } renderOverview(); }
-}));
+$$(".tab").forEach(t => t.addEventListener("click", () => { if (t.dataset.nav === "home") { if (okt) renderRun(); else renderHome(); } else { if (okt) { saveDraft(); stopTimer(); } renderOverview(); } }));
 
 /* =====================================================================
-   HJEM — dagens runde
+   HJEM
    ===================================================================== */
-function projectForm(p, submitLabel, idPrefix) {
+function projectForm(p, submitLabel, idp) {
   p = p || {};
   return `<div class="pform">
     <div class="grid-2">
-      <div class="field"><label for="${idPrefix}-prosjekt">Prosjekt</label><input id="${idPrefix}-prosjekt" value="${esc(p.prosjekt)}" required placeholder="F.eks. Nytt sykehus, ITB"></div>
-      <div class="field"><label for="${idPrefix}-kunde">Kunde</label><input id="${idPrefix}-kunde" value="${esc(p.kunde)}" placeholder="Byggherre eller oppdragsgiver"></div>
-      <div class="field"><label for="${idPrefix}-prosjektnummer">Prosjektnummer</label><input id="${idPrefix}-prosjektnummer" value="${esc(p.prosjektnummer)}" placeholder="P-nr"></div>
-      <div class="field"><label for="${idPrefix}-rolle">Din rolle</label><input id="${idPrefix}-rolle" value="${esc(p.rolle)}" placeholder="F.eks. ITB-koordinator"></div>
-      <div class="field"><label for="${idPrefix}-kontrakt">Kontrakt signert og på SharePoint?</label><select id="${idPrefix}-kontrakt">${["", "Ja", "Nei", "Under arbeid"].map(v => `<option value="${v}" ${p.kontrakt === v ? "selected" : ""}>${v || "— Velg —"}</option>`).join("")}</select></div>
-      <div class="field"><label for="${idPrefix}-ku">Siste kundeundersøkelse (dato · score)</label><div style="display:flex;gap:6px"><input id="${idPrefix}-ku" type="date" value="${esc(p.ku_dato)}" aria-label="Dato" style="flex:1;min-width:0"><input id="${idPrefix}-kus" value="${esc(p.ku_score)}" placeholder="Score" aria-label="Score" style="width:6em"></div></div>
+      <div class="field"><label for="${idp}-prosjekt">Prosjekt</label><input id="${idp}-prosjekt" value="${esc(p.prosjekt)}" required placeholder="F.eks. Nytt sykehus, ITB"></div>
+      <div class="field"><label for="${idp}-kunde">Kunde</label><input id="${idp}-kunde" value="${esc(p.kunde)}" placeholder="Byggherre eller oppdragsgiver"></div>
+      <div class="field"><label for="${idp}-rolle">Din rolle</label><input id="${idp}-rolle" value="${esc(p.rolle)}" placeholder="F.eks. ITB-koordinator"></div>
+      <div class="field"><label for="${idp}-kontraktstype">Kontraktstype</label><select id="${idp}-kontraktstype">${["", ...KONTRAKTSTYPER].map(v => `<option value="${v}" ${(p.kontraktstype || "") === v ? "selected" : ""}>${v || "— Velg —"}</option>`).join("")}</select></div>
+      <div class="field"><label for="${idp}-kontrakt">Kontrakt signert og på SharePoint?</label><select id="${idp}-kontrakt">${["", "Ja", "Nei", "Under arbeid"].map(v => `<option value="${v}" ${(p.kontrakt || "") === v ? "selected" : ""}>${v || "— Velg —"}</option>`).join("")}</select></div>
+      <div class="field"><label for="${idp}-sluttdato">Oppdraget løper ut</label><input id="${idp}-sluttdato" type="date" value="${esc(p.sluttdato)}"></div>
+      <div class="field"><label for="${idp}-prosjektnummer">Prosjektnummer</label><input id="${idp}-prosjektnummer" value="${esc(p.prosjektnummer)}" placeholder="P-nr"></div>
+      <div class="field"><label for="${idp}-ku">Siste kundeundersøkelse (dato · score)</label><div style="display:flex;gap:6px"><input id="${idp}-ku" type="date" value="${esc(p.ku_dato)}" aria-label="Dato" style="flex:1;min-width:0"><input id="${idp}-kus" value="${esc(p.ku_score)}" placeholder="Score" aria-label="Score" style="width:6em"></div></div>
     </div>
     <div class="btn-row"><button type="submit" class="btn primary">${submitLabel}</button>${p.id ? `<button type="button" class="btn ghost" data-cancel>Avbryt</button><button type="button" class="btn ghost danger" data-archive="${esc(p.id)}">Fjern prosjekt</button>` : ""}</div>
   </div>`;
 }
-function readProjectForm(el, idPrefix, p) {
+function readProjectForm(el, idp, p) {
   p = p || { id: uid() };
-  ["prosjekt", "kunde", "prosjektnummer", "rolle", "kontrakt"].forEach(k => { p[k] = $(`#${idPrefix}-${k}`, el).value.trim(); });
-  p.ku_dato = $(`#${idPrefix}-ku`, el).value; p.ku_score = $(`#${idPrefix}-kus`, el).value.trim();
+  ["prosjekt", "kunde", "prosjektnummer", "rolle", "kontrakt", "kontraktstype", "sluttdato"].forEach(k => { p[k] = $(`#${idp}-${k}`, el).value.trim(); });
+  p.ku_dato = $(`#${idp}-ku`, el).value; p.ku_score = $(`#${idp}-kus`, el).value.trim();
   return p;
 }
-
+function pulseBlock(pulse) {
+  return `<div class="pulse">${PULSE.map(pm => `<fieldset class="field"><legend>${pm.name}</legend><div class="scale" data-pulse="${pm.k}">${[1, 2, 3, 4, 5].map(v => `<button type="button" aria-pressed="${pulse[pm.k] === v}" data-v="${v}" title="${esc(pm.anchors[v - 1])}">${v}</button>`).join("")}</div><div class="anchor" id="anchor-${pm.k}">${esc(pm.anchors[pulse[pm.k] - 1])}</div></fieldset>`).join("")}</div>`;
+}
+function bindPulse(el, pulse) {
+  $$("[data-pulse]", el).forEach(g => $$("button", g).forEach(b => b.addEventListener("click", () => { pulse[g.dataset.pulse] = Number(b.dataset.v); $$("button", g).forEach(x => x.setAttribute("aria-pressed", x === b)); $(`#anchor-${g.dataset.pulse}`, el).textContent = PULSE.find(x => x.k === g.dataset.pulse).anchors[Number(b.dataset.v) - 1]; })));
+}
+let homePulse = null;
 function renderHome() {
   if (okt) { saveDraft(); stopTimer(); okt = null; }
   hudMode = "idle"; renderHud(); show("home");
-  const el = $("#screen-home");
-  const today = isoToday();
+  const el = $("#screen-home"); const today = isoToday();
   const first = !store.me.konsulent || store.projects.length === 0;
-  const draft = store.okt && Array.isArray(store.okt.queue) ? store.okt : null;
+  const draft = store.okt && Array.isArray(store.okt.queue) && store.okt.queue.every(pid => projectById(pid)) ? store.okt : null;
+  const lastAny = lastSessionAny();
+  homePulse = {}; PULSE.forEach(p => { homePulse[p.k] = lastAny && lastAny.pulse && lastAny.pulse[p.k] ? lastAny.pulse[p.k] : p.def; });
   el.innerHTML = `
     <div class="home">
       <div class="home-head">
-        <div class="lead">
-          <span class="eyebrow">Månedlig · 10 min per prosjekt</span>
-          <h1>${first ? "Alle veier fører til ROMA." : `Hei ${esc(store.me.konsulent.split(" ")[0])}. Klar for ${fmtDate(today)}?`}</h1>
-          <p class="muted">${first ? "Åtte områder, 30 skarpe spørsmål. Alt er grønt til du flagger noe. Forrige måned ligger klar neste gang. I mål: Excel til Involved-malen." : "Huk av prosjektene du vil ta nå. Alt står grønt, du flagger bare det som ikke er det."}</p>
-        </div>
-        ${first ? `<div class="roma-letters"><div><b>R</b>Ressurs</div><div><b>O</b>Oversikt</div><div><b>M</b>Menneske</div><div><b>A</b>Ansvar</div></div>` : ""}
+        <span class="eyebrow">Månedlig · 3 min per prosjekt</span>
+        <h1>${first ? "Alle veier fører til ROMA." : `Hei ${esc(store.me.konsulent.split(" ")[0])}. ${fmtDate(today)}.`}</h1>
+        <p class="muted">${first ? "Sju signaler, et par tall, tre linjer. Alt står grønt til du sier noe annet. Forrige måned ligger klar neste gang." : "Huk av prosjektene du tar nå. Forrige måned ligger klar, du endrer bare det som er nytt."}</p>
       </div>
-
+      ${first ? `<div class="roma-letters"><div><b>R</b>Ressurs</div><div><b>O</b>Oversikt</div><div><b>M</b>Menneske</div><div><b>A</b>Ansvar</div></div>` : ""}
       ${draft ? `<div class="resume"><div><b>Påbegynt runde</b><br><span class="muted">${draft.queue.map(pid => esc((projectById(pid) || {}).prosjekt || "")).join(", ")} · ${fmtDate(draft.date)}</span></div><div class="btn-row"><button type="button" class="btn primary small" id="resume-btn">Fortsett der du slapp</button><button type="button" class="btn ghost small" id="discard-btn">Slett</button></div></div>` : ""}
-
       ${first ? `
-      <form class="card" id="first-form">
-        <div class="pform">
-          <h2>Først: deg og det første prosjektet</h2>
-          <div class="grid-2">
-            <div class="field"><label for="me-konsulent">Ditt navn</label><input id="me-konsulent" value="${esc(store.me.konsulent)}" required placeholder="Konsulent"></div>
-            <div class="field"><label for="me-teamleder">Nærmeste leder</label><input id="me-teamleder" value="${esc(store.me.teamleder)}" placeholder="Teamleder"></div>
-          </div>
-          ${projectForm(null, "Lagre og start første runde", "np")}
+      <form class="card" id="first-form"><div class="pform">
+        <h2>Først: deg og det første prosjektet</h2>
+        <div class="grid-2">
+          <div class="field"><label for="me-konsulent">Ditt navn</label><input id="me-konsulent" value="${esc(store.me.konsulent)}" required placeholder="Konsulent"></div>
+          <div class="field"><label for="me-teamleder">Nærmeste leder</label><input id="me-teamleder" value="${esc(store.me.teamleder)}" placeholder="Teamleder"></div>
         </div>
-      </form>` : `
+        ${projectForm(null, "Lagre og start første runde", "np")}
+      </div></form>` : `
       <div class="plist" id="plist">
         ${store.projects.map(p => {
           const last = lastSessionFor(p.id); const next = last ? addMonths(last.date, 1) : null; const due = !last || next <= today;
-          const streak = last ? streakFor(p.id, last.date) : 0; const open = openTiltakCount(p.id);
+          const streak = last ? streakFor(p.id, last.date) : 0; const open = openTiltak(p.id).length;
           return `<div class="pcard" data-pid="${esc(p.id)}">
             <input type="checkbox" id="chk-${esc(p.id)}" ${due ? "checked" : ""} aria-label="Ta med ${esc(p.prosjekt)}">
-            <label class="pname" for="chk-${esc(p.id)}"><b>${esc(p.prosjekt)}</b><span class="pmeta">${p.kunde ? `<span>${esc(p.kunde)}</span>` : ""}<span>${last ? `sist ${fmtDate(last.date)}` : "ingen runder ennå"}</span>${last ? `<span class="${due ? "due" : ""}">${due ? "forfalt " : "neste "}${fmtDate(next)}</span>` : ""}${streak >= 2 ? `<span class="streak">streak ×${streak}</span>` : ""}${open ? `<span>${open} åpne tiltak</span>` : ""}</span></label>
+            <label class="pname" for="chk-${esc(p.id)}"><b>${esc(p.prosjekt)}</b><span class="pmeta">${p.kunde ? `<span>${esc(p.kunde)}</span>` : ""}<span>${last ? `sist ${fmtDate(last.date)}` : "første runde"}</span>${last ? `<span class="${due ? "due" : ""}">${due ? "forfalt " : "neste "}${fmtDate(next)}</span>` : ""}${streak >= 2 ? `<span class="streak">streak ×${streak}</span>` : ""}${open ? `<span>${open} åpne tiltak</span>` : ""}${!p.kontraktstype ? `<span class="due">kontraktstype mangler</span>` : ""}</span></label>
             <button type="button" class="btn ghost small" data-edit="${esc(p.id)}">Endre</button>
           </div>
           <form class="card" id="edit-${esc(p.id)}" hidden>${projectForm(p, "Lagre", "e" + p.id)}</form>`;
         }).join("")}
       </div>
+      <div class="card"><div class="area-head" style="margin-bottom:8px"><div><span class="eyebrow">Puls i dag · én gang for deg, ikke per prosjekt</span></div><span class="muted small">Går kun til nærmeste leder</span></div>${pulseBlock(homePulse)}</div>
       <div class="startbar card">
-        <div><b id="start-count"></b><br><span class="muted small">Konsulent ${esc(store.me.konsulent)}${store.me.teamleder ? ` · leder ${esc(store.me.teamleder)}` : ""} · <button type="button" class="btn ghost small" id="me-edit">endre</button></span></div>
-        <div class="btn-row"><button type="button" class="btn" id="add-btn">+ Nytt prosjekt</button><button type="button" class="btn primary" id="start-btn">Start</button></div>
+        <div><b id="start-count"></b><br><span class="muted small">${esc(store.me.konsulent)}${store.me.teamleder ? ` · leder ${esc(store.me.teamleder)}` : ""} · <button type="button" class="btn ghost small" id="me-edit">endre</button></span></div>
+        <div class="btn-row"><button type="button" class="btn" id="add-btn">+ Prosjekt</button><button type="button" class="btn primary" id="start-btn">Start</button></div>
       </div>
       <form class="card" id="add-form" hidden>${projectForm(null, "Legg til", "np")}</form>
       <form class="card" id="me-form" hidden><div class="pform"><div class="grid-2">
         <div class="field"><label for="me-konsulent">Ditt navn</label><input id="me-konsulent" value="${esc(store.me.konsulent)}" required></div>
         <div class="field"><label for="me-teamleder">Nærmeste leder</label><input id="me-teamleder" value="${esc(store.me.teamleder)}"></div></div>
         <div class="btn-row"><button type="submit" class="btn primary">Lagre</button></div></div></form>`}
-
       <p class="note privacy muted small">${esc(PRIVACY_TEXT)}</p>
     </div>`;
-
   if (draft) {
-    $("#resume-btn", el).addEventListener("click", () => { okt = draft; const s = cur(); if (s) { s.elapsedBase = s.elapsed || 0; s.startedAt = Date.now(); } warned = false; startTimer(); renderRun(); });
+    $("#resume-btn", el).addEventListener("click", () => { okt = draft; const s = cur(); if (s) { s.elapsedBase = s.elapsed || 0; s.startedAt = Date.now(); } startTimer(); renderRun(); });
     $("#discard-btn", el).addEventListener("click", ev => { const b = ev.currentTarget; if (b.dataset.armed) { store.okt = null; okt = null; saveStore(); renderHome(); } else { b.dataset.armed = "1"; b.textContent = "Sikker? Slett"; b.classList.add("danger"); } });
-  }
+  } else if (store.okt) { store.okt = null; saveStore(); }
   if (first) {
-    $("#first-form", el).addEventListener("submit", ev => {
-      ev.preventDefault();
-      store.me.konsulent = $("#me-konsulent", el).value.trim(); store.me.teamleder = $("#me-teamleder", el).value.trim();
-      const p = readProjectForm(el, "np"); if (!p.prosjekt || !store.me.konsulent) return;
-      store.projects.push(p); saveStore(); startOkt([p.id]);
-    });
+    $("#first-form", el).addEventListener("submit", ev => { ev.preventDefault(); store.me.konsulent = $("#me-konsulent", el).value.trim(); store.me.teamleder = $("#me-teamleder", el).value.trim(); const p = readProjectForm(el, "np"); if (!p.prosjekt || !store.me.konsulent) return; store.projects.push(p); saveStore(); startOkt([p.id], homePulse); });
     return;
   }
-  const updateCount = () => { const n = $$("#plist input[type=checkbox]:checked", el).length; $("#start-count", el).textContent = n ? `${n} prosjekt${n > 1 ? "er" : ""} · ≈ ${n * 10} min` : "Velg minst ett prosjekt"; $("#start-btn", el).disabled = n === 0; $$(".pcard", el).forEach(c => c.classList.toggle("off", !$("input", c).checked)); };
+  bindPulse(el, homePulse);
+  const updateCount = () => { const n = $$("#plist input[type=checkbox]:checked", el).length; $("#start-count", el).textContent = n ? `${n} prosjekt${n > 1 ? "er" : ""} · ≈ ${n * 3} min` : "Velg minst ett prosjekt"; $("#start-btn", el).disabled = n === 0; $$(".pcard", el).forEach(c => c.classList.toggle("off", !$("input", c).checked)); };
   $$("#plist input[type=checkbox]", el).forEach(c => c.addEventListener("change", updateCount)); updateCount();
-  $("#start-btn", el).addEventListener("click", () => { const ids = $$("#plist input[type=checkbox]:checked", el).map(c => c.closest(".pcard").dataset.pid); if (ids.length) startOkt(ids); });
+  $("#start-btn", el).addEventListener("click", () => { const ids = $$("#plist input[type=checkbox]:checked", el).map(c => c.closest(".pcard").dataset.pid); if (ids.length) startOkt(ids, homePulse); });
   $("#add-btn", el).addEventListener("click", () => { const f = $("#add-form", el); f.hidden = !f.hidden; if (!f.hidden) $("#np-prosjekt", f).focus(); });
   $("#add-form", el).addEventListener("submit", ev => { ev.preventDefault(); const p = readProjectForm($("#add-form", el), "np"); if (!p.prosjekt) return; store.projects.push(p); saveStore(); renderHome(); toast(`${p.prosjekt} lagt til`); });
   $("#me-edit", el).addEventListener("click", () => { const f = $("#me-form", el); f.hidden = !f.hidden; });
@@ -601,257 +598,234 @@ function renderHome() {
     $("[data-archive]", f).addEventListener("click", ev => { const b = ev.currentTarget; if (b.dataset.armed) { store.projects = store.projects.filter(x => x.id !== p.id); saveStore(); renderHome(); } else { b.dataset.armed = "1"; b.textContent = "Sikker? Fjern"; } });
   });
 }
-
-function startOkt(ids) {
-  okt = { id: uid(), date: isoToday(), queue: ids, idx: 0, sessions: {} };
+function startOkt(ids, pulse) {
+  okt = { id: uid(), date: isoToday(), queue: ids, idx: 0, pulse: Object.assign({}, pulse), sessions: {} };
   ids.forEach(pid => { okt.sessions[pid] = makeSession(projectById(pid)); });
   okt.sessions[ids[0]].startedAt = Date.now();
-  warned = false; saveDraft(); startTimer(); renderRun();
+  saveDraft(); startTimer(); renderRun();
 }
 
 /* =====================================================================
-   PROSJEKT — én skjerm, alt grønt til du flagger
+   PROSJEKT — 3 minutter
    ===================================================================== */
-function areaState(s, area) {
-  if (s.skipped.includes(area.id)) return "Skip";
-  let st = "OK";
-  area.qs.forEach(q => { const a = s.answers[q.id].status; if (a === "Krever tiltak") st = "Tiltak"; else if (a === "Risiko" && st !== "Tiltak") st = "Risiko"; });
-  return st;
+function sigAuto(S, s) {
+  const f = s.fields || {};
+  if (S.id === "S1") return num(f.timer_uke) > 45 ? "Krever tiltak" : num(f.timer_uke) > 40 ? "Risiko" : null;
+  if (S.id === "S3") { const hasNums = sigFields(S, s).length && f.ramme && f.fremdrift; return (hasNums && num(f.ramme) > 80 && num(f.fremdrift) < 60) || f.utestaende ? "Krever tiltak" : (hasNums && num(f.ramme) > num(f.fremdrift) + 10) ? "Risiko" : null; }
+  if (S.id === "S7") { const sd = s.project.sluttdato; return sd && sd < addDays(s.date, 90) ? "Risiko" : null; }
+  return null;
 }
-function renderStrip(s) {
-  const strip = $("#strip"); if (!strip) return;
-  strip.innerHTML = AREAS.map((a, i) => `<button type="button" class="dot ${areaState(s, a)}" data-goto="${a.id}" title="${esc(a.name)}" aria-label="${esc(a.name)}">${i + 1}</button>`).join("");
-  $$("[data-goto]", strip).forEach(b => b.addEventListener("click", () => { $(`#area-${b.dataset.goto}`).scrollIntoView({ block: "start" }); }));
+function renderSig(s, S) {
+  const a = s.sig[S.id]; const prev = s.prevId ? store.sessions.find(x => x.id === s.prevId) : null; const pa = prev && prev.sig && prev.sig[S.id];
+  const flagged = a.status !== "OK"; const changed = pa && pa.status !== a.status;
+  const lights = STATUS.map((st, k) => `<button type="button" class="light ${SC[st]}" data-st="${st}" aria-pressed="${a.status === st}"><i></i>${LIGHT[st]}<kbd>${k + 1}</kbd></button>`).join("");
+  const flds = sigFields(S, s);
+  const fields = (flds.length || S.toggle || S.id === "S7") ? `<div class="fields">${flds.map(f => `<label class="fld"><span>${esc(f.l)}</span><input type="number" inputmode="decimal" step="any" data-fld="${f.k}" value="${esc(s.fields[f.k] || "")}"><em>${esc(f.u)}</em></label>`).join("")}${S.toggle ? `<label class="fld"><input type="checkbox" data-fld="${S.toggle.k}" ${s.fields[S.toggle.k] ? "checked" : ""}><span>${esc(S.toggle.l)}</span></label>` : ""}${S.id === "S3" && !s.project.kontraktstype ? `<span class="muted small">Sett kontraktstype under Endre prosjekt for å få tallfelt.</span>` : ""}${S.id === "S7" ? `<span class="fld"><span>Løper ut</span><b class="mono">${fmtDate(s.project.sluttdato) || "ikke satt"}</b></span>` : ""}</div>` : "";
+  const fristOpts = [["+2 uker", addDays(s.date, 14)], ["Neste ROMA", addMonths(s.date, 1)]];
+  const detail = flagged ? `<div class="detail">
+      <textarea data-field="comment" placeholder="${S.sensitive ? "Kort, uten navn. Detaljene tas muntlig med leder." : "Hva skjer? Én setning."}" aria-label="Kommentar">${esc(a.comment)}</textarea>
+      ${S.sensitive && a.status === "Krever tiltak" ? `<p class="note red small">Dette går til varslingsrutinen, ikke tiltaksloggen. Leder tar kontakt innen én uke.</p>` : `<div class="tiltak-grid">
+        <input type="text" data-field="tiltak" placeholder="Tiltak (ansvarlig: ${esc(a.ansvarlig || store.me.konsulent)})" value="${esc(a.tiltak)}" aria-label="Tiltak">
+        <div class="frist" role="group" aria-label="Frist">${fristOpts.map(([lab, d]) => `<button type="button" data-frist="${d}" aria-pressed="${a.frist === d}">${lab}</button>`).join("")}<input type="date" data-field="frist" value="${esc(a.frist)}" aria-label="Frist, dato"></div>
+      </div>`}
+      <details class="deeper" data-deeper="${S.id}"><summary>Gå dypere (${S.deep.length} spørsmål)</summary><div class="qlist"></div></details>
+    </div>` : "";
+  return `<div class="sig st-${SC[a.status]}" data-sig="${S.id}" tabindex="-1">
+    <div class="sig-main">
+      <div class="sig-text"><div class="lbl"><span class="roma">${S.roma}</span><b>${esc(S.name)}</b>${pa ? `<span class="sist">sist ${LIGHT[pa.status] ? LIGHT[pa.status].toLowerCase() : "grønt"}</span>` : ""}${changed ? `<span class="chg">endret</span>` : ""}</div><p>${esc(sigText(S, s))}</p></div>
+      <div class="lights">${lights}</div>
+    </div>
+    ${fields}${detail}
+  </div>`;
 }
-function countFlags(sess) { return Object.values(sess.answers).filter(a => a.status === "Risiko" || a.status === "Krever tiltak").length; }
-function updateCount(s, a) {
-  const c = $(`#cnt-${a.id}`); if (!c) return;
-  const f = a.qs.filter(q => ["Risiko", "Krever tiltak"].includes(s.answers[q.id].status)).length;
-  c.textContent = s.skipped.includes(a.id) ? "hoppet over" : f ? `${f} flagget` : "alt grønt";
+function bindSig(s, S) {
+  const row = $(`.sig[data-sig="${S.id}"]`); if (!row) return; const a = s.sig[S.id];
+  row.addEventListener("click", () => setCursor(row));
+  $$("[data-st]", row).forEach(b => b.addEventListener("click", () => setSig(s, S, b.dataset.st, true)));
+  $$("[data-frist]", row).forEach(b => b.addEventListener("click", () => { a.frist = b.dataset.frist; $$("[data-frist]", row).forEach(x => x.setAttribute("aria-pressed", x === b)); const d = $('[data-field="frist"]', row); if (d) d.value = a.frist; saveDraft(); }));
+  $$("[data-field]", row).forEach(inp => inp.addEventListener("input", () => { a[inp.dataset.field] = inp.value; if (inp.dataset.field === "frist") $$("[data-frist]", row).forEach(x => x.setAttribute("aria-pressed", x.dataset.frist === inp.value)); }));
+  $$("[data-fld]", row).forEach(inp => inp.addEventListener("change", () => {
+    s.fields[inp.dataset.fld] = inp.type === "checkbox" ? (inp.checked ? "ja" : "") : inp.value; saveDraft();
+    const sug = sigAuto(S, s); if (sug && RANK[sug] > RANK[a.status]) { setSig(s, S, sug, false); toast(`Foreslått ${LIGHT[sug].toLowerCase()} ut fra tallene. Endre hvis det ikke stemmer.`); }
+  }));
+  const dd = $("[data-deeper]", row); if (dd) dd.addEventListener("toggle", () => { if (dd.open && !dd.dataset.built) { dd.dataset.built = "1"; const list = $(".qlist", dd); list.innerHTML = S.deep.map(id => renderRow(s, Q_AREA[id], Q_BY[id], Q_AREA[id].qs.indexOf(Q_BY[id]))).join(""); S.deep.forEach(id => bindRow(s, Q_AREA[id], Q_BY[id])); } });
+}
+function setSig(s, S, status, byUser) {
+  const a = s.sig[S.id]; const was = a.status; a.status = status;
+  if (status !== "OK") { if (!a.frist) a.frist = addDays(s.date, 14); if (!a.ansvarlig) a.ansvarlig = store.me.konsulent; }
+  else { a.tiltak = ""; a.frist = ""; a.comment = ""; }
+  saveDraft();
+  const old = $(`.sig[data-sig="${S.id}"]`); const hadCursor = old.classList.contains("cursor");
+  const tmp = document.createElement("div"); tmp.innerHTML = renderSig(s, S); const fresh = tmp.firstElementChild; old.replaceWith(fresh); if (hadCursor) { fresh.classList.add("cursor"); cursorRow = fresh; }
+  bindSig(s, S);
+  if (status !== "OK" && was === "OK") { const ta = $("textarea", fresh); if (ta && matchMedia("(hover: hover)").matches) ta.focus(); }
+  else if (byUser) { const b = $(`[data-st="${status}"]`, fresh); if (b) b.focus(); }
 }
 
 function renderRun() {
   hudMode = "run"; show("run"); renderHud();
   const s = cur(); const p = s.project; const prev = s.prevId ? store.sessions.find(x => x.id === s.prevId) : null;
-  const el = $("#screen-run");
-  const last = okt.idx === okt.queue.length - 1;
-  cursorRow = null;
+  const el = $("#screen-run"); const last = okt.idx === okt.queue.length - 1; cursorRow = null;
+  const prevFlags = prev ? SIGNALS.filter(S => prev.sig && prev.sig[S.id] && prev.sig[S.id].status !== "OK").length : 0;
+  const open = openTiltak(p.id); const lastDeep = lastDeepFor(p.id);
+  const deepDue = !lastDeep || lastDeep.date < addMonths(s.date, -3);
   el.innerHTML = `
     <div class="run">
-      <div class="strip" id="strip"></div>
-      <div class="run-head">
-        <div><span class="eyebrow">Prosjekt ${okt.idx + 1} av ${okt.queue.length} · ${fmtDate(s.date)}</span><h1>${esc(p.prosjekt)}</h1><p class="muted">${esc([p.kunde, p.rolle].filter(Boolean).join(" · "))}${prev ? ` · forrige runde ${fmtDate(prev.date)}${countFlags(prev) ? `, ${countFlags(prev)} flagget` : ", alt grønt"}` : " · første runde"}</p></div>
+      <div class="run-head"><div><span class="eyebrow">Prosjekt ${okt.idx + 1} av ${okt.queue.length} · ${fmtDate(s.date)}</span><h1>${esc(p.prosjekt)}</h1><p class="muted small">${esc([p.kunde, p.rolle, p.kontraktstype].filter(Boolean).join(" · "))}</p></div></div>
+      ${prev ? `<div class="lastbox"><div><b>${fmtMonth(prev.date)}:</b> <span class="lights-mini">${SIGNALS.map(S => `<i class="${SC[(prev.sig && prev.sig[S.id] || {}).status || "OK"]}"></i>`).join("")}</span> ${prevFlags ? `${prevFlags} flagget` : "alt grønt"}${open.length ? ` · ${open.length} åpne tiltak` : ""}. Svarene ligger klare under.</div><button type="button" class="btn small" id="unchanged-btn">Uendret, gå til punktene ↓</button></div>` : `<div class="lastbox"><div>Første runde på dette prosjektet. Alt står grønt, du flagger det som ikke er det.</div></div>`}
+      <div class="siglist" id="siglist">${SIGNALS.map(S => renderSig(s, S)).join("")}</div>
+      <div class="card punkter" id="punkter">
+        <div class="area-head"><div><span class="eyebrow">Viktigste punkter</span><h3>Tre linjer, det leder faktisk leser</h3></div><span class="muted small">Tomt felt er lov. Tall og datoer der det finnes.</span></div>
+        ${PUNKTER.map(P => { const pv = prev && prev.punkter ? prev.punkter[P.k] : ""; return `<div class="prow"><label for="pk-${P.k}">${P.l}</label><input id="pk-${P.k}" data-pk="${P.k}" value="${esc(s.punkter[P.k])}" placeholder="${esc(P.ph)}"><button type="button" class="mic" data-mic="pk-${P.k}" title="Dikter" aria-label="Dikter" hidden>🎤</button>${pv ? `<div class="prev">Sist: <span>${esc(pv)}</span><button type="button" class="btn ghost small" data-copyprev="${P.k}">Hent</button></div>` : ""}</div>`; }).join("")}
+        ${open.length ? `<div class="prev muted small">Åpne tiltak: ${open.map(t => esc(t.tekst)).join(" · ")}</div>` : ""}
       </div>
-
-      <div class="card">
-        <div class="area-head"><div><span class="eyebrow">Puls i dag</span><h3>Hvordan har måneden vært?</h3></div><span class="muted small">Du setter tallene selv. De går kun til nærmeste leder.</span></div>
-        <div class="pulse" style="margin-top:10px">${PULSE.map(pm => `<fieldset class="field"><legend>${pm.name}</legend><div class="scale" data-pulse="${pm.k}">${[1, 2, 3, 4, 5].map(v => `<button type="button" aria-pressed="${s.pulse[pm.k] === v}" data-v="${v}" title="${esc(pm.anchors[v - 1])}">${v}</button>`).join("")}</div><div class="anchor" id="anchor-${pm.k}">${esc(pm.anchors[s.pulse[pm.k] - 1])}</div></fieldset>`).join("")}</div>
-      </div>
-
-      ${AREAS.map(a => `
-      <section class="area ${s.skipped.includes(a.id) ? "skipped" : ""}" id="area-${a.id}">
-        <div class="area-head">
-          <div><span class="eyebrow"><span class="roma">${a.roma}</span>${esc(a.romaName)}</span><h2>${esc(a.name)}</h2><p class="muted small">${esc(a.tag)}</p></div>
-          <div class="acts"><span id="cnt-${a.id}"></span><button type="button" class="btn ghost small" data-skip="${a.id}">${s.skipped.includes(a.id) ? "Ta med likevel" : "Hopp over denne måneden"}</button></div>
-        </div>
-        ${a.privacy ? `<p class="note privacy muted small">Ingen navn, helseopplysninger eller private forhold i fritekst. Ta det muntlig.</p>` : ""}
-        ${a.opportunity ? `<p class="note gold small">Her er «Tiltak» en god ting: en mulighet vi skal følge opp.</p>` : ""}
-        <div class="qlist">${a.qs.map((q, i) => renderRow(s, a, q, i)).join("")}</div>
-      </section>`).join("")}
-
-      <div class="card">
-        <div class="field"><label for="proj-comment">Oppsummering for ${esc(p.prosjekt)} (blir med i Excel)</label><textarea id="proj-comment" placeholder="To setninger som fanger måneden. Valgfritt.">${esc(s.comment)}</textarea></div>
-      </div>
+      <details class="card" id="deep" ${s.deep ? "open" : ""}>
+        <summary>Full ROMA, 30 spørsmål${deepDue ? " · anbefalt nå (kvartal)" : ` · sist ${fmtDate(lastDeep.date)}`}</summary>
+        <p class="muted small" style="margin:8px 0 12px">Brukes kvartalsvis, ved oppstart og ved avslutning. Alt står grønt, du flagger det som ikke er det.</p>
+        <div id="deeplist"></div>
+      </details>
+      <p class="note privacy muted small">${esc(PRIVACY_TEXT)}</p>
     </div>
     <div class="run-foot"><div class="inner">
       <button type="button" class="btn ghost" id="pause-btn">Pause</button>
-      <span class="hint"><kbd>↑</kbd><kbd>↓</kbd> velg rad · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> status · <kbd>Enter</kbd> ${last ? "fullfør" : "neste"}</span>
-      <button type="button" class="btn primary" id="next-btn">${last ? "Fullfør runden →" : "Neste prosjekt →"}</button>
+      <span class="hint"><kbd>↑</kbd><kbd>↓</kbd> rad · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> grønt gult rødt · <kbd>Enter</kbd> ${last ? "fullfør" : "neste"}</span>
+      <button type="button" class="btn primary" id="next-btn">${last ? "Fullfør →" : "Neste prosjekt →"}</button>
     </div></div>`;
-  renderStrip(s);
-  AREAS.forEach(a => { a.qs.forEach(q => bindRow(s, a, q)); updateCount(s, a); });
-  $$("[data-pulse]", el).forEach(g => $$("button", g).forEach(b => b.addEventListener("click", () => { s.pulse[g.dataset.pulse] = Number(b.dataset.v); $$("button", g).forEach(x => x.setAttribute("aria-pressed", x === b)); $(`#anchor-${g.dataset.pulse}`).textContent = PULSE.find(x => x.k === g.dataset.pulse).anchors[Number(b.dataset.v) - 1]; saveDraft(); })));
-  $$("[data-skip]", el).forEach(b => b.addEventListener("click", () => { const id = b.dataset.skip; const i = s.skipped.indexOf(id); if (i >= 0) s.skipped.splice(i, 1); else s.skipped.push(id); $(`#area-${id}`).classList.toggle("skipped", i < 0); b.textContent = i < 0 ? "Ta med likevel" : "Hopp over denne måneden"; updateCount(s, AREA_BY[id]); renderStrip(s); saveDraft(); }));
-  $("#proj-comment", el).addEventListener("input", ev => { s.comment = ev.target.value; });
+  SIGNALS.forEach(S => bindSig(s, S));
+  const ub = $("#unchanged-btn", el); if (ub) ub.addEventListener("click", () => { $("#punkter").scrollIntoView({ block: "start" }); $("#pk-endret").focus(); });
+  const pks = $$("[data-pk]", el);
+  pks.forEach((inp, i) => { inp.addEventListener("input", () => { s.punkter[inp.dataset.pk] = inp.value; }); inp.addEventListener("keydown", ev => { if (ev.key === "Enter" && !ev.ctrlKey && !ev.metaKey) { ev.preventDefault(); if (i < pks.length - 1) pks[i + 1].focus(); else { inp.blur(); nextProject(); } } }); });
+  $$("[data-copyprev]", el).forEach(b => b.addEventListener("click", () => { const k = b.dataset.copyprev; const inp = $(`#pk-${k}`, el); inp.value = prev.punkter[k]; s.punkter[k] = inp.value; inp.focus(); }));
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (SR) $$("[data-mic]", el).forEach(b => { b.hidden = false; b.addEventListener("click", () => {
+    const inp = $(`#${b.dataset.mic}`, el); const r = new SR(); r.lang = "nb-NO"; r.interimResults = false; b.classList.add("on");
+    r.onresult = ev => { const t = ev.results[0][0].transcript; inp.value = (inp.value ? inp.value + " " : "") + t; s.punkter[inp.dataset.pk] = inp.value; };
+    r.onend = () => b.classList.remove("on"); r.onerror = () => { b.classList.remove("on"); toast("Diktering utilgjengelig"); }; r.start();
+  }); });
+  const deep = $("#deep", el);
+  const buildDeep = () => { if (deep.dataset.built) return; deep.dataset.built = "1"; s.deep = true; $("#deeplist", el).innerHTML = AREAS.map(a => `<section class="area" id="area-${a.id}"><div class="area-head"><div><span class="eyebrow"><span class="roma">${a.roma}</span></span><h3>${esc(a.name)}</h3></div></div>${a.privacy ? `<p class="note privacy muted small">Ingen navn, helseopplysninger eller private forhold i fritekst.</p>` : ""}${a.opportunity ? `<p class="note gold small">Her er «Tiltak» en god ting: en mulighet vi følger opp.</p>` : ""}<div class="qlist">${a.qs.map((q, i) => renderRow(s, a, q, i)).join("")}</div></section>`).join(""); AREAS.forEach(a => a.qs.forEach(q => bindRow(s, a, q))); saveDraft(); };
+  deep.addEventListener("toggle", () => { if (deep.open) buildDeep(); });
+  if (s.deep) buildDeep();
   $("#next-btn", el).addEventListener("click", nextProject);
   $("#pause-btn", el).addEventListener("click", () => { saveDraft(); stopTimer(); okt = null; toast("Lagret. Fortsett fra forsiden når det passer."); renderHome(); });
   el.addEventListener("focusin", ev => { if (/^(INPUT|TEXTAREA|SELECT)$/.test(ev.target.tagName) && matchMedia("(max-width: 640px)").matches) document.body.classList.add("kb"); });
   el.addEventListener("focusout", () => document.body.classList.remove("kb"));
 }
 
+/* ---------- dybderader (full ROMA) ---------- */
 function renderRow(s, a, q, i) {
   const ans = s.answers[q.id]; const flagged = ans.status === "Risiko" || ans.status === "Krever tiltak";
-  const prev = s.prevId ? store.sessions.find(x => x.id === s.prevId) : null; const pa = prev && prev.answers[q.id];
-  const chips = STATUS.map((st, k) => `<button type="button" class="chip ${SC[st]}" data-status="${esc(st)}" aria-pressed="${ans.status === st}"><kbd>${k + 1}</kbd>${st === "Krever tiltak" ? "Tiltak" : st}</button>`).join("");
+  const chips = STATUS.map(st => `<button type="button" class="chip ${SC[st]}" data-status="${esc(st)}" aria-pressed="${ans.status === st}">${st === "Krever tiltak" ? "Tiltak" : st}</button>`).join("");
   const choice = q.choice ? `<div class="chips">${q.choice.map(([lab, st]) => `<button type="button" class="chip opt" data-opt="${esc(lab)}" data-optstatus="${esc(st)}" aria-pressed="${ans.value === lab}">${esc(lab)}</button>`).join("")}</div>` : "";
-  const scale = q.scale ? `<div class="chips" title="${esc(SCALE_HELP)}">${SCALE.map(([v, lab, st]) => `<button type="button" class="chip opt" data-opt="${v}" data-optstatus="${st}" aria-pressed="${String(ans.value) === String(v)}">${v} ${lab}</button>`).join("")}</div>` : "";
-  const fields = q.fields ? `<div class="fields">${q.fields.map(f => `<label class="fld"><span>${esc(f.l)}</span><input type="${f.type || "number"}" ${f.type ? "" : 'inputmode="decimal" step="any"'} data-fld="${f.k}" value="${esc(ans.fields[f.k] || "")}">${f.u ? `<em>${esc(f.u)}</em>` : ""}</label>`).join("")}</div>` : "";
-  const lastNote = ans.carried && pa ? `<div class="last">Sist: <span class="pill ${SC[pa.status]}">${esc(pa.status)}</span>${pa.comment ? `<b>${esc(pa.comment)}</b>` : ""}<button type="button" class="btn ghost small" data-resolved>Løst nå</button></div>` : "";
-  const fristOpts = [["+1 uke", addDays(s.date, 7)], ["+2 uker", addDays(s.date, 14)], ["Neste ROMA", addMonths(s.date, 1)]];
+  const scale = q.scale ? `<div class="chips">${SCALE.map(([v, lab, st]) => `<button type="button" class="chip opt" data-opt="${v}" data-optstatus="${st}" aria-pressed="${String(ans.value) === String(v)}">${v} ${lab}</button>`).join("")}</div>` : "";
+  const fields = q.fields ? `<div class="fields">${q.fields.map(f => `<label class="fld"><span>${esc(f.l)}</span><input type="number" inputmode="decimal" step="any" data-fld="${f.k}" value="${esc(ans.fields[f.k] || "")}"><em>${esc(f.u)}</em></label>`).join("")}</div>` : "";
   let detail = "";
-  if (flagged) {
-    detail = `<div class="detail">
-      <textarea data-field="comment" placeholder="${q.sensitive ? "Kort, uten navn. Detaljene tas muntlig." : "Hva skjer? Én setning."}" aria-label="Kommentar">${esc(ans.comment)}</textarea>
-      ${q.sensitive && ans.status === "Krever tiltak" ? `<p class="note red small">Dette går til varslingsrutinen, ikke tiltaksloggen. Leder tar kontakt innen én uke.</p>` : `<div class="tiltak-grid">
-        <input type="text" data-field="tiltak" placeholder="Tiltak" value="${esc(ans.tiltak)}" aria-label="Tiltak">
-        <input type="text" data-field="ansvarlig" placeholder="Ansvarlig" value="${esc(ans.ansvarlig)}" aria-label="Ansvarlig">
-        <div class="frist" role="group" aria-label="Frist">${fristOpts.map(([lab, d]) => `<button type="button" data-frist="${d}" aria-pressed="${ans.frist === d}">${lab}</button>`).join("")}<input type="date" data-field="frist" value="${esc(ans.frist)}" aria-label="Frist, dato"></div>
-      </div>
-      <div class="chips"><button type="button" class="chip opt" data-opp="Følges opp videre" aria-pressed="${ans.oppfolging !== "Avklart"}">Følg opp</button><button type="button" class="chip opt" data-opp="Avklart" aria-pressed="${ans.oppfolging === "Avklart"}">Avklart i samtalen</button></div>`}
-    </div>`;
-  } else if (q.commentOnOk) {
-    detail = `<div class="detail" style="border-top:0;padding-top:0"><input type="text" data-field="comment" placeholder="${q.scale ? "Grunnlag, én setning" : "Eksempel, én setning"}" value="${esc(ans.comment)}" aria-label="Kommentar"></div>`;
-  }
-  return `<div class="q st-${SC[ans.status]}" data-q="${q.id}" tabindex="-1">
-    <div class="qtext"><span class="n">${i + 1}</span><p>${esc(q.t)}</p></div>
-    <div class="help">${esc(q.help)}</div>
-    ${choice}${scale}${fields}
-    <div class="chips">${chips}</div>
-    ${lastNote}${detail}
-  </div>`;
+  if (flagged) detail = `<div class="detail"><textarea data-field="comment" placeholder="${q.sensitive ? "Kort, uten navn." : "Hva skjer? Én setning."}" aria-label="Kommentar">${esc(ans.comment)}</textarea>${q.sensitive && ans.status === "Krever tiltak" ? `<p class="note red small">Går til varslingsrutinen, ikke tiltaksloggen.</p>` : `<input type="text" data-field="tiltak" placeholder="Tiltak (valgfritt)" value="${esc(ans.tiltak)}" aria-label="Tiltak">`}</div>`;
+  else if (q.commentOnOk) detail = `<div class="detail" style="border-top:0;padding-top:0"><input type="text" data-field="comment" placeholder="${q.scale ? "Grunnlag, én setning" : "Eksempel, én setning"}" value="${esc(ans.comment)}" aria-label="Kommentar"></div>`;
+  return `<div class="q st-${SC[ans.status]}" data-q="${q.id}" tabindex="-1"><div class="qtext"><span class="n">${i + 1}</span><p>${esc(q.t)}</p></div><div class="help">${esc(q.help)}</div>${choice}${scale}${fields}<div class="chips">${chips}</div>${detail}</div>`;
 }
-
-function rerender(s, q) {
-  const a = Q_AREA[q.id]; const i = a.qs.indexOf(q);
-  const old = $(`.q[data-q="${q.id}"]`); if (!old) return; const hadCursor = old.classList.contains("cursor");
-  const tmp = document.createElement("div"); tmp.innerHTML = renderRow(s, a, q, i);
-  const fresh = tmp.firstElementChild; old.replaceWith(fresh); if (hadCursor) { fresh.classList.add("cursor"); cursorRow = fresh; }
-  bindRow(s, a, q); updateCount(s, a); renderStrip(s);
-}
-function setStatus(s, q, status, opts = {}) {
-  const ans = s.answers[q.id]; const was = ans.status;
-  ans.status = status; ans.carried = false;
-  if (status !== "OK") {
-    if (!ans.frist) ans.frist = addDays(s.date, 14);
-    if (!ans.oppfolging) ans.oppfolging = "Følges opp videre";
-    if (!ans.ansvarlig) ans.ansvarlig = store.me.konsulent;
-    if (status === "Krever tiltak" && !ans.tiltak && q.tiltak) ans.tiltak = q.tiltak;
-  } else { ans.tiltak = ""; ans.frist = ""; ans.oppfolging = ""; ans.ansvarlig = ""; if (!q.commentOnOk) ans.comment = ""; }
-  saveDraft(); rerender(s, q);
-  const row = $(`.q[data-q="${q.id}"]`);
-  if (status !== "OK" && was === "OK" && !opts.quiet) { const ta = $("textarea", row); if (ta && matchMedia("(hover: hover)").matches) ta.focus(); }
-  else if (opts.focusChip) { const b = $(`[data-status="${status}"]`, row); if (b) b.focus(); }
+function setDeep(s, q, status) {
+  const ans = s.answers[q.id]; ans.status = status; ans.carried = false;
+  if (status !== "OK") { if (!ans.frist) ans.frist = addDays(s.date, 14); if (!ans.ansvarlig) ans.ansvarlig = store.me.konsulent; if (status === "Krever tiltak" && !ans.tiltak && q.tiltak) ans.tiltak = q.tiltak; }
+  else { ans.tiltak = ""; ans.frist = ""; ans.ansvarlig = ""; if (!q.commentOnOk) ans.comment = ""; }
+  saveDraft();
+  $$(`.q[data-q="${q.id}"]`).forEach(old => { const a = Q_AREA[q.id]; const hadCursor = old.classList.contains("cursor"); const tmp = document.createElement("div"); tmp.innerHTML = renderRow(s, a, q, a.qs.indexOf(q)); const fresh = tmp.firstElementChild; old.replaceWith(fresh); if (hadCursor) { fresh.classList.add("cursor"); cursorRow = fresh; } });
+  bindRow(s, Q_AREA[q.id], q);
 }
 function bindRow(s, a, q) {
-  const row = $(`.q[data-q="${q.id}"]`); if (!row) return; const ans = s.answers[q.id];
-  row.addEventListener("click", () => setCursor(row));
-  $$("[data-status]", row).forEach(b => b.addEventListener("click", () => setStatus(s, q, b.dataset.status, { focusChip: true })));
-  $$("[data-opt]", row).forEach(b => b.addEventListener("click", () => { ans.value = b.dataset.opt; setStatus(s, q, b.dataset.optstatus, { quiet: b.dataset.optstatus === "OK" }); }));
-  $$("[data-opp]", row).forEach(b => b.addEventListener("click", () => { ans.oppfolging = b.dataset.opp; $$("[data-opp]", row).forEach(x => x.setAttribute("aria-pressed", x === b)); saveDraft(); }));
-  $$("[data-frist]", row).forEach(b => b.addEventListener("click", () => { ans.frist = b.dataset.frist; $$("[data-frist]", row).forEach(x => x.setAttribute("aria-pressed", x === b)); const d = $('[data-field="frist"]', row); if (d) d.value = ans.frist; saveDraft(); }));
-  const res = $("[data-resolved]", row); if (res) res.addEventListener("click", () => { ans.value = ""; ans.comment = ""; setStatus(s, q, "OK", { quiet: true }); });
-  $$("[data-field]", row).forEach(inp => inp.addEventListener("input", () => { ans[inp.dataset.field] = inp.value; if (inp.dataset.field === "frist") $$("[data-frist]", row).forEach(x => x.setAttribute("aria-pressed", x.dataset.frist === inp.value)); }));
-  $$("[data-fld]", row).forEach(inp => inp.addEventListener("change", () => {
-    ans.fields[inp.dataset.fld] = inp.value; saveDraft();
-    const rank = { "OK": 0, "Risiko": 1, "Krever tiltak": 2 };
-    let sug = q.auto ? q.auto(ans.fields) : null;
-    if (q.id === "v2" && inp.dataset.fld === "sluttdato" && inp.value && inp.value < addDays(s.date, 90)) sug = sug || "Risiko";
-    if (sug && rank[sug] > (rank[ans.status] || 0)) { setStatus(s, q, sug); toast(`Foreslått «${sug}» ut fra tallene. Endre hvis det ikke stemmer.`); }
-  }));
+  $$(`.q[data-q="${q.id}"]`).forEach(row => {
+    const ans = s.answers[q.id];
+    row.addEventListener("click", () => setCursor(row));
+    $$("[data-status]", row).forEach(b => b.addEventListener("click", () => setDeep(s, q, b.dataset.status)));
+    $$("[data-opt]", row).forEach(b => b.addEventListener("click", () => { ans.value = b.dataset.opt; setDeep(s, q, b.dataset.optstatus); }));
+    $$("[data-field]", row).forEach(inp => inp.addEventListener("input", () => { ans[inp.dataset.field] = inp.value; }));
+    $$("[data-fld]", row).forEach(inp => inp.addEventListener("change", () => { ans.fields[inp.dataset.fld] = inp.value; saveDraft(); const sug = q.auto ? q.auto(ans.fields) : null; if (sug && RANK[sug] > RANK[ans.status]) setDeep(s, q, sug); }));
+  });
 }
 let cursorRow = null;
 function setCursor(row) { if (cursorRow && cursorRow !== row) cursorRow.classList.remove("cursor"); cursorRow = row; row.classList.add("cursor"); }
 function moveCursor(dir) {
-  const rows = $$("#screen-run .area:not(.skipped) .q"); if (!rows.length) return;
+  const rows = $$("#screen-run .sig, #screen-run .q").filter(r => r.offsetParent !== null); if (!rows.length) return;
   let i = cursorRow ? rows.indexOf(cursorRow) : -1; i = Math.min(rows.length - 1, Math.max(0, i + dir));
   setCursor(rows[i]); rows[i].scrollIntoView({ block: "center" });
 }
 document.addEventListener("keydown", ev => {
   if (!okt || $("#screen-run").hidden || ev.repeat || ev.altKey) return;
-  const mod = ev.ctrlKey || ev.metaKey;
-  const tag = ev.target.tagName;
+  const mod = ev.ctrlKey || ev.metaKey; const tag = ev.target.tagName;
   if (/^(INPUT|TEXTAREA|SELECT)$/.test(tag)) { if (ev.key === "Escape") ev.target.blur(); if (ev.key === "Enter" && mod) { ev.preventDefault(); nextProject(); } return; }
-  if (mod) return;
-  if (tag === "BUTTON" && ev.key === "Enter") return;
+  if (mod) return; if (tag === "BUTTON" && ev.key === "Enter") return;
   const s = cur();
   if (ev.key === "ArrowDown" || ev.key === "j") { ev.preventDefault(); moveCursor(1); }
   else if (ev.key === "ArrowUp" || ev.key === "k") { ev.preventDefault(); moveCursor(-1); }
-  else if (["1", "2", "3"].includes(ev.key)) { if (!cursorRow) moveCursor(1); ev.preventDefault(); setStatus(s, Q_BY[cursorRow.dataset.q], STATUS[Number(ev.key) - 1]); }
+  else if (["1", "2", "3"].includes(ev.key)) { if (!cursorRow) moveCursor(1); ev.preventDefault(); const st = STATUS[Number(ev.key) - 1]; if (cursorRow.dataset.sig) setSig(s, SIG_BY[cursorRow.dataset.sig], st, true); else if (cursorRow.dataset.q) setDeep(s, Q_BY[cursorRow.dataset.q], st); }
   else if (ev.key === "Enter") { ev.preventDefault(); nextProject(); }
 });
-
-/* ---------- ferdig med et prosjekt ---------- */
 function nextProject() {
-  const s = cur(); s.elapsed = elapsedSec(s); s.elapsedBase = s.elapsed; s.startedAt = Date.now();
-  cursorRow = null;
-  if (okt.idx < okt.queue.length - 1) {
-    okt.idx++; const n = cur(); n.startedAt = Date.now(); n.elapsedBase = n.elapsed || 0; warned = false;
-    saveDraft(); toast(`${s.project.prosjekt} ferdig på ${fmtMin(s.elapsed)}`); renderRun();
-  } else finishOkt();
+  const s = cur(); s.elapsed = elapsedSec(s); s.elapsedBase = s.elapsed; s.startedAt = Date.now(); cursorRow = null;
+  if (okt.idx < okt.queue.length - 1) { okt.idx++; const n = cur(); n.startedAt = Date.now(); n.elapsedBase = n.elapsed || 0; saveDraft(); toast(`${s.project.prosjekt} ferdig på ${fmtMin(s.elapsed)}`); renderRun(); }
+  else finishOkt();
 }
 
 /* =====================================================================
    ANALYSE
    ===================================================================== */
-function collect(s) {
-  const rows = []; const tiltak = [];
-  AREAS.forEach(a => a.qs.forEach(q => {
-    const ans = s.answers[q.id]; const skipped = (s.skipped || []).includes(a.id);
-    const status = skipped ? SKIP : ans.status;
-    rows.push({ area: a, q, ans, status });
-    if (!skipped && status !== "OK" && ((ans.tiltak || "").trim() || status === "Krever tiltak") && !q.sensitive) {
-      tiltak.push({ area: a.name, q: q.t, tekst: (ans.tiltak || "").trim() || `Følg opp: ${q.t}`, ansvarlig: ans.ansvarlig, frist: ans.frist, kommentar: ans.comment });
-    }
-  }));
-  return { rows, tiltak };
-}
+function flaggedSignals(s) { return SIGNALS.filter(S => s.sig[S.id] && s.sig[S.id].status !== "OK"); }
+function deepRows(s) { if (!s.deep) return []; return ALL_Q.map(({ area, q }) => ({ area, q, ans: s.answers[q.id], status: s.answers[q.id].status })); }
 function fieldText(q, ans) {
   const parts = [];
   if (ans.value) parts.push(q.scale ? `${ans.value}/5 ${(SCALE.find(x => String(x[0]) === String(ans.value)) || [])[1] || ""}`.trim() : ans.value);
-  (q.fields || []).forEach(f => { const v = (ans.fields || {})[f.k]; if (v) parts.push(`${f.l}: ${f.type === "date" ? fmtDate(v) : v}${f.u ? " " + f.u : ""}`); });
+  (q.fields || []).forEach(f => { const v = (ans.fields || {})[f.k]; if (v) parts.push(`${f.l}: ${v}${f.u ? " " + f.u : ""}`); });
   return parts.join(" · ");
 }
+function sigFieldText(S, s) { const f = s.fields || {}; const parts = []; sigFields(S, s).forEach(x => { if (f[x.k]) parts.push(`${x.l} ${f[x.k]} ${x.u}`); }); if (S.toggle && f[S.toggle.k]) parts.push(S.toggle.l); if (S.id === "S7" && s.project.sluttdato) parts.push(`løper ut ${fmtDate(s.project.sluttdato)}`); return parts.join(" · "); }
+function collectTiltak(s) {
+  const out = [];
+  SIGNALS.forEach(S => { const a = s.sig[S.id]; if (a.status === "OK" || S.sensitive) return; if (a.tiltak.trim() || a.status === "Krever tiltak") out.push({ area: S.name, tekst: a.tiltak.trim() || `Følg opp: ${S.name.toLowerCase()}`, ansvarlig: a.ansvarlig || store.me.konsulent, frist: a.frist, kommentar: a.comment }); });
+  const tr = (s.punkter.trenger || "").trim();
+  if (tr && !/^(ingenting|ingen|nei|-)\.?$/i.test(tr)) out.push({ area: "Trenger fra Involved", tekst: tr, ansvarlig: store.me.teamleder || "Leder", frist: addDays(s.date, 14), kommentar: "" });
+  deepRows(s).forEach(r => { if (r.status === "OK" || r.q.sensitive) return; if ((r.ans.tiltak || "").trim() || r.status === "Krever tiltak") out.push({ area: r.area.name, tekst: (r.ans.tiltak || "").trim() || `Følg opp: ${r.q.t}`, ansvarlig: r.ans.ansvarlig || store.me.konsulent, frist: r.ans.frist, kommentar: r.ans.comment }); });
+  return out;
+}
 function redFlags(s) {
-  const f = []; const A = s.answers; const p = s.project; const F = id => A[id].fields || {};
-  if (num(F("o2").timer) > 80 && F("o2").fremdrift && num(F("o2").fremdrift) < 60) f.push("Timeforbruk over 80 % av ramme med fremdrift under 60 %");
-  if (num(F("o2").utestaende) > 0) f.push(`Utestående fakturaer over 30 dager (${F("o2").utestaende} kr)`);
-  if (num(F("o3").endringstimer) > 20 || A.o3.status === "Krever tiltak") f.push("Arbeid utenfor avtalt omfang uten skriftlig bestilling");
-  if (A.o4.status === "Krever tiltak") f.push("Rolle eller ansvar som ikke dekkes av kontrakt og forsikring");
+  const f = []; const F = s.fields || {}; const G = s.sig; const p = s.project; const hasNums = sigFields(SIG_BY.S3, s).length > 0;
+  if (num(F.timer_uke) > 45) f.push(`Over 45 timer per uke (${F.timer_uke} t)`);
+  if (hasNums && F.ramme && F.fremdrift && num(F.ramme) > 80 && num(F.fremdrift) < 60) f.push(`${p.kontraktstype === "Fastpris" ? "Kalkyle" : "Ramme"} ${F.ramme} % brukt med fremdrift ${F.fremdrift} %`);
+  if (F.utestaende) f.push("Utestående fakturaer over 30 dager");
+  if (G.S4.status === "Krever tiltak") f.push("Arbeid utenfor omfang eller rolle uten skriftlig bestilling, sjekk forsikringsdekning");
   if (p.kontrakt && p.kontrakt !== "Ja") f.push("Kontrakt ikke signert og lagret på SharePoint");
-  if (A.s4.value === "Klage" || A.k2.status === "Krever tiltak") f.push("Klage eller reklamasjon fra kunde: meld i avvikssystemet");
-  if (A.p4.status === "Krever tiltak") f.push("Uønsket atferd hos kunde: varslingsrutinen, leder tar kontakt innen én uke");
-  if (num(F("r1").timer_uke) > 45) f.push(`Over 45 timer per uke (${F("r1").timer_uke} t)`);
-  return f;
+  if (G.S5.status === "Krever tiltak") f.push("Kunden er misfornøyd: ring kunden, klage meldes i avvikssystemet");
+  if (G.S6.status === "Krever tiltak") f.push("Uønsket atferd eller konflikt hos kunde: varslingsrutinen, leder tar kontakt innen én uke");
+  if (G.S7.status === "Krever tiltak" || (p.sluttdato && p.sluttdato < addDays(s.date, 90) && G.S7.status !== "OK")) f.push(`Oppdraget løper ut ${fmtDate(p.sluttdato) || "snart"} uten avklart neste fase`);
+  if (s.deep) { const A = s.answers; if (num((A.o3.fields || {}).endringstimer) > 20) f.push("Over 20 timer arbeid uten bestilling"); if (A.s4.value === "Klage" || A.k2.status === "Krever tiltak") f.push("Klage eller reklamasjon: meld i avvikssystemet"); if (A.p4.status === "Krever tiltak") f.push("Uønsket atferd hos kunde: varslingsrutinen"); }
+  return Array.from(new Set(f));
 }
 function pulseWarnings(s) {
-  const w = []; const prev = s.prevId ? store.sessions.find(x => x.id === s.prevId) : null; const pv = s.pulse;
-  const twice = k => !!(prev && prev.pulse && ((k === "belastning" && prev.pulse.belastning >= 4) || (k === "energi" && prev.pulse.energi <= 2) || (k === "trivsel" && prev.pulse.trivsel <= 2)));
-  if (pv.belastning >= 4) w.push(`Belastning ${pv.belastning}/5: leder avtaler samtale innen én uke${twice("belastning") ? ". To måneder på rad: skriftlig tiltak i tiltaksloggen" : ""}`);
-  if (pv.energi <= 2) w.push(`Energi ${pv.energi}/5: leder avtaler samtale innen én uke${twice("energi") ? ". To måneder på rad: skriftlig tiltak" : ""}`);
-  if (pv.trivsel <= 2) w.push(`Trivsel ${pv.trivsel}/5: samtale innen én uke${twice("trivsel") ? ". To måneder på rad: ledergruppen informeres" : ""}`);
-  if (prev && prev.pulse) PULSE.forEach(pm => { const d = pv[pm.k] - prev.pulse[pm.k]; if ((pm.k === "belastning" && d >= 2) || (pm.k !== "belastning" && d <= -2)) w.push(`${pm.name} endret ${prev.pulse[pm.k]} → ${pv[pm.k]} siden sist: spør hvorfor`); });
+  const w = []; const pv = s.pulse || {}; if (!pv.belastning) return w;
+  const prev = s.prevId ? store.sessions.find(x => x.id === s.prevId) : null; const pp = prev && prev.pulse && prev.pulse.belastning ? prev.pulse : null;
+  if (pv.belastning >= 4) w.push(`Belastning ${pv.belastning}/5: leder avtaler samtale innen én uke${pp && pp.belastning >= 4 ? ". To måneder på rad: skriftlig tiltak" : ""}`);
+  if (pv.trivsel <= 2) w.push(`Trivsel ${pv.trivsel}/5: samtale innen én uke${pp && pp.trivsel <= 2 ? ". To måneder på rad: ledergruppen informeres" : ""}`);
+  if (pp) { if (pv.belastning - pp.belastning >= 2) w.push(`Belastning ${pp.belastning} → ${pv.belastning}: spør hvorfor`); if (pp.trivsel - pv.trivsel >= 2) w.push(`Trivsel ${pp.trivsel} → ${pv.trivsel}: spør hvorfor`); }
   return w;
 }
-function scoreArea(s, a) {
-  if ((s.skipped || []).includes(a.id)) return 0;
-  let sum = 0; a.qs.forEach(q => { const st = s.answers[q.id].status; sum += st === "OK" ? 1 : st === "Risiko" ? .5 : .2; });
-  return sum / a.qs.length;
+function ampel(s) { if (redFlags(s).length || pulseWarnings(s).length || flaggedSignals(s).some(S => s.sig[S.id].status === "Krever tiltak")) return "Rødt"; return flaggedSignals(s).length ? "Gult" : "Grønt"; }
+function teamsText(s) {
+  const prev = s.prevId ? store.sessions.find(x => x.id === s.prevId) : null;
+  const changed = SIGNALS.filter(S => prev && prev.sig && prev.sig[S.id] && prev.sig[S.id].status !== s.sig[S.id].status);
+  const lines = [];
+  lines.push(`ROMA ${fmtMonth(s.date)} · ${s.project.prosjekt}${s.project.kunde ? ` (${s.project.kunde})` : ""} · ${s.project.konsulent}`);
+  lines.push(`Signaler: ${SIGNALS.map(S => LIGHT_EMOJI[s.sig[S.id].status]).join("")}${changed.length ? `  (${changed.length} endret: ${changed.map(S => `${S.name} ${LIGHT_EMOJI[prev.sig[S.id].status]}→${LIGHT_EMOJI[s.sig[S.id].status]}`).join(", ")})` : prev ? "  (uendret)" : ""}`);
+  redFlags(s).forEach(x => lines.push(`! ${x}`));
+  flaggedSignals(s).forEach(S => { const a = s.sig[S.id]; lines.push(`${LIGHT_EMOJI[a.status]} ${S.name}${sigFieldText(S, s) ? ` (${sigFieldText(S, s)})` : ""}${a.comment && !S.sensitive ? `: ${a.comment}` : S.sensitive ? ": tas muntlig" : ""}`); });
+  PUNKTER.forEach(P => { const v = (s.punkter[P.k] || "").trim(); if (v) lines.push(`• ${P.l}: ${v}`); });
+  collectTiltak(s).forEach(t => lines.push(`→ Tiltak: ${t.tekst} (${t.ansvarlig}, ${fmtDate(t.frist) || "frist?"})`));
+  if (s.deep) { const dr = deepRows(s).filter(r => r.status !== "OK"); lines.push(`Full ROMA gjennomgått: ${dr.length ? dr.map(r => `${LIGHT_EMOJI[r.status]} ${r.q.t}${r.ans.comment && !r.q.sensitive ? " – " + r.ans.comment : ""}`).join("; ") : "alt grønt"}`); }
+  lines.push(`Neste ROMA: ${fmtDate(addMonths(s.date, 1))}${streakFor(s.projectId, s.date) >= 2 ? ` · streak ×${streakFor(s.projectId, s.date)}` : ""}`);
+  return lines.join("\n");
 }
-function computeBadges(s) {
-  const { rows, tiltak } = collect(s);
-  const flagged = rows.filter(r => r.status === "Risiko" || r.status === "Krever tiltak");
-  const best = store.best[s.projectId]; const nPrev = sessionsFor(s.projectId).filter(x => x.id !== s.id).length;
-  const streak = streakFor(s.projectId, s.date);
-  return [
-    { id: "full", name: "Full runde", desc: "Alle åtte områder gjennomgått", got: (s.skipped || []).length === 0 },
-    { id: "ti", name: "Under 10", desc: "I mål på under 10 minutter", got: s.elapsed > 0 && s.elapsed <= LIMIT_SEC },
-    { id: "rekord", name: "Personlig rekord", desc: "Raskeste runde på dette prosjektet", got: s.elapsed > 0 && nPrev > 0 && (!best || s.elapsed <= best) },
-    { id: "aerlig", name: "Ærlig", desc: "Minst ett flagg med kommentar", got: flagged.some(r => (r.ans.comment || "").trim()) },
-    { id: "grundig", name: "Grundig", desc: "Kommentar på alt som ble flagget", got: flagged.length > 0 && flagged.every(r => (r.ans.comment || "").trim()) },
-    { id: "ansvar", name: "Ansvar satt", desc: "Alle tiltak har ansvarlig og frist", got: tiltak.length > 0 && tiltak.every(t => t.ansvarlig && t.frist) },
-    { id: "jeger", name: "Mulighetsjeger", desc: "Fant en mulighet under Kundebehov og merverdi", got: AREA_BY.merverdi.qs.some(q => s.answers[q.id].status === "Krever tiltak") },
-    { id: "streak", name: `Streak ×${streak}`, desc: "Sammenhengende måneder med ROMA-samtale på prosjektet", got: streak >= 2 }
-  ];
-}
-function computeXp(s, badges) {
-  const { rows, tiltak } = collect(s);
-  let xp = 100;
-  if (s.elapsed <= LIMIT_SEC) xp += 30;
-  xp += rows.filter(r => (r.status === "Risiko" || r.status === "Krever tiltak") && (r.ans.comment || "").trim()).length * 10;
-  xp += tiltak.filter(t => t.ansvarlig && t.frist).length * 15;
-  xp += badges.filter(b => b.got && ["streak", "rekord"].includes(b.id)).length * 25;
-  xp -= (s.skipped || []).length * 10;
-  return Math.max(50, xp);
+function leaderText(sessions) {
+  const pv = sessions[0].pulse || {}; const pw = sessions.flatMap(pulseWarnings);
+  const head = `Puls ${fmtMonth(sessions[0].date)} · ${store.me.konsulent}: belastning ${pv.belastning || "–"} · trivsel ${pv.trivsel || "–"}${pw.length ? "\n" + pw.map(x => `! ${x}`).join("\n") : ""}`;
+  return [head, ...sessions.map(teamsText)].join("\n\n");
 }
 
 function finishOkt() {
@@ -860,113 +834,56 @@ function finishOkt() {
   okt.queue.forEach(pid => {
     const s = okt.sessions[pid];
     if (!s.finishedAt) { s.elapsed = s.elapsed || elapsedSec(s); s.finishedAt = new Date().toISOString(); }
+    s.pulse = Object.assign({}, okt.pulse);
     store.sessions.push(s);
-    const badges = computeBadges(s); s.badges = badges.filter(b => b.got).map(b => b.id);
-    s.xp = computeXp(s, badges); store.xp += s.xp;
     if (!store.best[pid] || s.elapsed < store.best[pid]) store.best[pid] = s.elapsed;
-    const { tiltak } = collect(s);
-    tiltak.forEach(t => {
+    collectTiltak(s).forEach(t => {
       const dup = store.tiltak.find(x => x.projectId === pid && x.status === "Åpen" && x.tekst === t.tekst);
       if (dup) { dup.kommentar = t.kommentar || dup.kommentar; dup.frist = t.frist || dup.frist; return; }
-      store.tiltak.push({ id: uid(), sessionId: s.id, projectId: pid, dato: s.date, prosjekt: s.project.prosjekt, tekst: t.tekst, ansvarlig: t.ansvarlig, frist: t.frist, status: "Åpen", kommentar: t.kommentar, area: t.area, xpGiven: false });
+      store.tiltak.push({ id: uid(), sessionId: s.id, projectId: pid, dato: s.date, prosjekt: s.project.prosjekt, tekst: t.tekst, ansvarlig: t.ansvarlig, frist: t.frist, status: "Åpen", kommentar: t.kommentar, area: t.area });
     });
     finished.push(s);
   });
   okt = null; store.okt = null; saveStore();
   renderDone(finished);
-  if (window.confetti && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    confetti({ particleCount: 140, spread: 75, origin: { y: .6 }, colors: ["#257A6B", "#C8912A", "#2E8B57", "#FFFFFF"] });
-    setTimeout(() => { confetti({ particleCount: 50, angle: 60, spread: 55, origin: { x: 0 } }); confetti({ particleCount: 50, angle: 120, spread: 55, origin: { x: 1 } }); }, 350);
-  }
+  if (window.confetti && !matchMedia("(prefers-reduced-motion: reduce)").matches) confetti({ particleCount: 90, spread: 70, origin: { y: .6 }, colors: ["#257A6B", "#C8912A", "#2E8B57", "#FFFFFF"] });
 }
 
 /* =====================================================================
    MÅL
    ===================================================================== */
-function radarSvg(s) {
-  const cx = 150, cy = 130, R = 88, n = AREAS.length;
-  const pt = (k, r) => { const ang = -Math.PI / 2 + (2 * Math.PI * k) / n; return [cx + r * Math.cos(ang), cy + r * Math.sin(ang)]; };
-  const rings = [.5, 1].map(f => `<polygon class="grid" points="${AREAS.map((a, k) => pt(k, R * f).map(v => v.toFixed(1)).join(",")).join(" ")}"></polygon>`).join("");
-  const axes = AREAS.map((a, k) => { const [x, y] = pt(k, R); return `<line class="axis" x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"></line>`; }).join("");
-  const scores = AREAS.map(a => scoreArea(s, a));
-  const poly = scores.map((sc, k) => pt(k, Math.max(4, R * sc)).map(v => v.toFixed(1)).join(",")).join(" ");
-  const dots = scores.map((sc, k) => { const [x, y] = pt(k, Math.max(4, R * sc)); return `<circle class="dot ${sc < .75 ? "flag" : ""}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5"></circle>`; }).join("");
-  const labels = AREAS.map((a, k) => { const [x, y] = pt(k, R + 16); const anchor = Math.abs(x - cx) < 8 ? "middle" : x < cx ? "end" : "start"; const short = ["Oppdrag", "Kvalitet", "Miljø", "Kunde", "Trivsel", "Ressurs", "Merverdi", "Læring"][k]; return `<text x="${x.toFixed(1)}" y="${(y + 3).toFixed(1)}" text-anchor="${anchor}">${short}</text>`; }).join("");
-  return `<svg class="radar" viewBox="0 0 300 260" role="img" aria-label="Prosjekthelse per område">${rings}${axes}<polygon class="area-fill" points="${poly}"></polygon>${dots}${labels}</svg>`;
-}
-function summaryText(sessions) {
-  const lines = [];
-  sessions.forEach((s, idx) => {
-    const { rows, tiltak } = collect(s); const flagged = rows.filter(r => r.status === "Risiko" || r.status === "Krever tiltak"); const flags = redFlags(s); const pw = pulseWarnings(s);
-    if (idx) lines.push("", "—", "");
-    lines.push(`ROMA-samtale ${fmtDate(s.date)} · ${s.project.prosjekt}${s.project.kunde ? ` (${s.project.kunde})` : ""}`);
-    lines.push(`Konsulent ${s.project.konsulent} · leder ${s.project.teamleder || "–"} · ${fmtMin(s.elapsed)}${(s.skipped || []).length ? ` · hoppet over: ${s.skipped.map(id => AREA_BY[id].name).join(", ")}` : ""}`);
-    if (flags.length) { lines.push("", "RØDE FLAGG (meld til leder / Planner i dag):"); flags.forEach(x => lines.push(`! ${x}`)); }
-    if (pw.length) { lines.push("", "Puls:"); pw.forEach(x => lines.push(`• ${x}`)); }
-    lines.push("", flagged.length ? "Flagget:" : "Alt grønt.");
-    flagged.forEach(r => lines.push(`• [${r.status}] ${r.area.name}: ${r.q.t}${fieldText(r.q, r.ans) ? ` (${fieldText(r.q, r.ans)})` : ""}${r.ans.comment && !r.q.sensitive ? " — " + r.ans.comment : ""}`));
-    if (tiltak.length) { lines.push("", "Tiltak:"); tiltak.forEach(t => lines.push(`• ${t.tekst} (${t.ansvarlig || "ansvarlig?"}, frist ${fmtDate(t.frist) || "?"})`)); }
-    if (s.comment) lines.push("", "Oppsummering: " + s.comment);
-    lines.push(`Neste ROMA-samtale: ${fmtDate(addMonths(s.date, 1))}`);
-  });
-  return lines.join("\n");
-}
-
 function renderDone(sessions) {
   if (okt) { saveDraft(); stopTimer(); okt = null; }
   hudMode = "idle"; renderHud(); show("done");
-  const el = $("#screen-done");
+  const el = $("#screen-done"); const multi = sessions.length > 1;
   const total = sessions.reduce((n, s) => n + (s.elapsed || 0), 0);
+  const nFlag = sessions.reduce((n, s) => n + flaggedSignals(s).length, 0);
   const allFlags = sessions.flatMap(s => redFlags(s).map(x => ({ p: s.project.prosjekt, x })));
-  const allPulse = sessions.flatMap(s => pulseWarnings(s).map(x => ({ p: s.project.prosjekt, x })));
-  const allTiltak = sessions.flatMap(s => collect(s).tiltak.map(t => Object.assign({ p: s.project.prosjekt }, t)));
-  const nFlag = sessions.reduce((n, s) => n + countFlags(s), 0);
-  const lv = levelFor(store.xp); const xpNow = sessions.reduce((n, s) => n + (s.xp || 0), 0);
-  const multi = sessions.length > 1;
+  const pw = pulseWarnings(sessions[0]);
+  const allTiltak = sessions.flatMap(s => collectTiltak(s).map(t => Object.assign({ p: s.project.prosjekt }, t)));
+  const records = sessions.filter(s => store.best[s.projectId] === s.elapsed && sessionsFor(s.projectId).length > 1);
   el.innerHTML = `
     <div class="done">
       <div>
-        <span class="eyebrow">I mål · ${fmtDate(sessions[0].date)}</span>
-        <h1>${nFlag === 0 && !allFlags.length ? `Alt grønt på ${fmtMin(total)}.` : `I mål på ${fmtMin(total)}. ${nFlag} ting å følge opp.`}</h1>
-        <p class="muted">${sessions.length} prosjekt${multi ? "er" : ""} · +${xpNow} XP · nivå ${esc(lv.name)}${lv.next ? ` (${lv.pct} % mot neste)` : ""}</p>
+        <span class="eyebrow">Levert · ${fmtDate(sessions[0].date)}</span>
+        <h1>${nFlag === 0 && !allFlags.length ? `Alt grønt på ${fmtMin(total)}.` : `Ferdig på ${fmtMin(total)}. ${nFlag} signal${nFlag === 1 ? "" : "er"} å følge opp.`}</h1>
+        <div class="stats">${sessions.map(s => `<span>${esc(s.project.prosjekt)} <b>${fmtMin(s.elapsed)}</b>${streakFor(s.projectId, s.date) >= 2 ? ` · streak ×${streakFor(s.projectId, s.date)}` : ""}${records.includes(s) ? " · ny rekord" : ""}</span>`).join("")}</div>
       </div>
-
       <div class="card export">
-        <span class="eyebrow">Lever</span>
-        <div class="btn-row">
-          <button type="button" class="btn primary" id="xlsx-btn">Last ned Excel${multi ? ` (${sessions.length} filer)` : ""}</button>
-          <button type="button" class="btn" id="leder-btn">Ledereksport med puls</button>
-          <button type="button" class="btn" id="copy-btn">Kopier til Teams</button>
-          <button type="button" class="btn" id="print-btn">Skriv ut / PDF</button>
-        </div>
-        <p class="muted small">Excel per prosjekt har arkene Forside, Prosjektinfo, ROMA-samtale, Tiltak &amp; Oppfølging og Statusoversikt, som i mal V1.10, og lagres i prosjektmappen under «ROMA-samtale». Ledereksporten inneholder pulsverdiene og går kun til nærmeste leder.</p>
+        <div class="btn-row"><button type="button" class="btn primary" id="copy-all">Kopier til Teams${multi ? " (alle)" : ""}</button><button type="button" class="btn" id="xlsx-btn">Excel per prosjekt</button><button type="button" class="btn" id="leder-btn">Ledereksport med puls</button><button type="button" class="btn ghost" id="print-btn">Skriv ut / PDF</button></div>
+        <p class="muted small" style="margin-top:8px">Teams-teksten er det leder leser. Excel per prosjekt lagres i prosjektmappen under «ROMA-samtale» og har arkene Prosjektinfo, ROMA-samtale, Tiltak &amp; Oppfølging og Statusoversikt. Puls og alt under Trygghet går kun i ledereksporten.</p>
       </div>
-
       ${allFlags.length ? `<div class="note red"><b>Røde flagg. Meld til leder og legg i Planner i dag.</b><ul>${allFlags.map(f => `<li>${multi ? `<b>${esc(f.p)}:</b> ` : ""}${esc(f.x)}</li>`).join("")}</ul></div>` : ""}
-      ${allPulse.length ? `<div class="note gold"><b>Puls som krever oppfølging</b><ul>${allPulse.map(f => `<li>${multi ? `<b>${esc(f.p)}:</b> ` : ""}${esc(f.x)}</li>`).join("")}</ul></div>` : ""}
-
-      <div class="card">
-        <div class="area-head" style="margin-bottom:8px"><h3>Tiltak</h3><span class="muted small">${allTiltak.length} stk · logget med ansvar og frist · alvorlige også i Planner</span></div>
-        ${allTiltak.length ? `<div class="table-wrap"><table><thead><tr>${multi ? "<th>Prosjekt</th>" : ""}<th>Område</th><th>Tiltak</th><th>Ansvarlig</th><th>Frist</th></tr></thead><tbody>${allTiltak.map(t => `<tr>${multi ? `<td>${esc(t.p)}</td>` : ""}<td>${esc(t.area)}</td><td>${esc(t.tekst)}${t.kommentar ? `<br><span class="muted">${esc(t.kommentar)}</span>` : ""}</td><td>${esc(t.ansvarlig)}</td><td class="mono">${fmtDate(t.frist)}</td></tr>`).join("")}</tbody></table></div>` : `<p class="muted">Ingen tiltak denne runden.</p>`}
-      </div>
-
-      <div class="pgrid">${sessions.map(s => {
-        const c = { OK: 0, Risiko: 0, "Krever tiltak": 0 }; const rows = collect(s).rows; rows.forEach(r => { if (c[r.status] !== undefined) c[r.status]++; });
-        const badges = computeBadges(s);
-        return `<div class="card psum">
-          <div><span class="eyebrow">${fmtMin(s.elapsed)} · puls ${s.pulse.belastning}·${s.pulse.trivsel}·${s.pulse.energi || "–"}</span><h3>${esc(s.project.prosjekt)}</h3></div>
-          <div class="kpis"><div class="kpi ok"><b>${c.OK}</b><small>OK</small></div><div class="kpi risk"><b>${c.Risiko}</b><small>Risiko</small></div><div class="kpi tiltak"><b>${c["Krever tiltak"]}</b><small>Tiltak</small></div></div>
-          ${radarSvg(s)}
-          <div class="badges">${badges.map(b => `<span class="badge ${b.got ? "" : "locked"}" title="${esc(b.desc)}"><i>${b.got ? "✓" : "·"}</i>${esc(b.name)}</span>`).join("")}</div>
-          <details><summary class="muted small">Alt som ble gjennomgått</summary><div class="table-wrap" style="margin-top:8px"><table><thead><tr><th>Spørsmål</th><th>Status</th><th>Kommentar</th></tr></thead><tbody>${rows.map(r => `<tr><td><span class="muted small">${esc(r.area.name)}</span><br>${esc(r.q.t)}${fieldText(r.q, r.ans) ? `<br><span class="muted small">${esc(fieldText(r.q, r.ans))}</span>` : ""}</td><td><span class="pill ${SC[r.status]}">${esc(r.status)}</span></td><td>${esc(r.ans.comment)}</td></tr>`).join("")}</tbody></table></div></details>
-        </div>`; }).join("")}</div>
-
-      <details class="card"><summary>Forhåndsvis tekst</summary><pre class="summary-text" style="margin-top:10px">${esc(summaryText(sessions))}</pre></details>
+      ${pw.length ? `<div class="note gold"><b>Puls som krever oppfølging</b><ul>${pw.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>` : ""}
+      ${sessions.map(s => `<div class="card psum"><div class="head"><h3>${esc(s.project.prosjekt)}</h3><button type="button" class="btn small" data-copy="${esc(s.id)}">Kopier</button></div><pre class="teams" id="teams-${esc(s.id)}">${esc(teamsText(s))}</pre></div>`).join("")}
+      ${allTiltak.length ? `<div class="card"><div class="area-head" style="margin-bottom:8px"><h3>Tiltak</h3><span class="muted small">${allTiltak.length} stk i tiltaksloggen · alvorlige også i Planner</span></div><div class="table-wrap"><table><thead><tr>${multi ? "<th>Prosjekt</th>" : ""}<th>Fra</th><th>Tiltak</th><th>Ansvarlig</th><th>Frist</th></tr></thead><tbody>${allTiltak.map(t => `<tr>${multi ? `<td>${esc(t.p)}</td>` : ""}<td>${esc(t.area)}</td><td>${esc(t.tekst)}</td><td>${esc(t.ansvarlig)}</td><td class="mono">${fmtDate(t.frist)}</td></tr>`).join("")}</tbody></table></div></div>` : ""}
       <div class="btn-row no-print"><button type="button" class="btn" id="overview-btn">Se oversikt</button><button type="button" class="btn ghost" id="home-btn">Til forsiden</button></div>
     </div>`;
+  const copy = async (text, label) => { try { await navigator.clipboard.writeText(text); toast(label); } catch (e) { toast("Kunne ikke kopiere. Marker teksten og kopier manuelt."); } };
+  $("#copy-all", el).addEventListener("click", () => copy(leaderText(sessions), "Kopiert. Lim inn i Teams til leder."));
+  $$("[data-copy]", el).forEach(b => b.addEventListener("click", () => { const s = sessions.find(x => x.id === b.dataset.copy); copy(teamsText(s), "Kopiert"); }));
   $("#xlsx-btn", el).addEventListener("click", async () => { for (const s of sessions) { const ok = await exportProject(s); if (!ok) break; } });
   $("#leder-btn", el).addEventListener("click", () => exportLeader(sessions));
-  $("#copy-btn", el).addEventListener("click", async () => { try { await navigator.clipboard.writeText(summaryText(sessions)); toast("Kopiert"); } catch (e) { toast("Kunne ikke kopiere. Bruk forhåndsvisningen nederst."); } });
   $("#print-btn", el).addEventListener("click", () => window.print());
   $("#overview-btn", el).addEventListener("click", renderOverview);
   $("#home-btn", el).addEventListener("click", renderHome);
@@ -978,179 +895,114 @@ function renderDone(sessions) {
 let downloadsCap = null;
 if (window.claude && typeof window.claude.use === "function") { window.claude.use("downloads").then(d => { downloadsCap = d; }).catch(() => {}); }
 async function saveFile(filename, data) {
-  if (downloadsCap) {
-    try { await downloadsCap.save({ filename, data }); toast(`Lagret ${filename}`); return true; }
-    catch (e) { if (e && e.code === "declined") { toast("Nedlasting avbrutt"); return false; } if (e && e.code === "rate_limited") { toast("Vent litt og prøv igjen"); return false; } }
-  }
-  try {
-    const blob = data instanceof Blob ? data : new Blob([data], { type: "application/octet-stream" });
-    const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 2000); toast(`Lastet ned ${filename}`); return true;
-  } catch (e) { toast("Nedlasting er ikke tilgjengelig her. Bruk «Kopier til Teams»."); return false; }
+  if (downloadsCap) { try { await downloadsCap.save({ filename, data }); toast(`Lagret ${filename}`); return true; } catch (e) { if (e && e.code === "declined") { toast("Nedlasting avbrutt"); return false; } if (e && e.code === "rate_limited") { toast("Vent litt og prøv igjen"); return false; } } }
+  try { const blob = data instanceof Blob ? data : new Blob([data], { type: "application/octet-stream" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000); toast(`Lastet ned ${filename}`); return true; }
+  catch (e) { toast("Nedlasting er ikke tilgjengelig her. Bruk «Kopier til Teams»."); return false; }
 }
 const XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 function sheet(wb, name, rows, widths) { const ws = XLSX.utils.aoa_to_sheet(rows); ws["!cols"] = widths.map(w => ({ wch: w })); XLSX.utils.book_append_sheet(wb, ws, name); }
-function forsideRows() {
-  return [["INVOLVED ROMA-SAMTALE – VEILEDNING"], ["Formål\nROMA-samtalen er Involveds strukturerte prosjektsamtale for oppfølging av både prosjektet og menneskene bak. R Ressurs · O Oversikt · M Menneske · A Ansvar.\n\nFrekvens: Månedlig\nVarighet: 10 minutter per prosjekt\nGjennomføres av: Nærmeste leder og ressurs i prosjektet\n\nOmråder:\n" + AREAS.map((a, i) => `${i + 1}. ${a.name} – ${a.tag}`).join("\n") + "\n\nStatus: OK / Risiko / Krever tiltak / Ikke gjennomgått. Under Kundebehov og merverdi og Læring og forbedring betyr «Krever tiltak» en mulighet som følges opp.\nPulsverdier (belastning, trivsel, energi) ligger i egen ledereksport, ikke i prosjektmappen.\n\nGenerert av Via ROMA."]];
-}
 function infoRows(sessions) {
-  const rows = [["Konsulent", "Teamleder", "Prosjekt", "Prosjektnummer", "Kunde", "Rolle", "Kontrakt signert og lagret på SP?", "Kundeundersøkelse sendt", "Score siste kundeundersøkelse"]];
-  const seen = new Set();
-  sessions.forEach(s => { if (seen.has(s.projectId)) return; seen.add(s.projectId); const p = s.project; rows.push([p.konsulent, p.teamleder, p.prosjekt, p.prosjektnummer, p.kunde, p.rolle, p.kontrakt, fmtDate(p.ku_dato), p.ku_score]); });
+  const rows = [["Konsulent", "Teamleder", "Prosjekt", "Prosjektnummer", "Kunde", "Rolle", "Kontraktstype", "Kontrakt signert og lagret på SP?", "Oppdraget løper ut", "Kundeundersøkelse sendt", "Score siste kundeundersøkelse"]]; const seen = new Set();
+  sessions.forEach(s => { if (seen.has(s.projectId)) return; seen.add(s.projectId); const p = s.project; rows.push([p.konsulent, p.teamleder, p.prosjekt, p.prosjektnummer, p.kunde, p.rolle, p.kontraktstype || "", p.kontrakt, fmtDate(p.sluttdato), fmtDate(p.ku_dato), p.ku_score]); });
   return rows;
 }
-function skjemaRows(sessions) {
-  const rows = [["Dato", "Tema", "Spørsmål", "Status / Kommentar", "Tiltak / Ansvar", "Frist", "Avklart trenger ikke oppfølging", "Status (OK/Risiko/Tiltak)", "Verdi"]];
+function skjemaRows(sessions, withSensitive) {
+  const rows = [["Dato", "Tema", "Spørsmål", "Status / Kommentar", "Tiltak / Ansvar", "Frist", "Endret siden sist", "Status (OK/Risiko/Tiltak)", "Verdi"]];
   sessions.forEach(s => {
-    AREAS.forEach(a => {
-      const skipped = (s.skipped || []).includes(a.id);
-      rows.push([fmtDate(s.date), a.name, "", skipped ? "Ikke gjennomgått denne måneden" : "", "", "", "", skipped ? SKIP : "", ""]);
-      a.qs.forEach(q => {
-        const ans = s.answers[q.id]; const st = skipped ? SKIP : ans.status; const flagged = st === "Risiko" || st === "Krever tiltak";
-        const hidden = q.sensitive && flagged;
-        rows.push([fmtDate(s.date), a.name, q.t, hidden ? "Håndteres i varslingsrutinen" : (skipped ? "" : ans.comment), hidden || !flagged ? "" : (ans.tiltak ? `${ans.tiltak}${ans.ansvarlig ? " / " + ans.ansvarlig : ""}` : ""), hidden || !flagged ? "" : fmtDate(ans.frist), flagged ? ans.oppfolging : "", st, skipped ? "" : fieldText(q, ans)]);
-      });
-    });
-    if (s.comment) rows.push([fmtDate(s.date), "Oppsummering", "", s.comment, "", "", "", "", ""]);
+    const prev = s.prevId ? store.sessions.find(x => x.id === s.prevId) : null;
+    SIGNALS.forEach(S => { const a = s.sig[S.id]; const hide = S.sensitive && a.status !== "OK" && !withSensitive; const changed = prev && prev.sig && prev.sig[S.id] ? (prev.sig[S.id].status !== a.status ? "Ja" : "Nei") : "";
+      rows.push([fmtDate(s.date), `${S.roma} · ${S.name}`, sigText(S, s), hide ? "Håndteres i varslingsrutinen" : a.comment, hide || a.status === "OK" ? "" : (a.tiltak ? `${a.tiltak} / ${a.ansvarlig}` : ""), hide || a.status === "OK" ? "" : fmtDate(a.frist), changed, a.status, sigFieldText(S, s)]); });
+    PUNKTER.forEach(P => { if ((s.punkter[P.k] || "").trim()) rows.push([fmtDate(s.date), "Viktigste punkter", P.l, s.punkter[P.k].trim(), P.k === "trenger" ? `${s.punkter[P.k].trim()} / ${s.project.teamleder || "Leder"}` : "", "", "", "", ""]); });
     const flags = redFlags(s); if (flags.length) rows.push([fmtDate(s.date), "Røde flagg", "", flags.join(" · "), "Meldt til leder / Planner", "", "", "Krever tiltak", ""]);
+    if (s.deep) AREAS.forEach(a => { rows.push([fmtDate(s.date), `Full ROMA · ${a.name}`, "", "", "", "", "", "", ""]); a.qs.forEach(q => { const ans = s.answers[q.id]; const hide = q.sensitive && ans.status !== "OK" && !withSensitive; rows.push([fmtDate(s.date), `Full ROMA · ${a.name}`, q.t, hide ? "Håndteres i varslingsrutinen" : ans.comment, hide || ans.status === "OK" ? "" : (ans.tiltak ? `${ans.tiltak} / ${ans.ansvarlig}` : ""), hide || ans.status === "OK" ? "" : fmtDate(ans.frist), "", ans.status, fieldText(q, ans)]); }); });
   });
   return rows;
 }
-function tiltakRows(list) {
-  const rows = [["Dato opprettet", "Prosjekt", "Tiltak", "Ansvarlig", "Frist", "Status (åpen/lukket)", "Kommentar / oppfølging"]];
-  list.forEach(t => rows.push([fmtDate(t.dato), t.prosjekt, t.tekst, t.ansvarlig, fmtDate(t.frist), t.status, [t.area, t.kommentar].filter(Boolean).join(": ")]));
-  return rows;
-}
+function tiltakRows(list) { const rows = [["Dato opprettet", "Prosjekt", "Tiltak", "Ansvarlig", "Frist", "Status (åpen/lukket)", "Kommentar / oppfølging"]]; list.forEach(t => rows.push([fmtDate(t.dato), t.prosjekt, t.tekst, t.ansvarlig, fmtDate(t.frist), t.status, [t.area, t.kommentar].filter(Boolean).join(": ")])); return rows; }
 function statusRows(sessions, withPulse) {
-  const rows = [["Dato", "Konsulent", "Prosjekt", "Sist samtale", "Neste samtale", "Antall åpne tiltak", "Belastning (1–5)", "Trivsel (1–5)", "Energi (1–5)", "Kommentar"]];
-  sessions.forEach(s => {
-    const prev = sessionsFor(s.projectId).filter(x => x.id !== s.id && (x.date < s.date || (x.date === s.date && (x.finishedAt || "") < (s.finishedAt || "")))).pop();
-    rows.push([fmtDate(s.date), s.project.konsulent, s.project.prosjekt, prev ? fmtDate(prev.date) : "", fmtDate(addMonths(s.date, 1)), openTiltakCount(s.projectId), withPulse ? s.pulse.belastning : "se ledereksport", withPulse ? s.pulse.trivsel : "se ledereksport", withPulse ? (s.pulse.energi || "") : "se ledereksport", withPulse ? [s.comment, ...pulseWarnings(s)].filter(Boolean).join(" · ") : (s.comment || "")]);
-  });
+  const rows = [["Dato", "Konsulent", "Prosjekt", "Sist samtale", "Neste samtale", "Antall åpne tiltak", "Belastning (1–5)", "Trivsel (1–5)", "Ampel", "Kommentar"]];
+  sessions.forEach(s => { const prev = sessionsFor(s.projectId).filter(x => x.id !== s.id && (x.date < s.date || (x.date === s.date && (x.finishedAt || "") < (s.finishedAt || "")))).pop(); rows.push([fmtDate(s.date), s.project.konsulent, s.project.prosjekt, prev ? fmtDate(prev.date) : "", fmtDate(addMonths(s.date, 1)), openTiltak(s.projectId).length, withPulse ? (s.pulse || {}).belastning || "" : "se ledereksport", withPulse ? (s.pulse || {}).trivsel || "" : "se ledereksport", ampel(s), [s.punkter.risiko, s.punkter.trenger ? "Trenger: " + s.punkter.trenger : ""].filter(Boolean).join(" · ")]); });
   return rows;
 }
-function buildProjectWorkbook(s) {
-  const wb = XLSX.utils.book_new();
-  sheet(wb, "Forside", forsideRows(), [110]);
-  sheet(wb, "Prosjektinfo", infoRows([s]), [18, 18, 26, 14, 22, 18, 30, 16, 16]);
-  sheet(wb, "ROMA-samtale", skjemaRows([s]), [11, 24, 60, 40, 36, 11, 26, 22, 30]);
-  sheet(wb, "Tiltak & Oppfølging", tiltakRows(store.tiltak.filter(t => t.projectId === s.projectId)), [13, 24, 50, 18, 11, 18, 40]);
-  sheet(wb, "Statusoversikt", statusRows([s], false), [11, 18, 24, 12, 12, 16, 16, 16, 16, 40]);
-  return wb;
+function kortRows(sessions) {
+  const rows = [["Ampel", "Prosjekt", "Konsulent", "Dato", "Belastning", "Trivsel", "Timer/uke", "Ramme/kalkyle %", "Fremdrift %", "Utestående >30 d", "Kunde", "Løper ut", "Åpne tiltak", "Over frist", "Endret siden sist", "Risiko nå", "Trenger fra leder", "Røde flagg"]];
+  const ord = { "Rødt": 0, "Gult": 1, "Grønt": 2 };
+  sessions.slice().sort((a, b) => ord[ampel(a)] - ord[ampel(b)] || ((b.pulse || {}).belastning || 0) - ((a.pulse || {}).belastning || 0)).forEach(s => { const F = s.fields || {}; const ot = openTiltak(s.projectId); const hasNums = sigFields(SIG_BY.S3, s).length > 0; rows.push([ampel(s), s.project.prosjekt, s.project.konsulent, fmtDate(s.date), (s.pulse || {}).belastning || "", (s.pulse || {}).trivsel || "", F.timer_uke || "", hasNums ? F.ramme || "" : "", hasNums ? F.fremdrift || "" : "", F.utestaende ? "Ja" : "", LIGHT[s.sig.S5.status], fmtDate(s.project.sluttdato), ot.length, ot.filter(t => t.frist && t.frist < isoToday()).length, s.punkter.endret, s.punkter.risiko, s.punkter.trenger, redFlags(s).join(" · ")]); });
+  return rows;
 }
+function buildProjectWorkbook(s) { const wb = XLSX.utils.book_new(); sheet(wb, "Prosjektinfo", infoRows([s]), [18, 18, 26, 14, 22, 18, 16, 30, 14, 16, 16]); sheet(wb, "ROMA-samtale", skjemaRows([s], false), [11, 22, 60, 40, 36, 11, 14, 22, 30]); sheet(wb, "Tiltak & Oppfølging", tiltakRows(store.tiltak.filter(t => t.projectId === s.projectId)), [13, 24, 50, 18, 11, 18, 40]); sheet(wb, "Statusoversikt", statusRows([s], false), [11, 18, 24, 12, 12, 16, 16, 16, 8, 50]); return wb; }
 function buildLeaderWorkbook(sessions) {
-  const wb = XLSX.utils.book_new();
-  const sorted = sessions.slice().sort((a, b) => cmp(a.date, b.date) || cmp(a.project.prosjekt, b.project.prosjekt));
-  sheet(wb, "Statusoversikt", statusRows(sorted, true), [11, 18, 24, 12, 12, 16, 16, 16, 16, 50]);
-  const puls = [["Dato", "Konsulent", "Prosjekt", "Belastning (1–5)", "Trivsel (1–5)", "Energi (1–5)", "Varsel", "Røde flagg"]];
-  sorted.forEach(s => puls.push([fmtDate(s.date), s.project.konsulent, s.project.prosjekt, s.pulse.belastning, s.pulse.trivsel, s.pulse.energi || "", pulseWarnings(s).join(" · "), redFlags(s).join(" · ")]));
-  sheet(wb, "Puls", puls, [11, 18, 24, 16, 16, 16, 60, 60]);
+  const wb = XLSX.utils.book_new(); const sorted = sessions.slice().sort((a, b) => cmp(b.date, a.date) || cmp(a.project.prosjekt, b.project.prosjekt));
+  sheet(wb, "Prosjektkort", kortRows(sorted), [7, 24, 16, 11, 10, 8, 10, 14, 11, 12, 8, 11, 10, 9, 40, 40, 40, 50]);
+  sheet(wb, "Statusoversikt", statusRows(sorted, true), [11, 18, 24, 12, 12, 16, 12, 12, 8, 50]);
   sheet(wb, "Tiltak & Oppfølging", tiltakRows(store.tiltak.filter(t => sorted.some(s => s.projectId === t.projectId))), [13, 24, 50, 18, 11, 18, 40]);
-  sheet(wb, "ROMA-samtale", skjemaRows(sorted), [11, 24, 60, 40, 36, 11, 26, 22, 30]);
+  sheet(wb, "ROMA-samtale", skjemaRows(sorted, true), [11, 22, 60, 40, 36, 11, 14, 22, 30]);
   return wb;
 }
 function xlsxBlob(wb) { return new Blob([XLSX.write(wb, { type: "array", bookType: "xlsx" })], { type: XLSX_MIME }); }
-async function exportProject(s) {
-  if (!window.XLSX) { toast("Excel-biblioteket er ikke lastet. Sjekk nett og prøv igjen."); return false; }
-  try { return await saveFile(`${s.date.replace(/-/g, "")}_Involved_ROMAsamtale_${slug(s.project.prosjekt)}_${slug(s.project.konsulent)}.xlsx`, xlsxBlob(buildProjectWorkbook(s))); }
-  catch (e) { console.error(e); toast("Excel-eksport feilet. Bruk «Kopier til Teams»."); return false; }
-}
-async function exportLeader(sessions) {
-  if (!window.XLSX) { toast("Excel-biblioteket er ikke lastet. Sjekk nett og prøv igjen."); return false; }
-  if (!sessions.length) { toast("Ingen runder å eksportere ennå"); return false; }
-  try { return await saveFile(`${isoToday().replace(/-/g, "")}_Involved_ROMA_lederoversikt_${slug(store.me.konsulent)}.xlsx`, xlsxBlob(buildLeaderWorkbook(sessions))); }
-  catch (e) { console.error(e); toast("Excel-eksport feilet."); return false; }
-}
+async function exportProject(s) { if (!window.XLSX) { toast("Excel-biblioteket er ikke lastet. Sjekk nett og prøv igjen."); return false; } try { return await saveFile(`${s.date.replace(/-/g, "")}_Involved_ROMAsamtale_${slug(s.project.prosjekt)}_${slug(s.project.konsulent)}.xlsx`, xlsxBlob(buildProjectWorkbook(s))); } catch (e) { console.error(e); toast("Excel-eksport feilet. Bruk «Kopier til Teams»."); return false; } }
+async function exportLeader(sessions) { if (!window.XLSX) { toast("Excel-biblioteket er ikke lastet. Sjekk nett og prøv igjen."); return false; } if (!sessions.length) { toast("Ingen runder å eksportere ennå"); return false; } try { return await saveFile(`${isoToday().replace(/-/g, "")}_Involved_ROMA_lederoversikt_${slug(store.me.konsulent)}.xlsx`, xlsxBlob(buildLeaderWorkbook(sessions))); } catch (e) { console.error(e); toast("Excel-eksport feilet."); return false; } }
 
 /* =====================================================================
    OVERSIKT
    ===================================================================== */
 function sparkSvg(list) {
-  const w = 200, h = 48, pad = 5; const pts = list.slice(-8); if (!pts.length) return "";
-  const x = i => pts.length === 1 ? w / 2 : pad + (i * (w - 2 * pad)) / (pts.length - 1);
-  const y = v => h - pad - (((v || 3) - 1) / 4) * (h - 2 * pad);
-  const path = k => pts.map((s, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(s.pulse[k]).toFixed(1)}`).join(" ");
-  const li = pts.length - 1; const last = pts[li];
-  return `<svg class="spark" viewBox="0 0 ${w} ${h}" role="img" aria-label="Trend for belastning, trivsel og energi"><path class="bel" d="${path("belastning")}"></path><path class="triv" d="${path("trivsel")}"></path><path class="ene" d="${path("energi")}"></path><circle style="fill:var(--tiltak)" cx="${x(li).toFixed(1)}" cy="${y(last.pulse.belastning).toFixed(1)}" r="3"></circle><circle style="fill:var(--accent)" cx="${x(li).toFixed(1)}" cy="${y(last.pulse.trivsel).toFixed(1)}" r="3"></circle><circle style="fill:var(--gold)" cx="${x(li).toFixed(1)}" cy="${y(last.pulse.energi).toFixed(1)}" r="3"></circle></svg>`;
+  const w = 200, h = 48, pad = 5; const pts = list.filter(s => s.pulse && s.pulse.belastning).slice(-8); if (!pts.length) return "";
+  const x = i => pts.length === 1 ? w / 2 : pad + (i * (w - 2 * pad)) / (pts.length - 1); const y = v => h - pad - (((v || 3) - 1) / 4) * (h - 2 * pad);
+  const path = k => pts.map((s, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(s.pulse[k]).toFixed(1)}`).join(" "); const li = pts.length - 1; const last = pts[li];
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" role="img" aria-label="Trend for belastning og trivsel"><path class="bel" d="${path("belastning")}"></path><path class="triv" d="${path("trivsel")}"></path><circle style="fill:var(--tiltak)" cx="${x(li).toFixed(1)}" cy="${y(last.pulse.belastning).toFixed(1)}" r="3"></circle><circle style="fill:var(--accent)" cx="${x(li).toFixed(1)}" cy="${y(last.pulse.trivsel).toFixed(1)}" r="3"></circle></svg>`;
 }
 function validSession(s) {
-  if (!s || typeof s !== "object" || typeof s.id !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(String(s.date)) || !s.project || typeof s.project !== "object" || !s.answers || typeof s.answers !== "object") return null;
-  const o = { id: s.id, date: s.date, projectId: String(s.projectId || ""), project: {}, pulse: {}, answers: {}, skipped: Array.isArray(s.skipped) ? s.skipped.filter(x => AREA_BY[x]) : [], elapsed: Number(s.elapsed) || 0, xp: Number(s.xp) || 0, badges: Array.isArray(s.badges) ? s.badges.map(String) : [], comment: String(s.comment || ""), finishedAt: String(s.finishedAt || ""), prevId: s.prevId ? String(s.prevId) : null };
-  ["konsulent", "teamleder", "prosjekt", "prosjektnummer", "kunde", "rolle", "kontrakt", "ku_dato", "ku_score", "id"].forEach(k => { o.project[k] = String(s.project[k] || ""); });
-  PULSE.forEach(p => { const v = Number(s.pulse && s.pulse[p.k]); o.pulse[p.k] = v >= 1 && v <= 5 ? v : p.def; });
-  ALL_Q.forEach(({ q }) => { const a = (s.answers[q.id] && typeof s.answers[q.id] === "object") ? s.answers[q.id] : {}; const b = blankAnswer(); b.status = STATUS.includes(a.status) ? a.status : "OK"; ["value", "comment", "tiltak", "ansvarlig", "frist", "oppfolging"].forEach(k => { b[k] = String(a[k] || ""); }); b.fields = a.fields && typeof a.fields === "object" ? Object.fromEntries(Object.entries(a.fields).map(([k, v]) => [String(k), String(v)])) : {}; o.answers[q.id] = b; });
+  if (!s || typeof s !== "object" || typeof s.id !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(String(s.date)) || !s.project || typeof s.project !== "object" || !s.sig || typeof s.sig !== "object") return null;
+  const o = { id: s.id, date: s.date, projectId: String(s.projectId || ""), project: {}, sig: {}, fields: {}, punkter: {}, answers: {}, deep: !!s.deep, pulse: {}, elapsed: Number(s.elapsed) || 0, finishedAt: String(s.finishedAt || ""), prevId: s.prevId ? String(s.prevId) : null };
+  ["konsulent", "teamleder", "prosjekt", "prosjektnummer", "kunde", "rolle", "kontrakt", "kontraktstype", "sluttdato", "ku_dato", "ku_score", "id"].forEach(k => { o.project[k] = String(s.project[k] || ""); });
+  SIGNALS.forEach(S => { const a = (s.sig[S.id] && typeof s.sig[S.id] === "object") ? s.sig[S.id] : {}; const b = blankSig(); b.status = STATUS.includes(a.status) ? a.status : "OK"; ["comment", "tiltak", "ansvarlig", "frist"].forEach(k => { b[k] = String(a[k] || ""); }); o.sig[S.id] = b; });
+  if (s.fields && typeof s.fields === "object") Object.entries(s.fields).forEach(([k, v]) => { o.fields[String(k)] = String(v || ""); });
+  PUNKTER.forEach(P => { o.punkter[P.k] = String((s.punkter || {})[P.k] || ""); });
+  PULSE.forEach(p => { const v = Number(s.pulse && s.pulse[p.k]); if (v >= 1 && v <= 5) o.pulse[p.k] = v; });
+  ALL_Q.forEach(({ q }) => { const a = (s.answers && s.answers[q.id] && typeof s.answers[q.id] === "object") ? s.answers[q.id] : {}; const b = blankAnswer(); b.status = STATUS.includes(a.status) ? a.status : "OK"; ["value", "comment", "tiltak", "ansvarlig", "frist"].forEach(k => { b[k] = String(a[k] || ""); }); b.fields = a.fields && typeof a.fields === "object" ? Object.fromEntries(Object.entries(a.fields).map(([k, v]) => [String(k), String(v)])) : {}; o.answers[q.id] = b; });
   return o;
 }
 function renderOverview() {
   if (okt) { saveDraft(); stopTimer(); okt = null; }
   hudMode = "idle"; renderHud(); show("overview");
-  const el = $("#screen-overview"); const today = isoToday(); const lv = levelFor(store.xp);
-  const openT = store.tiltak.filter(t => t.status === "Åpen");
+  const el = $("#screen-overview"); const today = isoToday(); const openT = store.tiltak.filter(t => t.status === "Åpen");
   el.innerHTML = `
     <div class="overview">
       <div class="area-head">
-        <div><span class="eyebrow">Statusoversikt</span><h2>Dine prosjekter</h2><p class="muted">${store.sessions.length} runder · ${store.xp} XP · nivå ${esc(lv.name)}${lv.next ? ` · ${lv.next - store.xp} XP til neste` : ""}</p></div>
-        <div class="btn-row">
-          <button type="button" class="btn" id="all-leder-btn" ${store.sessions.length ? "" : "disabled"}>Ledereksport, alle runder</button>
-          <button type="button" class="btn ghost" id="backup-btn">Sikkerhetskopi (JSON)</button>
-          <button type="button" class="btn ghost" id="import-btn">Hent sikkerhetskopi</button><input type="file" id="import-inp" accept="application/json" hidden>
-        </div>
+        <div><span class="eyebrow">Oversikt</span><h2>Dine prosjekter</h2><p class="muted">${store.sessions.length} runder levert</p></div>
+        <div class="btn-row"><button type="button" class="btn" id="all-leder-btn" ${store.sessions.length ? "" : "disabled"}>Ledereksport, alle runder</button><button type="button" class="btn ghost" id="backup-btn">Sikkerhetskopi (JSON)</button><button type="button" class="btn ghost" id="import-btn">Hent sikkerhetskopi</button><input type="file" id="import-inp" accept="application/json" hidden></div>
       </div>
-      <div class="level-bar" aria-hidden="true"><div style="width:${lv.pct}%"></div></div>
-
-      ${store.projects.length ? store.projects.map(p => {
-        const list = sessionsFor(p.id); const last = list[list.length - 1]; const next = last ? addMonths(last.date, 1) : null; const overdue = next && next < today; const open = openTiltakCount(p.id);
-        return `<div class="card proj">
-          <div><b>${esc(p.prosjekt)}</b><br><span class="muted small">${esc(p.kunde)}</span><br><span class="small">${last ? `sist <b class="mono">${fmtDate(last.date)}</b> · neste <b class="mono" style="${overdue ? "color:var(--tiltak-ink)" : ""}">${fmtDate(next)}</b>${overdue ? " · forfalt" : ""}${streakFor(p.id, last.date) >= 2 ? ` · streak ×${streakFor(p.id, last.date)}` : ""}${store.best[p.id] ? ` · rekord ${fmtMin(store.best[p.id])}` : ""}` : "ingen runder ennå"}</span></div>
-          <div class="kpi ${open ? "tiltak" : "ok"}"><b>${open}</b><small>Åpne tiltak</small></div>
-          <div>${last ? sparkSvg(list) + `<div class="legend"><span><i style="background:var(--tiltak)"></i>Belastning ${last.pulse.belastning}</span><span><i style="background:var(--accent)"></i>Trivsel ${last.pulse.trivsel}</span><span><i style="background:var(--gold)"></i>Energi ${last.pulse.energi || "–"}</span></div>` : ""}</div>
-        </div>`; }).join("") : `<div class="empty">Ingen prosjekter ennå. Legg til det første på forsiden.</div>`}
-
+      ${store.projects.length ? store.projects.map(p => { const list = sessionsFor(p.id); const last = list[list.length - 1]; const next = last ? addMonths(last.date, 1) : null; const overdue = next && next < today; const open = openTiltak(p.id).length;
+        return `<div class="card proj"><div><b>${esc(p.prosjekt)}</b><br><span class="muted small">${esc(p.kunde)}</span><br><span class="small">${last ? `sist <b class="mono">${fmtDate(last.date)}</b> · neste <b class="mono" style="${overdue ? "color:var(--tiltak-ink)" : ""}">${fmtDate(next)}</b>${overdue ? " · forfalt" : ""}${streakFor(p.id, last.date) >= 2 ? ` · streak ×${streakFor(p.id, last.date)}` : ""}${store.best[p.id] ? ` · rekord ${fmtMin(store.best[p.id])}` : ""}<br><span class="lights-mini">${SIGNALS.map(S => `<i class="${SC[(last.sig[S.id] || {}).status || "OK"]}"></i>`).join("")}</span> ${esc(ampel(last))}` : "ingen runder ennå"}</span></div><div class="kpi ${open ? "tiltak" : "ok"}"><b>${open}</b><small>Åpne tiltak</small></div><div>${last ? sparkSvg(list) + `<div class="legend"><span><i style="background:var(--tiltak)"></i>Belastning</span><span><i style="background:var(--accent)"></i>Trivsel</span></div>` : ""}</div></div>`; }).join("") : `<div class="empty">Ingen prosjekter ennå. Legg til det første på forsiden.</div>`}
       <div class="card">
         <div class="area-head" style="margin-bottom:8px"><h3>Tiltakslogg</h3><span class="muted small">${openT.length} åpne · huk av når det er lukket</span></div>
-        ${store.tiltak.length ? `<div class="table-wrap"><table><thead><tr><th></th><th>Opprettet</th><th>Prosjekt</th><th>Tiltak</th><th>Ansvarlig</th><th>Frist</th><th>Status</th></tr></thead><tbody>
-          ${store.tiltak.slice().sort((a, b) => (a.status === b.status ? cmp(a.frist || "9", b.frist || "9") : a.status === "Åpen" ? -1 : 1)).map(t => `<tr>
-            <td><input type="checkbox" data-tiltak="${esc(t.id)}" ${t.status === "Lukket" ? "checked" : ""} aria-label="Lukk tiltak"></td>
-            <td class="mono">${fmtDate(t.dato)}</td><td>${esc(t.prosjekt)}</td><td>${esc(t.tekst)}<br><span class="muted small">${esc(t.area)}${t.kommentar ? " · " + esc(t.kommentar) : ""}</span></td><td>${esc(t.ansvarlig)}</td>
-            <td class="mono" style="${t.status === "Åpen" && t.frist && t.frist < today ? "color:var(--tiltak-ink)" : ""}">${fmtDate(t.frist)}</td>
-            <td><span class="pill ${t.status === "Åpen" ? "open" : "closed"}">${esc(t.status)}</span></td></tr>`).join("")}
-        </tbody></table></div>` : `<p class="muted">Ingen tiltak logget ennå.</p>`}
+        ${store.tiltak.length ? `<div class="table-wrap"><table><thead><tr><th></th><th>Opprettet</th><th>Prosjekt</th><th>Tiltak</th><th>Ansvarlig</th><th>Frist</th><th>Status</th></tr></thead><tbody>${store.tiltak.slice().sort((a, b) => (a.status === b.status ? cmp(a.frist || "9", b.frist || "9") : a.status === "Åpen" ? -1 : 1)).map(t => `<tr><td><input type="checkbox" data-tiltak="${esc(t.id)}" ${t.status === "Lukket" ? "checked" : ""} aria-label="Lukk tiltak"></td><td class="mono">${fmtDate(t.dato)}</td><td>${esc(t.prosjekt)}</td><td>${esc(t.tekst)}<br><span class="muted small">${esc(t.area)}${t.kommentar ? " · " + esc(t.kommentar) : ""}</span></td><td>${esc(t.ansvarlig)}</td><td class="mono" style="${t.status === "Åpen" && t.frist && t.frist < today ? "color:var(--tiltak-ink)" : ""}">${fmtDate(t.frist)}</td><td><span class="pill ${t.status === "Åpen" ? "open" : "closed"}">${esc(t.status)}</span></td></tr>`).join("")}</tbody></table></div>` : `<p class="muted">Ingen tiltak logget ennå.</p>`}
       </div>
-
-      ${store.sessions.length ? `<div class="card">
-        <div class="area-head" style="margin-bottom:8px"><h3>Gjennomførte runder</h3></div>
-        <div class="table-wrap"><table><thead><tr><th>Dato</th><th>Prosjekt</th><th>OK / Risiko / Tiltak</th><th>Tid</th><th>XP</th><th></th></tr></thead><tbody>
-          ${store.sessions.slice().sort((a, b) => cmp(b.date, a.date) || cmp(b.finishedAt, a.finishedAt)).map(s => { const c = { OK: 0, Risiko: 0, "Krever tiltak": 0 }; collect(s).rows.forEach(r => { if (c[r.status] !== undefined) c[r.status]++; }); return `<tr><td class="mono">${fmtDate(s.date)}</td><td>${esc(s.project.prosjekt)}</td><td class="mono"><span style="color:var(--ok-ink)">${c.OK}</span> / <span style="color:var(--risk-ink)">${c.Risiko}</span> / <span style="color:var(--tiltak-ink)">${c["Krever tiltak"]}</span></td><td class="mono">${fmtMin(s.elapsed)}</td><td class="mono">${Number(s.xp) || 0}</td><td><button type="button" class="btn small" data-open="${esc(s.id)}">Åpne</button></td></tr>`; }).join("")}
-        </tbody></table></div>
-      </div>` : ""}
-      <p class="note privacy muted small">${esc(PRIVACY_TEXT)} Alt lagres kun i denne nettleseren. Ta sikkerhetskopi før du bytter maskin.</p>
+      ${store.sessions.length ? `<div class="card"><div class="area-head" style="margin-bottom:8px"><h3>Leverte runder</h3></div><div class="table-wrap"><table><thead><tr><th>Dato</th><th>Prosjekt</th><th>Signaler</th><th>Tid</th><th></th></tr></thead><tbody>${store.sessions.slice().sort((a, b) => cmp(b.date, a.date) || cmp(b.finishedAt, a.finishedAt)).map(s => `<tr><td class="mono">${fmtDate(s.date)}</td><td>${esc(s.project.prosjekt)}</td><td><span class="lights-mini">${SIGNALS.map(S => `<i class="${SC[(s.sig[S.id] || {}).status || "OK"]}"></i>`).join("")}</span>${s.deep ? ' <span class="muted small">+ full ROMA</span>' : ""}</td><td class="mono">${fmtMin(s.elapsed)}</td><td><button type="button" class="btn small" data-open="${esc(s.id)}">Åpne</button></td></tr>`).join("")}</tbody></table></div></div>` : ""}
+      <div class="card"><div class="area-head"><div><h3>Dine data</h3><p class="muted small">Alt ligger kun i denne nettleseren. Bytter du maskin, ta sikkerhetskopi først. Deler du maskin, slett når du er ferdig.</p></div><button type="button" class="btn ghost danger" id="wipe-btn">Slett alle mine data</button></div></div>
+      <p class="note privacy muted small">${esc(PRIVACY_TEXT)}</p>
     </div>`;
   $("#all-leder-btn", el).addEventListener("click", () => exportLeader(store.sessions));
   $("#backup-btn", el).addEventListener("click", () => saveFile(`${isoToday().replace(/-/g, "")}_ViaROMA_sikkerhetskopi.json`, JSON.stringify(store, null, 2)));
   $("#import-btn", el).addEventListener("click", () => $("#import-inp", el).click());
+  $("#wipe-btn", el).addEventListener("click", ev => { const b = ev.currentTarget; if (b.dataset.armed) { wipeAll(); toast("Alt er slettet fra denne nettleseren"); renderHome(); } else { b.dataset.armed = "1"; b.textContent = "Sikker? Slett alt nå"; } });
   $("#import-inp", el).addEventListener("change", ev => {
     const f = ev.target.files[0]; if (!f) return; const r = new FileReader();
-    r.onload = () => {
-      try {
-        const data = JSON.parse(r.result); if (!data || typeof data !== "object") throw new Error("format");
-        let n = 0;
-        (Array.isArray(data.projects) ? data.projects : []).forEach(p => { if (p && typeof p === "object" && p.prosjekt && !store.projects.some(x => x.id === p.id)) { const o = { id: String(p.id || uid()) }; ["prosjekt", "kunde", "prosjektnummer", "rolle", "kontrakt", "ku_dato", "ku_score"].forEach(k => { o[k] = String(p[k] || ""); }); store.projects.push(o); } });
-        const have = new Set(store.sessions.map(s => s.id));
-        (Array.isArray(data.sessions) ? data.sessions : []).forEach(s => { const v = validSession(s); if (v && !have.has(v.id) && (projectById(v.projectId) || v.project.prosjekt)) { if (!projectById(v.projectId)) { const np = Object.assign({ id: v.projectId || uid() }, v.project); v.projectId = np.id; store.projects.push(np); } store.sessions.push(v); store.xp += v.xp; n++; } });
-        const haveT = new Set(store.tiltak.map(t => t.id));
-        (Array.isArray(data.tiltak) ? data.tiltak : []).forEach(t => { if (t && typeof t === "object" && t.tekst && !haveT.has(String(t.id))) store.tiltak.push({ id: String(t.id || uid()), sessionId: String(t.sessionId || ""), projectId: String(t.projectId || ""), dato: /^\d{4}-\d{2}-\d{2}$/.test(String(t.dato)) ? t.dato : isoToday(), prosjekt: String(t.prosjekt || ""), tekst: String(t.tekst), ansvarlig: String(t.ansvarlig || ""), frist: /^\d{4}-\d{2}-\d{2}$/.test(String(t.frist)) ? t.frist : "", status: t.status === "Lukket" ? "Lukket" : "Åpen", kommentar: String(t.kommentar || ""), area: String(t.area || ""), xpGiven: !!t.xpGiven }); });
-        if (data.me && typeof data.me === "object" && !store.me.konsulent) { store.me.konsulent = String(data.me.konsulent || ""); store.me.teamleder = String(data.me.teamleder || ""); }
-        if (data.best && typeof data.best === "object") Object.entries(data.best).forEach(([k, v]) => { if (Number(v) > 0 && (!store.best[k] || Number(v) < store.best[k])) store.best[k] = Number(v); });
-        saveStore(); toast(`Hentet ${n} runder`); renderOverview();
-      } catch (e) { toast("Kunne ikke lese filen"); }
-    };
+    r.onload = () => { try {
+      const data = JSON.parse(r.result); if (!data || typeof data !== "object") throw new Error("format"); let n = 0;
+      (Array.isArray(data.projects) ? data.projects : []).forEach(p => { if (p && typeof p === "object" && p.prosjekt && !store.projects.some(x => x.id === p.id)) { const o = { id: String(p.id || uid()) }; ["prosjekt", "kunde", "prosjektnummer", "rolle", "kontrakt", "kontraktstype", "sluttdato", "ku_dato", "ku_score"].forEach(k => { o[k] = String(p[k] || ""); }); store.projects.push(o); } });
+      const have = new Set(store.sessions.map(s => s.id));
+      (Array.isArray(data.sessions) ? data.sessions : []).forEach(s => { const v = validSession(s); if (v && !have.has(v.id) && (projectById(v.projectId) || v.project.prosjekt)) { if (!projectById(v.projectId)) { const np = Object.assign({ id: v.projectId || uid() }, v.project); v.projectId = np.id; store.projects.push(np); } store.sessions.push(v); n++; } });
+      const haveT = new Set(store.tiltak.map(t => t.id));
+      (Array.isArray(data.tiltak) ? data.tiltak : []).forEach(t => { if (t && typeof t === "object" && t.tekst && !haveT.has(String(t.id))) store.tiltak.push({ id: String(t.id || uid()), sessionId: String(t.sessionId || ""), projectId: String(t.projectId || ""), dato: /^\d{4}-\d{2}-\d{2}$/.test(String(t.dato)) ? t.dato : isoToday(), prosjekt: String(t.prosjekt || ""), tekst: String(t.tekst), ansvarlig: String(t.ansvarlig || ""), frist: /^\d{4}-\d{2}-\d{2}$/.test(String(t.frist)) ? t.frist : "", status: t.status === "Lukket" ? "Lukket" : "Åpen", kommentar: String(t.kommentar || ""), area: String(t.area || "") }); });
+      if (data.me && typeof data.me === "object" && !store.me.konsulent) { store.me.konsulent = String(data.me.konsulent || ""); store.me.teamleder = String(data.me.teamleder || ""); }
+      if (data.best && typeof data.best === "object") Object.entries(data.best).forEach(([k, v]) => { if (Number(v) > 0 && (!store.best[k] || Number(v) < store.best[k])) store.best[k] = Number(v); });
+      saveStore(); toast(`Hentet ${n} runder`); renderOverview();
+    } catch (e) { toast("Kunne ikke lese filen"); } };
     r.readAsText(f);
   });
-  $$("[data-tiltak]", el).forEach(cb => cb.addEventListener("change", () => {
-    const t = store.tiltak.find(x => x.id === cb.dataset.tiltak); if (!t) return;
-    t.status = cb.checked ? "Lukket" : "Åpen"; if (cb.checked && !t.xpGiven) { t.xpGiven = true; store.xp += 10; toast("Tiltak lukket · +10 XP"); }
-    saveStore(); renderOverview();
-  }));
+  $$("[data-tiltak]", el).forEach(cb => cb.addEventListener("change", () => { const t = store.tiltak.find(x => x.id === cb.dataset.tiltak); if (!t) return; t.status = cb.checked ? "Lukket" : "Åpen"; saveStore(); renderOverview(); }));
   $$("[data-open]", el).forEach(b => b.addEventListener("click", () => { const s = store.sessions.find(x => x.id === b.dataset.open); if (s) renderDone([s]); }));
 }
 
