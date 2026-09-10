@@ -8,7 +8,7 @@ Involveds månedlige ROMA-samtale som en interaktiv nettside: 10 minutter per pr
 
 Nettsiden publiseres automatisk med GitHub Pages ved hvert push til `main`:
 
-**https://forzacode00.github.io/roma/**
+**https://forzacode00.github.io/ROMA/**
 
 Hvis siden ikke svarer etter første push: Settings → Pages → Source: «GitHub Actions», og kjør workflowen «Publiser Via ROMA» på nytt under Actions.
 
