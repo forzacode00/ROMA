@@ -498,7 +498,7 @@ function blankAnswer() { return { status: "OK", value: "", comment: "", tiltak: 
 function blankSig() { return { status: "OK", comment: "", tiltak: "", ansvarlig: "", frist: "" }; }
 function makeSession(project) {
   const prev = lastSessionFor(project.id);
-  const sig = {}; SIGNALS.forEach(S => { const a = blankSig(); const pa = prev && prev.sig && prev.sig[S.id]; if (pa && !S.sensitive && STATUS.includes(pa.status) && pa.status !== "OK") Object.assign(a, { status: pa.status, comment: pa.comment || "", ansvarlig: store.me.konsulent, frist: addDays(isoToday(), 14) }); sig[S.id] = a; });
+  const sig = {}; SIGNALS.forEach(S => { const a = blankSig(); const pa = prev && prev.sig && prev.sig[S.id]; if (pa && !S.sensitive && STATUS.includes(pa.status) && pa.status !== "OK") Object.assign(a, { status: pa.status, comment: pa.comment || "", ansvarlig: pa.status === "Krever tiltak" && store.me.teamleder ? store.me.teamleder : store.me.konsulent, frist: addDays(isoToday(), 14) }); sig[S.id] = a; });
   const fields = {}; const prevFields = prev && prev.fields ? prev.fields : {};
   const projSnap = Object.assign({}, project, { konsulent: store.me.konsulent, teamleder: store.me.teamleder });
   const s7 = sigAuto(SIG_BY.S7, { fields, project: projSnap, date: isoToday() });
