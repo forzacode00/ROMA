@@ -28,3 +28,14 @@ Hvis siden ikke svarer etter første push: Settings → Pages → Source: «GitH
 Appen er én HTML-fil uten backend. Alt lagres kun i brukerens egen nettleser (localStorage) og sendes aldri til noen server. Lenken kan derfor deles åpent: hver kollega ser bare sine egne data. Data forlater maskinen kun når brukeren selv kopierer Teams-teksten eller laster ned Excel/JSON, og disse filene må brukeren selv håndtere. Teams-tekst og ledereksport inneholder puls og Trygghet-signal og er kun ment for nærmeste leder. Prosjekt-Excel inneholder ikke dette. Diktering bruker nettleserens innebygde taletjeneste (Google/Microsoft). «Slett alle mine data» i Oversikt fjerner alt appen har lagret. Bibliotekene for Excel og konfetti ligger i `vendor/` i repoet, så siden fungerer også der eksterne CDN er blokkert.
 
 Råd til kollegaene: bruk den offisielle lenken i vanlig nettleser (ikke som Teams-fane), ta sikkerhetskopi før maskinbytte, og bruk «Slett alle mine data» på delt maskin. Safari kan slette lokale data etter 7 dager uten besøk.
+
+## Til leder: kvittering etter Teams-teksten
+
+Det som gjør at konsulenten fortsetter å svare ærlig, er at svaret fører til noe. Regel: svar innen 2 virkedager, rødt samme dag. Ledereksporten inneholder et forslag til første setning per prosjekt.
+
+- **Grønn**: «Lest, takk. Alt grønt på [prosjekt]. Én ting jeg noterer: [ett punkt fra teksten]. Snakkes neste måned.»
+- **Gul**: «Lest. Ser [signal] er gult. Jeg gjør [handling] innen [dato]. Si fra hvis det blir verre før det.»
+- **Rød**: «Lest, ringer deg i dag kl [tid]. Tiltak: [hva], jeg eier det, frist [dato]. Legger det i Planner nå.»
+- **Rolig måned**: «Lest, takk for ærlig puls. Rolig nå er ok, vi bruker det. Er du med på [utviklingsaktivitet], ca. [timer]? Jeg sjekker [kunde/tilbud] for neste fase innen [dato].»
+
+Appen spør konsulenten neste måned om leder svarte. To «nei» på rad vises i ledereksporten.

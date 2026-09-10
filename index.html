@@ -82,7 +82,6 @@
   .ring circle { fill: none; stroke-width: 4; }
   .ring .track { stroke: var(--line); }
   .ring .bar { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset .9s linear; }
-  .ring.over .bar { stroke: var(--risk); }
   @media (max-width: 560px) { .brand span { display: none; } .tab { padding: 6px 9px; font-size: .9rem; } }
 
   main { padding-block: 18px; }
@@ -255,6 +254,19 @@
   h1, h2, h3, .pcard .pname b, .stats span, .teams { overflow-wrap: anywhere; min-width: 0; }
   .prow .none { border: 1px solid var(--line-strong); background: var(--surface); border-radius: 999px; padding: 4px 10px; font-size: .78rem; min-height: 32px; white-space: nowrap; }
   .prow .none[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+  .year { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+  .year i { width: 14px; height: 14px; border-radius: 50%; display: inline-block; border: 2px solid var(--line-strong); background: transparent; box-sizing: border-box; }
+  .year i.OK { background: var(--ok); border-color: var(--ok); } .year i.Risiko { background: var(--risk); border-color: var(--risk); } .year i.Tiltak { background: var(--tiltak); border-color: var(--tiltak); }
+  .year i.deep { box-shadow: 0 0 0 2px var(--accent-soft); }
+  .year i.now { border-style: dashed; }
+  .modepill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 4px 10px; font-size: .8rem; font-weight: 600; border: 1px solid var(--line-strong); background: var(--surface); }
+  .modepill.Travel { border-color: var(--risk); background: var(--risk-soft); color: var(--risk-ink); }
+  .modepill.Rolig { border-color: var(--accent); background: var(--accent-soft); }
+  .utv { display: flex; flex-direction: column; gap: 10px; }
+  .utv .chips .chip { min-height: 40px; }
+  .utv .chosen { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: .9rem; }
+  .utv .chosen input[type="number"] { width: 4.5em; border: 1px solid var(--line-strong); border-radius: 8px; padding: 4px 6px; font-family: var(--font-mono); text-align: right; background: var(--surface); }
+  .quote { font-family: var(--font-display); font-size: 1.05rem; color: var(--muted); font-style: italic; }
   .empty { padding: 26px; text-align: center; color: var(--muted); border: 1px dashed var(--line-strong); border-radius: var(--radius); }
 
   @media print {
@@ -328,16 +340,38 @@ function s3Config(p) {
 function sigText(S, s) { return S.id === "S3" ? s3Config(s.project).t : S.t; }
 function sigFields(S, s) { return S.id === "S3" ? s3Config(s.project).fields : (S.fields || []); }
 const PUNKTER = [
-  { k: "endret", l: "Endret siden sist", ph: "Ny PL hos byggherre 1.9, vil ha revidert plan innen 20.9" },
-  { k: "risiko", l: "Risiko nå", ph: "Tegningsunderlag fra entreprenør uteblir, ca. 1 uke bak" },
-  { k: "trenger", l: "Trenger fra Involved", ph: "Sparring om NS 8401-ansvar før 15.9" }
+  { k: "endret", l: "Endret siden sist", ph: "Ny PL hos byggherre 1.9, vil ha revidert plan innen 20.9", none: "Ikke noe nytt" },
+  { k: "risiko", l: "Risiko nå", ph: "Tegningsunderlag fra entreprenør uteblir, ca. 1 uke bak", none: "Ingen nå" },
+  { k: "trenger", l: "Trenger fra Involved", ph: "Sparring om NS 8401-ansvar før 15.9", none: "Ingenting" }
 ];
+const UTVIKLING = [
+  { k: "sert", l: "Sertifisering", t: 40, d: "FSE/NEK 400, BREEAM-AP, PRINCE2, ISO 19650" },
+  { k: "kurs", l: "Kurs eller webinar", t: 8, d: "med kort internt sammendrag" },
+  { k: "tilbud", l: "Bidra i tilbud", t: 16, d: "kalkyle, CV, metodekapittel" },
+  { k: "notat", l: "Faggruppe-notat", t: 12, d: "beste praksis andre kan bruke" },
+  { k: "maler", l: "Forbedre maler og sjekklister", t: 12, d: "i kvalitetssystemet" },
+  { k: "erfaring", l: "Erfaringsrapport fra prosjekt", t: 8, d: "input til fag- og erfaringsrapporten" },
+  { k: "mentor", l: "Mentor for junior", t: 6, d: "per måned" },
+  { k: "kunde", l: "Kundebesøk", t: 4, d: "tidligere kunde, neste oppdrag" },
+  { k: "fagdag", l: "Holde intern fagdag", t: 12, d: "én time for kollegene" }
+];
+const UTV_BY = Object.fromEntries(UTVIKLING.map(u => [u.k, u]));
+const YEAR_HINTS = { 1: "Januar: medarbeidersamtale. Årsutskriften i Oversikt er din.", 5: "Mai: tid for kundeundersøkelse?", 6: "Juni: sjekk dekning i ferien under Neste fase.", 8: "Tilbudssesong: bidra i tilbud er verdifullt nå.", 9: "Tilbudssesong: bidra i tilbud er verdifullt nå.", 10: "Tilbudssesong: bidra i tilbud er verdifullt nå.", 11: "November: kundeundersøkelse og fag- og erfaringsrapport. Erfaringsnotater teller.", 12: "Desember: årsavslutning. Se året i Oversikt." };
+const ROMA_QUOTES = { Travel: "Roma ble ikke bygget på én dag. Denne måneden la du én stein.", Balansert: "Alle veier fører til Roma. Denne tok tre minutter.", Rolig: "Også Roma hadde rolige år. De bygde akvedukter." };
+function modeOf(pulse, lastTimer) { const b = (pulse || {}).belastning; if (!b) return "Balansert"; if (b >= 4) return "Travel"; if (b <= 1 || (b === 2 && lastTimer && num(lastTimer) <= 30)) return "Rolig"; return "Balansert"; }
+function isHeavy(pulse, sessions) { const pv = pulse || {}; return pv.belastning >= 5 || (pv.trivsel && pv.trivsel <= 2) || (sessions || []).some(x => x.sig && x.sig.S6 && x.sig.S6.status === "Krever tiltak"); }
+function personStreak(uptoDate) {
+  const months = Array.from(new Set(store.sessions.filter(x => x.date <= uptoDate).map(x => x.date.slice(0, 7)))).sort().reverse();
+  let streak = 0, cur = uptoDate.slice(0, 7);
+  for (const m of months) { if (m === cur) { streak++; cur = addMonths(cur + "-15", -1).slice(0, 7); } else if (m < cur) break; }
+  return streak;
+}
 const PULSE = [
   { k: "belastning", name: "Belastning", anchors: ["Ledig kapasitet", "Passe", "Travelt, men greit", "For mye over tid", "Uholdbart"] },
   { k: "trivsel", name: "Trivsel", anchors: ["Mistrives", "Lav", "Grei", "God", "Svært god"] }
 ];
 const PRIVACY_TEXT = "Alt lagres bare i denne nettleseren på denne enheten. Ingen server, ingen innlogging, ingen andre ser dataene dine. Data forlater maskinen først når du selv kopierer Teams-teksten eller laster ned en fil. Teams-tekst og ledereksport er kun til nærmeste leder. Prosjekt-Excel inneholder ikke puls eller Trygghet. Diktering bruker nettleserens taletjeneste (Google/Microsoft). Ingen helseopplysninger, navn på personer hos kunde eller private forhold i fritekst. På delt maskin: «Slett alle mine data» i Oversikt når du er ferdig. Nedlastede filer og utklippstavlen slettes ikke av appen.";
-const NOTHING = /^\s*(ingenting|ingen|nei|ok|nope|[-–—.]*)\s*[.!]?\s*$/i;
+const NOTHING = /^\s*(ingenting|ingen|ingen nå|ikke noe nytt|nei|ok|nope|[-–—.]*)\s*[.!]?\s*$/i;
 const ID_OK = v => /^[A-Za-z0-9_-]{1,32}$/.test(String(v));
 
 /* ---------- dybde: full ROMA (30 spørsmål) ---------- */
@@ -490,7 +524,7 @@ function renderHud() {
     const s = cur(); const el = elapsedSec(s); const frac = Math.min(1, el / LIMIT_SEC);
     if (hud.dataset.mode !== "run") { hud.dataset.mode = "run"; hud.innerHTML = `<span class="stat" id="hud-proj"></span><div class="ring" id="hud-ring" title="3 minutter per prosjekt"><svg viewBox="0 0 40 40"><circle class="track" cx="20" cy="20" r="16"></circle><circle class="bar" cx="20" cy="20" r="16" stroke-dasharray="100.5" stroke-dashoffset="100.5"></circle></svg></div>`; }
     $("#hud-proj").textContent = `${okt.idx + 1}/${okt.queue.length}`;
-    const ring = $("#hud-ring"); $(".bar", ring).setAttribute("stroke-dashoffset", (100.5 * (1 - frac)).toFixed(1)); ring.classList.toggle("over", el > LIMIT_SEC);
+    const ring = $("#hud-ring"); $(".bar", ring).setAttribute("stroke-dashoffset", (100.5 * (1 - frac)).toFixed(1));
   } else { hud.dataset.mode = "idle"; hud.innerHTML = ""; }
 }
 
@@ -542,13 +576,18 @@ function renderHome() {
   const first = !store.me.konsulent || store.projects.length === 0;
   let draft = null;
   if (store.okt && Array.isArray(store.okt.queue)) { const q = store.okt.queue.filter(pid => projectById(pid) && store.okt.sessions[pid]); if (q.length) { store.okt.queue = q; store.okt.idx = Math.min(store.okt.idx, q.length - 1); draft = store.okt; } else { store.okt = null; saveStore(); } }
-  homePulse = {};
+  homePulse = {}; homeUtv = [];
+  const lastAny = lastSessionAny(); const lastTimer = lastAny && lastAny.fields ? lastAny.fields.timer_uke : "";
+  const closedSince = lastAny ? store.tiltak.filter(t => t.status === "Lukket" && t.lukket && t.lukket >= lastAny.date).length : 0;
+  const pStreak = lastAny ? personStreak(lastAny.date) : 0;
+  const hint = YEAR_HINTS[Number(today.slice(5, 7))];
   el.innerHTML = `
     <div class="home">
       <div class="home-head">
         <span class="eyebrow">Månedlig · 3 min per prosjekt</span>
         <h1>${first ? "Tre minutter per prosjekt. Start med det første." : `Hei ${esc(store.me.konsulent.split(" ")[0])}. ${fmtDate(today)}.`}</h1>
-        <p class="muted">${first ? "Sju påstander, tre linjer. Uenig? Sett gult eller rødt. Forrige måned ligger klar neste gang." : "Huk av prosjektene du tar nå. Forrige måned er forhåndsvalgt, du endrer bare det som er nytt."}</p>
+        <p class="muted">${first ? "Sju påstander, tre linjer. Uenig? Sett gult eller rødt. Forrige måned ligger klar neste gang." : "Huk av prosjektene du tar nå. Forrige måned vises som referanse, du setter fargene på nytt."}</p>
+        ${!first && (closedSince || pStreak >= 2 || hint) ? `<p class="muted small">${[closedSince ? `Siden sist: ${closedSince} tiltak lukket.` : "", pStreak >= 2 ? `${pStreak} måneder på rad med ROMA.` : "", hint || ""].filter(Boolean).join(" ")}</p>` : ""}
       </div>
       ${first ? `<div class="roma-letters"><div><b>R</b>Ressurs</div><div><b>O</b>Oversikt</div><div><b>M</b>Menneske</div><div><b>A</b>Ansvar</div></div>` : ""}
       ${draft ? `<div class="resume"><div><b>Påbegynt runde</b><br><span class="muted">${draft.queue.map(pid => esc((projectById(pid) || {}).prosjekt || "")).join(", ")} · ${fmtDate(draft.date)}</span></div><div class="btn-row"><button type="button" class="btn primary small" id="resume-btn">Fortsett der du slapp</button><button type="button" class="btn ghost small" id="discard-btn">Slett</button></div></div>` : ""}
@@ -574,7 +613,8 @@ function renderHome() {
           <form class="card" id="edit-${esc(p.id)}" hidden>${projectForm(p, "Lagre", "e" + p.id)}</form>`;
         }).join("")}
       </div>
-      <div class="card" id="pulse-card"><div class="area-head" style="margin-bottom:8px"><div><span class="eyebrow">Puls i dag · én gang for deg, ikke per prosjekt</span></div><span class="muted small">Kun til nærmeste leder</span></div>${pulseBlock(homePulse)}</div>
+      <div class="card" id="pulse-card"><div class="area-head" style="margin-bottom:8px"><div><span class="eyebrow">Puls i dag · én gang for deg, ikke per prosjekt</span></div><span class="muted small">Kun til nærmeste leder</span></div>${pulseBlock(homePulse)}<div id="modebox" style="margin-top:12px"></div></div>
+      ${lastAny && lastAny.lederSvar === undefined && store.me.teamleder ? `<div class="card" id="svarbox"><div class="area-head"><div><b>Fikk du svar fra ${esc(store.me.teamleder)} på runden i ${fmtMonth(lastAny.date)}?</b><br><span class="muted small">Ærlighet skal føre til noe. Svaret går i ledereksporten.</span></div><div class="btn-row"><button type="button" class="btn small" data-svar="Ja">Ja</button><button type="button" class="btn small" data-svar="Nei">Nei</button></div></div></div>` : ""}
       <div class="startbar card">
         <div><b id="start-count"></b><br><span class="muted small">${esc(store.me.konsulent)}${store.me.teamleder ? ` · leder ${esc(store.me.teamleder)}` : ""} · <button type="button" class="btn ghost small" id="me-edit">endre</button></span></div>
         <div class="btn-row"><button type="button" class="btn" id="add-btn">+ Prosjekt</button><button type="button" class="btn primary" id="start-btn">${draft ? "Start ny runde" : "Start"}</button></div>
@@ -595,13 +635,16 @@ function renderHome() {
     return;
   }
   bindPulse(el, homePulse);
+  $$("[data-pulse] button", el).forEach(b => b.addEventListener("click", () => renderModeBox(el, lastTimer)));
+  renderModeBox(el, lastTimer);
+  $$("[data-svar]", el).forEach(b => b.addEventListener("click", () => { lastAny.lederSvar = b.dataset.svar; saveStore(); const box = $("#svarbox", el); box.innerHTML = `<p class="muted small">${b.dataset.svar === "Ja" ? "Bra. Sløyfen er lukket." : "Notert. Det står i ledereksporten, og du kan minne leder på det i Teams."}</p>`; }));
   const updateCount = () => { const n = $$("#plist input[type=checkbox]:checked", el).length; $("#start-count", el).textContent = n ? `${n} prosjekt${n > 1 ? "er" : ""} · ≈ ${n * 3} min` : "Velg minst ett prosjekt"; $("#start-btn", el).disabled = n === 0; $$(".pcard", el).forEach(c => c.classList.toggle("off", !$("input", c).checked)); };
   $$("#plist input[type=checkbox]", el).forEach(c => c.addEventListener("change", updateCount)); updateCount();
   $("#start-btn", el).addEventListener("click", ev => {
     const ids = $$("#plist input[type=checkbox]:checked", el).map(c => c.closest(".pcard").dataset.pid); if (!ids.length) return;
     if (!PULSE.every(pm => homePulse[pm.k])) { toast("Sett puls først, begge skalaene"); $("#pulse-card", el).scrollIntoView({ block: "center" }); return; }
     const b = ev.currentTarget; if (draft && !b.dataset.armed) { b.dataset.armed = "1"; b.textContent = "Sikker? Sletter påbegynt runde"; return; }
-    startOkt(ids, homePulse);
+    startOkt(ids, homePulse, homeUtv);
   });
   $("#add-btn", el).addEventListener("click", () => { const f = $("#add-form", el); f.hidden = !f.hidden; if (!f.hidden) $("#np-prosjekt", f).focus(); });
   $("#add-form", el).addEventListener("submit", ev => { ev.preventDefault(); const p = readProjectForm($("#add-form", el), "np"); if (!p.prosjekt || !p.kontraktstype) { toast("Fyll inn prosjekt og kontraktstype"); return; } store.projects.push(p); saveStore(); renderHome(); toast(`${p.prosjekt} lagt til`); });
@@ -615,8 +658,24 @@ function renderHome() {
     $("[data-archive]", f).addEventListener("click", ev => { const b = ev.currentTarget; if (b.dataset.armed) { store.projects = store.projects.filter(x => x.id !== p.id); saveStore(); renderHome(); } else { b.dataset.armed = "1"; b.textContent = "Sikker? Fjern"; } });
   });
 }
-function startOkt(ids, pulse) {
-  okt = { id: uid(), date: isoToday(), queue: ids, idx: 0, pulse: Object.assign({}, pulse), sessions: {} };
+let homeUtv = [];
+function renderModeBox(el, lastTimer) {
+  const box = $("#modebox", el); if (!box) return;
+  if (!PULSE.every(pm => homePulse[pm.k])) { box.innerHTML = ""; return; }
+  const mode = modeOf(homePulse, lastTimer); const heavy = isHeavy(homePulse, []);
+  const leder = store.me.teamleder || "leder";
+  let html = `<span class="modepill ${mode}">${mode === "Travel" ? "Travel måned" : mode === "Rolig" ? "Rolig måned" : "Balansert måned"}</span> <span class="muted small">${mode === "Travel" ? "Sju signaler, tre linjer. Resten kan vente." : mode === "Rolig" ? "Det er ikke et problem, det er en åpning." : ""}</span>`;
+  if (heavy) html += `<div class="note gold" style="margin-top:10px"><b>Takk for at du sier det.</b> Dette går bare til ${esc(leder)}. ${esc(leder)} ringer deg innen tre virkedager. Du trenger ikke skrive mer her enn du vil.</div>`;
+  const showUtv = mode === "Rolig" || box.dataset.utv === "1";
+  if (showUtv) html += `<div class="utv" style="margin-top:10px"><div><b>Du har rom nå. Hva vil du bruke det på?</b><br><span class="muted small">Fakturering svinger. Kompetanse gjør det ikke. Velg én eller to, leder ser valget og hjelper med tid.</span></div><div class="chips">${UTVIKLING.map(u => `<button type="button" class="chip opt" data-utv="${u.k}" aria-pressed="${homeUtv.some(x => x.k === u.k)}" title="${esc(u.d)}">${esc(u.l)} · ca. ${u.t} t</button>`).join("")}</div>${homeUtv.map(x => `<div class="chosen"><span>${esc(UTV_BY[x.k].l)}</span><label class="muted small">ca. <input type="number" data-utvt="${x.k}" value="${x.t}" min="1"> t</label><span class="muted small">klart ${fmtMonth(addMonths(isoToday(), 1))}</span></div>`).join("")}</div>`;
+  else html += ` <button type="button" class="btn ghost small" id="utv-toggle">Legg til utvikling</button>`;
+  box.innerHTML = html;
+  const tg = $("#utv-toggle", box); if (tg) tg.addEventListener("click", () => { box.dataset.utv = "1"; renderModeBox(el, lastTimer); });
+  $$("[data-utv]", box).forEach(b => b.addEventListener("click", () => { const k = b.dataset.utv; const i = homeUtv.findIndex(x => x.k === k); if (i >= 0) homeUtv.splice(i, 1); else if (homeUtv.length < 2) homeUtv.push({ k, t: UTV_BY[k].t }); else { toast("Maks to. Én er ofte nok."); return; } renderModeBox(el, lastTimer); }));
+  $$("[data-utvt]", box).forEach(inp => inp.addEventListener("change", () => { const x = homeUtv.find(y => y.k === inp.dataset.utvt); if (x) x.t = Math.max(1, Number(inp.value) || x.t); }));
+}
+function startOkt(ids, pulse, utv) {
+  okt = { id: uid(), date: isoToday(), queue: ids, idx: 0, pulse: Object.assign({}, pulse), utvikling: (utv || []).map(x => Object.assign({}, x)), sessions: {} };
   ids.forEach(pid => { okt.sessions[pid] = makeSession(projectById(pid)); });
   okt.sessions[ids[0]].startedAt = Date.now();
   saveDraft(); startTimer(); renderRun();
@@ -641,8 +700,8 @@ function renderSig(s, S) {
   const fields = (flds.length || S.toggle || S.id === "S7") ? `<div class="fields">${flds.map(f => `<label class="fld"><span>${esc(f.l)}</span><input type="number" inputmode="decimal" step="any" data-fld="${f.k}" value="${esc(s.fields[f.k] || "")}" placeholder="${pf[f.k] ? "sist " + esc(pf[f.k]) : ""}"><em>${esc(f.u)}</em></label>`).join("")}${S.toggle ? `<label class="fld"><input type="checkbox" data-fld="${S.toggle.k}" ${s.fields[S.toggle.k] ? "checked" : ""}><span>${esc(S.toggle.l)}</span></label>` : ""}${S.id === "S3" && !s.project.kontraktstype ? `<span class="muted small">Sett kontraktstype under Endre prosjekt for å få tallfelt.</span>` : ""}${S.id === "S7" ? `<span class="fld"><span>Løper ut</span><b class="mono">${fmtDate(s.project.sluttdato) || "ikke satt"}</b></span>` : ""}</div>` : "";
   const fristOpts = [["+2 uker", addDays(s.date, 14)], ["Neste ROMA", addMonths(s.date, 1)]];
   const detail = flagged ? `<div class="detail">
-      <textarea data-field="comment" placeholder="${S.sensitive ? "Kort, uten navn. Detaljene tas muntlig med leder." : "Hva skjer? Én setning."}" aria-label="Kommentar" autocomplete="off">${esc(a.comment)}</textarea>
-      ${S.sensitive && a.status === "Krever tiltak" ? `<p class="note red small">Går til varslingsrutinen, ikke tiltaksloggen. Leder ringer innen en uke.</p>` : `<div class="tiltak-grid">
+      <textarea data-field="comment" placeholder="${S.sensitive ? "Kort, uten navn. Detaljene tas muntlig med leder." : a.status === "Krever tiltak" ? "Hva skjer? Én setning. Tiltak er valgfritt, leder tar det ellers." : "Hva skjer? Én setning."}" aria-label="Kommentar" autocomplete="off">${esc(a.comment)}</textarea>
+      ${S.sensitive && a.status === "Krever tiltak" ? `<p class="note red small"><b>Dette tas muntlig, ikke i tekst.</b> Ingen navn her. ${esc(store.me.teamleder || "Leder")} kontakter deg innen én uke, og saken går utenom tiltaksloggen.</p>` : `<div class="tiltak-grid">
         <input type="text" data-field="tiltak" placeholder="Tiltak (ansvarlig: ${esc(a.ansvarlig || store.me.konsulent)})" value="${esc(a.tiltak)}" aria-label="Tiltak" autocomplete="off">
         <div class="frist" role="group" aria-label="Frist">${fristOpts.map(([lab, d]) => `<button type="button" data-frist="${d}" aria-pressed="${a.frist === d}">${lab}</button>`).join("")}<input type="date" data-field="frist" value="${esc(a.frist)}" aria-label="Frist, dato"></div>
       </div>`}
@@ -670,7 +729,7 @@ function bindSig(s, S) {
 }
 function setSig(s, S, status, mode) {
   const a = s.sig[S.id]; const was = a.status; a.status = status;
-  if (status !== "OK") { if (!a.frist) a.frist = addDays(s.date, 14); if (!a.ansvarlig) a.ansvarlig = store.me.konsulent; }
+  if (status !== "OK") { if (!a.frist) a.frist = addDays(s.date, 14); a.ansvarlig = status === "Krever tiltak" && store.me.teamleder ? store.me.teamleder : store.me.konsulent; }
   else { a.tiltak = ""; a.frist = ""; a.comment = ""; }
   saveDraft();
   const old = $(`.sig[data-sig="${S.id}"]`); const hadCursor = old.classList.contains("cursor");
@@ -687,14 +746,18 @@ function renderRun() {
   const prevFlags = prev ? SIGNALS.filter(S => prev.sig && prev.sig[S.id] && prev.sig[S.id].status !== "OK").length : 0;
   const open = openTiltak(p.id); const lastDeep = lastDeepFor(p.id);
   const deepDue = !lastDeep || lastDeep.date < addMonths(s.date, -3);
+  const hist = sessionsFor(p.id); const prev2 = hist.length >= 2 ? hist[hist.length - 2] : null;
+  const sameAsBefore = prev && prev2 && SIGNALS.every(S => (prev.sig[S.id] || {}).status === (prev2.sig[S.id] || {}).status) && !PUNKTER.some(P => (prev.punkter || {})[P.k] && !NOTHING.test(prev.punkter[P.k]));
+  const travel = modeOf(okt.pulse) === "Travel";
   el.innerHTML = `
     <div class="run">
       <div class="run-head"><div><span class="eyebrow">Prosjekt ${okt.idx + 1} av ${okt.queue.length} · ${fmtDate(s.date)}</span><h1>${esc(p.prosjekt)}</h1><p class="muted small">${esc([p.kunde, p.rolle, p.kontraktstype].filter(Boolean).join(" · "))}</p></div></div>
-      ${prev ? `<div class="lastbox"><div><b>${fmtMonth(prev.date)}:</b> <span class="lights-mini">${SIGNALS.map(S => `<i class="${SC[(prev.sig && prev.sig[S.id] || {}).status || "OK"]}"></i>`).join("")}</span> ${prevFlags ? `${prevFlags} flagget` : "alt grønt"}${open.length ? ` · ${open.length} åpne tiltak` : ""}. Forrige måned er forhåndsvalgt.</div><button type="button" class="btn small" id="unchanged-btn">Alt som sist → punkter</button></div>` : `<div class="lastbox"><div>Første runde på dette prosjektet. Alt står grønt, du flagger det som ikke er det.</div></div>`}
+      ${prev ? `<div class="lastbox"><div><b>${fmtMonth(prev.date)}:</b> <span class="lights-mini">${SIGNALS.map(S => `<i class="${SC[(prev.sig && prev.sig[S.id] || {}).status || "OK"]}"></i>`).join("")}</span> ${prevFlags ? `${prevFlags} flagget` : "alt grønt"}${open.length ? ` · ${open.length} åpne tiltak` : ""}. Vises som referanse, sett hver farge på nytt.${prev.takeaway ? `<br><span class="muted">Du tok med deg: «${esc(prev.takeaway)}»</span>` : ""}${sameAsBefore ? `<br><span class="muted">Alt som sist, igjen. Stemmer det, eller er det raskest?</span>` : ""}</div><button type="button" class="btn small" id="unchanged-btn">Sjekket → punkter</button></div>` : `<div class="lastbox"><div>Første runde på dette prosjektet. Alt står grønt, du flagger det som ikke er det.</div></div>`}
+      <p class="muted small">Gult og rødt er informasjon, ikke karakter. Det er dette samtalen er til.</p>
       <div class="siglist" id="siglist">${SIGNALS.map(S => renderSig(s, S)).join("")}</div>
       <div class="card punkter" id="punkter">
         <div class="area-head"><div><span class="eyebrow">Viktigste punkter</span><h3>Det leder leser</h3></div><span class="muted small">Datoer og tall hjelper.</span></div>
-        ${PUNKTER.map(P => { const pv = prev && prev.punkter ? prev.punkter[P.k] : ""; return `<div class="prow"><label for="pk-${P.k}">${P.l}</label><input id="pk-${P.k}" data-pk="${P.k}" value="${esc(s.punkter[P.k])}" placeholder="${esc(P.ph)}" autocomplete="off"><button type="button" class="none" data-none="${P.k}" aria-pressed="${NOTHING.test(s.punkter[P.k]) && s.punkter[P.k].trim() ? "true" : "false"}">Ingenting</button><button type="button" class="mic" data-mic="pk-${P.k}" title="Dikter. Lyden sendes til nettleserens taletjeneste (Google/Microsoft)." aria-label="Dikter" hidden>🎤</button>${pv && !NOTHING.test(pv) ? `<div class="prev">Sist: <span>${esc(pv)}</span><button type="button" class="btn ghost small" data-copyprev="${P.k}">Hent</button></div>` : ""}</div>`; }).join("")}
+        ${PUNKTER.map(P => { const pv = prev && prev.punkter ? prev.punkter[P.k] : ""; return `<div class="prow"><label for="pk-${P.k}">${P.l}</label><input id="pk-${P.k}" data-pk="${P.k}" value="${esc(s.punkter[P.k])}" placeholder="${esc(P.k === "trenger" && travel ? "Hva kan tas bort denne måneden?" : P.ph)}" autocomplete="off"><button type="button" class="none" data-none="${P.k}" aria-pressed="${NOTHING.test(s.punkter[P.k]) && s.punkter[P.k].trim() ? "true" : "false"}">${P.none}</button><button type="button" class="mic" data-mic="pk-${P.k}" title="Dikter. Lyden sendes til nettleserens taletjeneste (Google/Microsoft)." aria-label="Dikter" hidden>🎤</button>${pv && !NOTHING.test(pv) ? `<div class="prev">Sist: <span>${esc(pv)}</span><button type="button" class="btn ghost small" data-copyprev="${P.k}">Hent</button></div>` : ""}</div>`; }).join("")}
         ${open.length ? `<div class="prev muted small">Åpne tiltak: ${open.map(t => esc(t.tekst)).join(" · ")}</div>` : ""}
       </div>
       <details class="card" id="deep" ${s.deep ? "open" : ""}>
@@ -713,7 +776,7 @@ function renderRun() {
   const ub = $("#unchanged-btn", el); if (ub) ub.addEventListener("click", () => { $("#punkter").scrollIntoView({ block: "start" }); $("#pk-endret").focus(); });
   const pks = $$("[data-pk]", el);
   pks.forEach((inp, i) => { inp.addEventListener("input", () => { s.punkter[inp.dataset.pk] = inp.value; const nb = $(`[data-none="${inp.dataset.pk}"]`, el); if (nb) nb.setAttribute("aria-pressed", "false"); }); inp.addEventListener("keydown", ev => { if (ev.key === "Enter" && !ev.ctrlKey && !ev.metaKey) { ev.preventDefault(); if (i < pks.length - 1) pks[i + 1].focus(); else { inp.blur(); $("#next-btn", el).focus(); } } }); });
-  $$("[data-none]", el).forEach(b => b.addEventListener("click", () => { const k = b.dataset.none; const inp = $(`#pk-${k}`, el); const on = b.getAttribute("aria-pressed") !== "true"; inp.value = on ? "Ingenting" : ""; s.punkter[k] = inp.value; b.setAttribute("aria-pressed", String(on)); saveDraft(); }));
+  $$("[data-none]", el).forEach(b => b.addEventListener("click", () => { const k = b.dataset.none; const inp = $(`#pk-${k}`, el); const on = b.getAttribute("aria-pressed") !== "true"; inp.value = on ? PUNKTER.find(P => P.k === k).none : ""; s.punkter[k] = inp.value; b.setAttribute("aria-pressed", String(on)); saveDraft(); }));
   $$("[data-copyprev]", el).forEach(b => b.addEventListener("click", () => { const k = b.dataset.copyprev; const inp = $(`#pk-${k}`, el); inp.value = prev.punkter[k]; s.punkter[k] = inp.value; inp.focus(); }));
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (SR) $$("[data-mic]", el).forEach(b => { b.hidden = false; b.addEventListener("click", () => {
@@ -785,7 +848,7 @@ function nextProject() {
   const s = cur();
   if (flaggedSignals(s).length && !(s.punkter.risiko || "").trim() && nudged !== s.id) { nudged = s.id; const inp = $("#pk-risiko"); if (inp) { inp.scrollIntoView({ block: "center" }); inp.focus(); } toast("Noe er gult eller rødt. Én linje under «Risiko nå»? Trykk igjen for å gå videre."); return; }
   s.elapsed = elapsedSec(s); s.elapsedBase = s.elapsed; s.startedAt = Date.now(); cursorRow = null;
-  if (okt.idx < okt.queue.length - 1) { okt.idx++; const n = cur(); n.startedAt = Date.now(); n.elapsedBase = n.elapsed || 0; saveDraft(); toast(`${s.project.prosjekt} ferdig på ${fmtMin(s.elapsed)}`); renderRun(); }
+  if (okt.idx < okt.queue.length - 1) { okt.idx++; const n = cur(); n.startedAt = Date.now(); n.elapsedBase = n.elapsed || 0; saveDraft(); toast("Lagret."); renderRun(); }
   else finishOkt();
 }
 
@@ -847,10 +910,21 @@ function teamsText(s) {
   lines.push(`Neste ROMA: ${fmtDate(addMonths(s.date, 1))}`);
   return lines.join("\n");
 }
+function noAnswerTwice() { const l = store.sessions.slice().sort((a, b) => cmp(a.date, b.date) || cmp(a.finishedAt, b.finishedAt)); const months = []; for (let i = l.length - 1; i >= 0 && months.length < 2; i--) { if (!months.includes(l[i].date.slice(0, 7))) months.push(l[i].date.slice(0, 7)); } return months.length === 2 && months.every(m => l.some(x => x.date.slice(0, 7) === m && x.lederSvar === "Nei")); }
 function leaderText(sessions) {
-  const pv = sessions[0].pulse || {}; const pw = pulseWarnings(sessions[0]);
-  const head = `Kun til nærmeste leder, ikke i prosjektkanal.\nPuls ${fmtMonth(sessions[0].date)} · ${store.me.konsulent}: belastning ${pv.belastning || "–"} · trivsel ${pv.trivsel || "–"}${pw.length ? "\n" + pw.map(x => `! ${x}`).join("\n") : ""}`;
-  return [head, ...sessions.map(teamsText)].join("\n\n");
+  const s0 = sessions[0]; const pv = s0.pulse || {}; const pw = pulseWarnings(s0); const mode = s0.mode || modeOf(pv);
+  const utv = (s0.utvikling || []).map(u => UTV_BY[u.k] ? `${UTV_BY[u.k].l}, ca. ${u.t} t, klart ${fmtMonth(addMonths(s0.date, 1))}` : "").filter(Boolean);
+  const head = `Kun til nærmeste leder, ikke i prosjektkanal.\nPuls ${fmtMonth(s0.date)} · ${store.me.konsulent}: belastning ${pv.belastning || "–"} · trivsel ${pv.trivsel || "–"} · ${mode.toLowerCase()} måned${pw.length ? "\n" + pw.map(x => `! ${x}`).join("\n") : ""}${utv.length ? "\nUtvikling denne måneden: " + utv.join("; ") : ""}${noAnswerTwice() ? "\n! Har ikke fått svar på ROMA to måneder på rad." : ""}`;
+  const tail = "Svar gjerne med ett av: Har lest · Ringer deg · Tar dette videre.";
+  return [head, ...sessions.map(teamsText), tail].join("\n\n");
+}
+function firstSentence(s) {
+  const pv = s.pulse || {};
+  if (s.sig.S6.status === "Krever tiltak") return "Jeg ringer fordi du markerte trygghet. Du bestemmer hvor mye vi tar på telefon.";
+  if (pv.belastning >= 4) return `Du satte ${pv.belastning} på belastning. Fortell meg hvordan en typisk uke ser ut nå.`;
+  if ((s.mode || modeOf(pv)) === "Rolig") return "Du har rom. Hva har du lyst til å bli god på?";
+  const fl = flaggedSignals(s); if (fl.length) return `Jeg så ${fl[0].name.toLowerCase()} er ${LIGHT[s.sig[fl[0].id].status].toLowerCase()}. Hva trenger du fra meg?`;
+  return "Alt grønt, takk. Én ting jeg noterte fra teksten din: …";
 }
 
 function finishOkt() {
@@ -861,7 +935,6 @@ function finishOkt() {
     if (!s.finishedAt) { s.elapsed = s.elapsed || elapsedSec(s); s.finishedAt = new Date().toISOString(); }
     s.pulse = Object.assign({}, okt.pulse);
     store.sessions.push(s);
-    if (!store.best[pid] || s.elapsed < store.best[pid]) store.best[pid] = s.elapsed;
     collectTiltak(s).forEach(t => {
       const dup = store.tiltak.find(x => x.projectId === pid && x.tekst === t.tekst && (x.status === "Åpen" || x.dato >= addDays(s.date, -90)));
       if (dup) { if (dup.status === "Åpen") { dup.kommentar = t.kommentar || dup.kommentar; dup.frist = t.frist || dup.frist; } return; }
@@ -869,10 +942,14 @@ function finishOkt() {
     });
     finished.push(s);
   });
+  (okt.utvikling || []).forEach(u => { const U = UTV_BY[u.k]; if (!U) return; const tekst = `Utvikling: ${U.l}, ca. ${u.t} t`; if (store.tiltak.some(x => x.status === "Åpen" && x.tekst === tekst)) return; store.tiltak.push({ id: uid(), sessionId: finished[0].id, projectId: "", dato: okt.date, prosjekt: "Utvikling", tekst, ansvarlig: store.me.konsulent, frist: addMonths(okt.date, 1), status: "Åpen", kommentar: `Avtalt med ${store.me.teamleder || "leder"} i rolig periode`, area: "Utvikling", timer: u.t }); });
+  finished.forEach(s => { s.utvikling = (okt.utvikling || []).map(u => ({ k: u.k, t: u.t })); s.mode = modeOf(okt.pulse, (s.fields || {}).timer_uke); });
+  const firstEver = store.sessions.length === finished.length;
   okt = null; store.okt = null; saveStore();
   renderDone(finished);
-  if (window.confetti && !matchMedia("(prefers-reduced-motion: reduce)").matches) confetti({ particleCount: 90, spread: 70, origin: { y: .6 }, colors: ["#257A6B", "#C8912A", "#2E8B57", "#FFFFFF"] });
+  if (firstEver && !isHeavy(finished[0].pulse, finished) && window.confetti && !matchMedia("(prefers-reduced-motion: reduce)").matches) confetti({ particleCount: 90, spread: 70, origin: { y: .6 }, colors: ["#257A6B", "#C8912A", "#2E8B57", "#FFFFFF"] });
 }
+function pop() { if (window.confetti && !matchMedia("(prefers-reduced-motion: reduce)").matches) confetti({ particleCount: 60, spread: 60, origin: { y: .7 }, colors: ["#257A6B", "#C8912A", "#2E8B57", "#FFFFFF"] }); }
 
 /* =====================================================================
    MÅL
@@ -886,21 +963,30 @@ function renderDone(sessions) {
   const allFlags = sessions.flatMap(s => redFlags(s).map(x => ({ p: s.project.prosjekt, x })));
   const pw = pulseWarnings(sessions[0]);
   const allTiltak = sessions.flatMap(s => collectTiltak(s).map(t => Object.assign({ p: s.project.prosjekt }, t)));
-  const records = [];
+  const heavy = isHeavy(sessions[0].pulse, sessions);
+  const mode = sessions[0].mode || modeOf(sessions[0].pulse);
+  const firstEver = store.sessions.length === sessions.length;
+  const pStreak = personStreak(sessions[0].date);
+  const greenRun = sessions.filter(s => { const h = sessionsFor(s.projectId).slice(-3); return h.length === 3 && h.every(x => flaggedSignals(x).length === 0); }).map(s => s.project.prosjekt);
+  const firstRed = sessions.some(s => flaggedSignals(s).some(S => s.sig[S.id].status === "Krever tiltak")) && !store.sessions.some(x => !sessions.includes(x) && flaggedSignals(x).some(S => x.sig[S.id].status === "Krever tiltak"));
+  const utv = (sessions[0].utvikling || []).map(u => UTV_BY[u.k]).filter(Boolean);
   el.innerHTML = `
     <div class="done">
       <div>
-        <span class="eyebrow">Levert · ${fmtDate(sessions[0].date)}</span>
-        <h1>${nFlag === 0 && !allFlags.length ? `Alt grønt på ${fmtMin(total)}.` : `Ferdig på ${fmtMin(total)}. ${nFlag} signal${nFlag === 1 ? "" : "er"} å følge opp.`}</h1>
-        <div class="stats">${sessions.map(s => `<span>${esc(s.project.prosjekt)} <b>${fmtMin(s.elapsed)}</b>${streakFor(s.projectId, s.date) >= 2 ? ` · streak ×${streakFor(s.projectId, s.date)}` : ""}${records.includes(s) ? " · ny rekord" : ""}</span>`).join("")}</div>
+        <span class="eyebrow">Levert · ${fmtDate(sessions[0].date)}${mode !== "Balansert" ? ` · ${mode.toLowerCase()} måned` : ""}</span>
+        <h1>${heavy ? "Levert. Det viktigste står øverst." : nFlag === 0 && !allFlags.length ? "Levert. Leder får dette i dag." : `Levert. ${nFlag + allFlags.length === 1 ? "Én ting" : (nFlag + allFlags.length) + " ting"} leder må vite, de står øverst.`}</h1>
+        <p class="muted small">${heavy ? `Send Teams-teksten. Resten er ${esc(store.me.teamleder || "leders")} jobb.` : firstEver ? "Første runde levert. Neste måned ligger denne klar, og du endrer bare det som er nytt." : firstRed ? "Første røde. Det er dette samtalen er til. Leder får det øverst." : greenRun.length ? `Tre grønne måneder på ${esc(greenRun.join(", "))}. Er det stille, eller er det stille fordi ingen spør? Ta gjerne full ROMA neste gang.` : pStreak >= 2 ? `${pStreak} måneder på rad. Runden starter der du er.` : ""}</p>
+        ${!heavy ? `<p class="quote">${esc(ROMA_QUOTES[mode] || ROMA_QUOTES.Balansert)}</p>` : ""}
       </div>
       <div class="card export">
         <div class="btn-row"><button type="button" class="btn primary" id="copy-all">Kopier til Teams${multi ? " (alle)" : ""}</button><button type="button" class="btn" id="xlsx-btn">Excel per prosjekt</button><button type="button" class="btn" id="leder-btn">Ledereksport med puls</button><button type="button" class="btn ghost" id="print-btn">Skriv ut / PDF</button></div>
         <p class="muted small" style="margin-top:8px">Teams-teksten er nok, og går kun til nærmeste leder. Excel per prosjekt lagres i prosjektmappen og inneholder ikke puls eller Trygghet.</p>
       </div>
-      ${allFlags.length ? `<div class="note red"><b>Røde flagg. Meld til leder og legg i Planner i dag.</b><ul>${allFlags.map(f => `<li>${multi ? `<b>${esc(f.p)}:</b> ` : ""}${esc(f.x)}</li>`).join("")}</ul></div>` : ""}
-      ${pw.length ? `<div class="note gold"><b>Puls som krever oppfølging</b><ul>${pw.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>` : ""}
-      ${sessions.map(s => `<div class="card psum"><div class="head"><h3>${esc(s.project.prosjekt)}</h3><button type="button" class="btn small" data-copy="${esc(s.id)}">Kopier</button></div><pre class="teams" id="teams-${esc(s.id)}">${esc(teamsText(s))}</pre></div>`).join("")}
+      ${heavy && pw.length ? `<div class="note gold"><b>Puls</b><ul>${pw.map(x => `<li>${esc(x)}</li>`).join("")}</ul><p class="small" style="margin-top:6px">Dette går bare til ${esc(store.me.teamleder || "leder")}, som ringer deg innen tre virkedager.</p></div>` : ""}
+      ${allFlags.length ? `<div class="note red"><b>${heavy ? "Røde flagg. Send Teams-teksten, resten er leders jobb." : "Røde flagg. Meld til leder, alvorlige forhold også i Planner."}</b><ul>${allFlags.map(f => `<li>${multi ? `<b>${esc(f.p)}:</b> ` : ""}${esc(f.x)}</li>`).join("")}</ul></div>` : ""}
+      ${!heavy && pw.length ? `<div class="note gold"><b>Puls som leder følger opp</b><ul>${pw.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>` : ""}
+      ${utv.length ? `<div class="note"><b>Utvikling denne måneden:</b> ${utv.map(u => esc(u.l)).join(", ")}. Ligger i tiltaksloggen med frist neste ROMA.</div>` : ""}
+      ${sessions.map(s => `<div class="card psum"><div class="head"><h3>${esc(s.project.prosjekt)}</h3><button type="button" class="btn small" data-copy="${esc(s.id)}">Kopier</button></div><pre class="teams" id="teams-${esc(s.id)}">${esc(teamsText(s))}</pre><div class="field"><label for="ta-${esc(s.id)}">Én setning du tar med deg til neste måned (valgfritt, vises bare for deg)</label><input id="ta-${esc(s.id)}" data-takeaway="${esc(s.id)}" value="${esc(s.takeaway || "")}" placeholder="F.eks. be om skriftlig bestilling før jeg sier ja" autocomplete="off"></div></div>`).join("")}
       ${allTiltak.length ? `<div class="card"><div class="area-head" style="margin-bottom:8px"><h3>Tiltak</h3><span class="muted small">${allTiltak.length} stk i tiltaksloggen · alvorlige også i Planner</span></div><div class="table-wrap"><table><thead><tr>${multi ? "<th>Prosjekt</th>" : ""}<th>Fra</th><th>Tiltak</th><th>Ansvarlig</th><th>Frist</th></tr></thead><tbody>${allTiltak.map(t => `<tr>${multi ? `<td>${esc(t.p)}</td>` : ""}<td>${esc(t.area)}</td><td>${esc(t.tekst)}</td><td>${esc(t.ansvarlig)}</td><td class="mono">${fmtDate(t.frist)}</td></tr>`).join("")}</tbody></table></div></div>` : ""}
       <div class="btn-row no-print"><button type="button" class="btn" id="overview-btn">Se oversikt</button><button type="button" class="btn ghost" id="home-btn">Til forsiden</button></div>
     </div>`;
@@ -910,6 +996,7 @@ function renderDone(sessions) {
   $("#xlsx-btn", el).addEventListener("click", async () => { for (const s of sessions) { const ok = await exportProject(s); if (!ok) break; } });
   $("#leder-btn", el).addEventListener("click", () => exportLeader(sessions));
   $("#print-btn", el).addEventListener("click", () => window.print());
+  $$("[data-takeaway]", el).forEach(inp => inp.addEventListener("input", () => { const s = sessions.find(x => x.id === inp.dataset.takeaway); if (s) { s.takeaway = inp.value; saveStore(); } }));
   $("#overview-btn", el).addEventListener("click", renderOverview);
   $("#home-btn", el).addEventListener("click", renderHome);
 }
@@ -950,15 +1037,15 @@ function statusRows(sessions, withPulse) {
   return rows;
 }
 function kortRows(sessions) {
-  const rows = [["Ampel", "Prosjekt", "Konsulent", "Dato", "Belastning", "Trivsel", "Timer/uke", "Ramme/kalkyle %", "Fremdrift %", "Utestående >30 d", "Kunde", "Løper ut", "Åpne tiltak", "Over frist", "Endret siden sist", "Risiko nå", "Trenger fra leder", "Røde flagg"]];
+  const rows = [["Ampel", "Prosjekt", "Konsulent", "Dato", "Belastning", "Trivsel", "Timer/uke", "Ramme/kalkyle %", "Fremdrift %", "Utestående >30 d", "Kunde", "Løper ut", "Åpne tiltak", "Over frist", "Endret siden sist", "Risiko nå", "Trenger fra leder", "Røde flagg", "Modus", "Fikk svar sist", "Forslag til første setning"]];
   const ord = { "Rødt": 0, "Gult": 1, "Grønt": 2 };
-  sessions.slice().sort((a, b) => ord[ampel(a)] - ord[ampel(b)] || ((b.pulse || {}).belastning || 0) - ((a.pulse || {}).belastning || 0)).forEach(s => { const F = s.fields || {}; const ot = openTiltak(s.projectId); const hasNums = sigFields(SIG_BY.S3, s).length > 0; rows.push([ampel(s), s.project.prosjekt, s.project.konsulent, fmtDate(s.date), (s.pulse || {}).belastning || "", (s.pulse || {}).trivsel || "", F.timer_uke || "", hasNums ? F.ramme || "" : "", hasNums ? F.fremdrift || "" : "", F.utestaende ? "Ja" : "", LIGHT[s.sig.S5.status], fmtDate(s.project.sluttdato), ot.length, ot.filter(t => t.frist && t.frist < isoToday()).length, s.punkter.endret, s.punkter.risiko, s.punkter.trenger, redFlags(s).join(" · ")]); });
+  sessions.slice().sort((a, b) => ord[ampel(a)] - ord[ampel(b)] || ((b.pulse || {}).belastning || 0) - ((a.pulse || {}).belastning || 0)).forEach(s => { const F = s.fields || {}; const ot = openTiltak(s.projectId); const hasNums = sigFields(SIG_BY.S3, s).length > 0; rows.push([ampel(s), s.project.prosjekt, s.project.konsulent, fmtDate(s.date), (s.pulse || {}).belastning || "", (s.pulse || {}).trivsel || "", F.timer_uke || "", hasNums ? F.ramme || "" : "", hasNums ? F.fremdrift || "" : "", F.utestaende ? "Ja" : "", LIGHT[s.sig.S5.status], fmtDate(s.project.sluttdato), ot.length, ot.filter(t => t.frist && t.frist < isoToday()).length, s.punkter.endret, s.punkter.risiko, s.punkter.trenger, redFlags(s).join(" · "), s.mode || modeOf(s.pulse), s.lederSvar || "", firstSentence(s)]); });
   return rows;
 }
 function buildProjectWorkbook(s) { const wb = XLSX.utils.book_new(); wb.Props = { Title: `ROMA-samtale ${s.project.prosjekt} ${fmtMonth(s.date)}` }; sheet(wb, "Prosjektinfo", infoRows([s]), [18, 18, 26, 14, 22, 18, 16, 30, 14, 16, 16]); sheet(wb, "ROMA-samtale", skjemaRows([s], false), [11, 22, 60, 40, 36, 11, 14, 22, 30]); sheet(wb, "Tiltak & Oppfølging", tiltakRows(store.tiltak.filter(t => t.projectId === s.projectId)), [13, 24, 50, 18, 11, 18, 40]); sheet(wb, "Statusoversikt", statusRows([s], false), [11, 18, 24, 12, 12, 16, 16, 16, 8, 50]); return wb; }
 function buildLeaderWorkbook(sessions) {
   const wb = XLSX.utils.book_new(); wb.Props = { Title: "ROMA lederoversikt – kun til nærmeste leder (puls, trygghet)" }; const sorted = sessions.slice().sort((a, b) => cmp(b.date, a.date) || cmp(a.project.prosjekt, b.project.prosjekt));
-  sheet(wb, "Prosjektkort", [["KUN TIL NÆRMESTE LEDER. Inneholder puls og Trygghet. Skal ikke i prosjektmappen."], ...kortRows(sorted)], [7, 24, 16, 11, 10, 8, 10, 14, 11, 12, 8, 11, 10, 9, 40, 40, 40, 50]);
+  sheet(wb, "Prosjektkort", [["KUN TIL NÆRMESTE LEDER. Inneholder puls og Trygghet. Skal ikke i prosjektmappen."], ...kortRows(sorted)], [7, 24, 16, 11, 10, 8, 10, 14, 11, 12, 8, 11, 10, 9, 40, 40, 40, 50, 10, 12, 60]);
   sheet(wb, "Statusoversikt", statusRows(sorted, true), [11, 18, 24, 12, 12, 16, 12, 12, 8, 50]);
   sheet(wb, "Tiltak & Oppfølging", tiltakRows(store.tiltak.filter(t => sorted.some(s => s.projectId === t.projectId))), [13, 24, 50, 18, 11, 18, 40]);
   sheet(wb, "ROMA-samtale", skjemaRows(sorted, true), [11, 22, 60, 40, 36, 11, 14, 22, 30]);
@@ -979,7 +1066,8 @@ function sparkSvg(list) {
 }
 function validSession(s) {
   if (!s || typeof s !== "object" || !ID_OK(s.id) || (s.prevId && !ID_OK(s.prevId)) || (s.projectId && !ID_OK(s.projectId)) || !/^\d{4}-\d{2}-\d{2}$/.test(String(s.date)) || !s.project || typeof s.project !== "object" || !s.sig || typeof s.sig !== "object") return null;
-  const o = { id: s.id, date: s.date, projectId: String(s.projectId || ""), project: {}, sig: {}, fields: {}, punkter: {}, answers: {}, deep: !!s.deep, pulse: {}, elapsed: Number(s.elapsed) || 0, finishedAt: String(s.finishedAt || ""), prevId: s.prevId ? String(s.prevId) : null };
+  const o = { id: s.id, date: s.date, projectId: String(s.projectId || ""), project: {}, sig: {}, fields: {}, punkter: {}, answers: {}, deep: !!s.deep, pulse: {}, elapsed: Number(s.elapsed) || 0, finishedAt: String(s.finishedAt || ""), prevId: s.prevId ? String(s.prevId) : null, takeaway: String(s.takeaway || ""), mode: ["Travel", "Balansert", "Rolig"].includes(s.mode) ? s.mode : undefined, utvikling: Array.isArray(s.utvikling) ? s.utvikling.filter(u => u && UTV_BY[u.k]).map(u => ({ k: u.k, t: Number(u.t) || UTV_BY[u.k].t })) : [] };
+  if (s.lederSvar === "Ja" || s.lederSvar === "Nei") o.lederSvar = s.lederSvar;
   ["konsulent", "teamleder", "prosjekt", "prosjektnummer", "kunde", "rolle", "kontrakt", "kontraktstype", "sluttdato", "ku_dato", "ku_score", "id"].forEach(k => { o.project[k] = String(s.project[k] || ""); });
   SIGNALS.forEach(S => { const a = (s.sig[S.id] && typeof s.sig[S.id] === "object") ? s.sig[S.id] : {}; const b = blankSig(); b.status = STATUS.includes(a.status) ? a.status : "OK"; ["comment", "tiltak", "ansvarlig", "frist"].forEach(k => { b[k] = String(a[k] || ""); }); o.sig[S.id] = b; });
   if (s.fields && typeof s.fields === "object") Object.entries(s.fields).forEach(([k, v]) => { o.fields[String(k)] = String(v || ""); });
@@ -988,6 +1076,22 @@ function validSession(s) {
   ALL_Q.forEach(({ q }) => { const a = (s.answers && s.answers[q.id] && typeof s.answers[q.id] === "object") ? s.answers[q.id] : {}; const b = blankAnswer(); b.status = STATUS.includes(a.status) ? a.status : "OK"; ["value", "comment", "tiltak", "ansvarlig", "frist"].forEach(k => { b[k] = String(a[k] || ""); }); b.fields = a.fields && typeof a.fields === "object" ? Object.fromEntries(Object.entries(a.fields).map(([k, v]) => [String(k), String(v)])) : {}; o.answers[q.id] = b; });
   return o;
 }
+function yearDots(pid, today) {
+  const out = []; for (let i = 11; i >= 0; i--) { const m = addMonths(today.slice(0, 7) + "-15", -i).slice(0, 7); const ss = sessionsFor(pid).filter(x => x.date.slice(0, 7) === m); const last = ss[ss.length - 1]; out.push(`<i class="${last ? (last.deep ? "deep " : "") + ({ "Rødt": "Tiltak", "Gult": "Risiko", "Grønt": "OK" })[ampel(last)] : ""}${i === 0 ? " now" : ""}" title="${MONTHS[Number(m.slice(5, 7)) - 1]}${last ? " " + ampel(last).toLowerCase() : ""}"></i>`); }
+  return out.join("");
+}
+function yearReport() {
+  const today = isoToday(); const from = addMonths(today, -12); const L = [];
+  L.push(`Årsutskrift ROMA · ${store.me.konsulent} · ${fmtDate(from)} til ${fmtDate(today)}`);
+  L.push("Til medarbeidersamtalen. Kun for deg og nærmeste leder.");
+  store.projects.forEach(p => { const ss = sessionsFor(p.id).filter(x => x.date >= from); if (!ss.length) return; L.push(""); L.push(`${p.prosjekt}${p.kunde ? " (" + p.kunde + ")" : ""}: ${ss.length} runder · ${ss.map(x => `${MONTHS[Number(x.date.slice(5, 7)) - 1]} ${AMPEL_EMOJI[ampel(x)]}`).join(" ")}`); const risks = ss.map(x => x.punkter && x.punkter.risiko).filter(v => v && !NOTHING.test(v)); if (risks.length) L.push(`  Risiko meldt: ${risks.slice(-3).join(" · ")}`); });
+  const ps = store.sessions.filter(x => x.date >= from && x.pulse && x.pulse.belastning); if (ps.length) { const byM = {}; ps.forEach(x => { byM[x.date.slice(0, 7)] = x.pulse; }); L.push(""); L.push(`Puls per måned: ${Object.keys(byM).sort().map(m => `${MONTHS[Number(m.slice(5, 7)) - 1]} ${byM[m].belastning}/${byM[m].trivsel}`).join(" · ")} (belastning/trivsel)`); }
+  const closed = store.tiltak.filter(t => t.status === "Lukket" && t.lukket && t.lukket >= from); const utv = store.tiltak.filter(t => t.area === "Utvikling" && t.dato >= from);
+  L.push(""); L.push(`Tiltak lukket: ${closed.length}${closed.length ? ": " + closed.map(t => t.tekst).join(" · ") : ""}`);
+  L.push(`Utvikling: ${utv.length ? utv.map(t => `${t.tekst} (${t.status.toLowerCase()})`).join(" · ") : "ingen registrert"}`);
+  const deep = store.sessions.filter(x => x.date >= from && x.deep).length; L.push(`Full ROMA gjennomført: ${deep} ganger`);
+  return L.join("\n");
+}
 function renderOverview() {
   if (okt) { saveDraft(); stopTimer(); okt = null; }
   hudMode = "idle"; renderHud(); show("overview");
@@ -995,20 +1099,23 @@ function renderOverview() {
   el.innerHTML = `
     <div class="overview">
       <div class="area-head">
-        <div><span class="eyebrow">Oversikt</span><h2>Dine prosjekter</h2><p class="muted">${store.sessions.length} runder levert</p></div>
-        <div class="btn-row"><button type="button" class="btn" id="all-leder-btn" ${store.sessions.length ? "" : "disabled"}>Ledereksport, alle runder</button><button type="button" class="btn ghost" id="backup-btn">Sikkerhetskopi (JSON)</button><button type="button" class="btn ghost" id="import-btn">Hent sikkerhetskopi</button><input type="file" id="import-inp" accept="application/json" hidden></div>
+        <div><span class="eyebrow">Oversikt</span><h2>Dine prosjekter</h2><p class="muted">${store.sessions.length} runder levert${personStreak(today) >= 2 ? ` · ${personStreak(today)} måneder på rad` : ""}</p></div>
+        <div class="btn-row"><button type="button" class="btn" id="all-leder-btn" ${store.sessions.length ? "" : "disabled"}>Ledereksport, alle runder</button><button type="button" class="btn ghost" id="backup-btn">Sikkerhetskopi (JSON)</button><button type="button" class="btn ghost" id="import-btn">Hent sikkerhetskopi</button><input type="file" id="import-inp" accept="application/json" hidden><button type="button" class="btn ghost" id="year-btn" ${store.sessions.length ? "" : "disabled"}>Årsutskrift</button></div>
       </div>
       ${store.projects.length ? store.projects.map(p => { const list = sessionsFor(p.id); const last = list[list.length - 1]; const next = last ? addMonths(last.date, 1) : null; const overdue = next && next < today; const open = openTiltak(p.id).length;
-        return `<div class="card proj"><div><b>${esc(p.prosjekt)}</b><br><span class="muted small">${esc(p.kunde)}</span><br><span class="small">${last ? `sist <b class="mono">${fmtDate(last.date)}</b> · neste <b class="mono" style="${overdue ? "color:var(--tiltak-ink)" : ""}">${fmtDate(next)}</b>${overdue ? " · forfalt" : ""}${streakFor(p.id, last.date) >= 2 ? ` · streak ×${streakFor(p.id, last.date)}` : ""}<br><span class="lights-mini">${SIGNALS.map(S => `<i class="${SC[(last.sig[S.id] || {}).status || "OK"]}"></i>`).join("")}</span> ${esc(ampel(last))}` : "ingen runder ennå"}</span></div><div class="kpi ${open ? "tiltak" : "ok"}"><b>${open}</b><small>Åpne tiltak</small></div><div>${last ? sparkSvg(list) + `<div class="legend"><span><i style="background:var(--tiltak)"></i>Belastning</span><span><i style="background:var(--accent)"></i>Trivsel</span></div>` : ""}</div></div>`; }).join("") : `<div class="empty">Ingen prosjekter ennå. Legg til det første på forsiden.</div>`}
+        return `<div class="card proj"><div><b>${esc(p.prosjekt)}</b><br><span class="muted small">${esc(p.kunde)}</span><br><span class="small">${last ? `sist <b class="mono">${fmtDate(last.date)}</b> · neste <b class="mono" style="${overdue ? "color:var(--tiltak-ink)" : ""}">${fmtDate(next)}</b>${overdue ? " · forfalt" : ""}${streakFor(p.id, last.date) >= 2 ? ` · streak ×${streakFor(p.id, last.date)}` : ""}<br><span class="lights-mini">${SIGNALS.map(S => `<i class="${SC[(last.sig[S.id] || {}).status || "OK"]}"></i>`).join("")}</span> ${esc(ampel(last))}` : "ingen runder ennå"}</span></div><div><div class="kpi ${open ? "tiltak" : "ok"}"><b>${open}</b><small>Åpne tiltak</small></div><div class="year" style="margin-top:8px" title="Siste 12 måneder">${yearDots(p.id, today)}</div></div><div>${last ? sparkSvg(list) + `<div class="legend"><span><i style="background:var(--tiltak)"></i>Belastning</span><span><i style="background:var(--accent)"></i>Trivsel</span></div>` : ""}</div></div>`; }).join("") : `<div class="empty">Ingen prosjekter ennå. Legg til det første på forsiden.</div>`}
       <div class="card">
         <div class="area-head" style="margin-bottom:8px"><h3>Tiltakslogg</h3><span class="muted small">${openT.length} åpne · huk av når det er lukket</span></div>
-        ${store.tiltak.length ? `<div class="table-wrap"><table><thead><tr><th></th><th>Opprettet</th><th>Prosjekt</th><th>Tiltak</th><th>Ansvarlig</th><th>Frist</th><th>Status</th></tr></thead><tbody>${store.tiltak.slice().sort((a, b) => (a.status === b.status ? cmp(a.frist || "9", b.frist || "9") : a.status === "Åpen" ? -1 : 1)).map(t => `<tr><td><input type="checkbox" data-tiltak="${esc(t.id)}" ${t.status === "Lukket" ? "checked" : ""} aria-label="Lukk tiltak"></td><td class="mono">${fmtDate(t.dato)}</td><td>${esc(t.prosjekt)}</td><td>${esc(t.tekst)}<br><span class="muted small">${esc(t.area)}${t.kommentar ? " · " + esc(t.kommentar) : ""}</span></td><td>${esc(t.ansvarlig)}</td><td class="mono" style="${t.status === "Åpen" && t.frist && t.frist < today ? "color:var(--tiltak-ink)" : ""}">${fmtDate(t.frist)}</td><td><span class="pill ${t.status === "Åpen" ? "open" : "closed"}">${esc(t.status)}</span></td></tr>`).join("")}</tbody></table></div>` : `<p class="muted">Ingen tiltak logget ennå.</p>`}
+        ${store.tiltak.length ? `<div class="table-wrap"><table><thead><tr><th></th><th>Opprettet</th><th>Prosjekt</th><th>Tiltak</th><th>Ansvarlig</th><th>Frist</th><th>Status</th></tr></thead><tbody>${store.tiltak.slice().sort((a, b) => (a.status === b.status ? cmp(a.frist || "9", b.frist || "9") : a.status === "Åpen" ? -1 : 1)).map(t => `<tr><td><input type="checkbox" data-tiltak="${esc(t.id)}" ${t.status === "Lukket" ? "checked" : ""} aria-label="Lukk tiltak"></td><td class="mono">${fmtDate(t.dato)}</td><td>${esc(t.prosjekt)}${t.timer ? `<br><span class="muted small">ca. ${t.timer} t</span>` : ""}</td><td>${esc(t.tekst)}<br><span class="muted small">${esc(t.area)}${t.kommentar ? " · " + esc(t.kommentar) : ""}</span></td><td>${esc(t.ansvarlig)}</td><td class="mono" style="${t.status === "Åpen" && t.frist && t.frist < today ? "color:var(--tiltak-ink)" : ""}">${fmtDate(t.frist)}</td><td><span class="pill ${t.status === "Åpen" ? "open" : "closed"}">${esc(t.status)}</span></td></tr>`).join("")}</tbody></table></div>` : `<p class="muted">Ingen tiltak logget ennå.</p>`}
       </div>
-      ${store.sessions.length ? `<div class="card"><div class="area-head" style="margin-bottom:8px"><h3>Leverte runder</h3></div><div class="table-wrap"><table><thead><tr><th>Dato</th><th>Prosjekt</th><th>Signaler</th><th>Tid</th><th></th></tr></thead><tbody>${store.sessions.slice().sort((a, b) => cmp(b.date, a.date) || cmp(b.finishedAt, a.finishedAt)).map(s => `<tr><td class="mono">${fmtDate(s.date)}</td><td>${esc(s.project.prosjekt)}</td><td><span class="lights-mini">${SIGNALS.map(S => `<i class="${SC[(s.sig[S.id] || {}).status || "OK"]}"></i>`).join("")}</span>${s.deep ? ' <span class="muted small">+ full ROMA</span>' : ""}</td><td class="mono">${fmtMin(s.elapsed)}</td><td><button type="button" class="btn small" data-open="${esc(s.id)}">Åpne</button></td></tr>`).join("")}</tbody></table></div></div>` : ""}
+      ${store.sessions.length ? `<div class="card"><div class="area-head" style="margin-bottom:8px"><h3>Leverte runder</h3></div><div class="table-wrap"><table><thead><tr><th>Dato</th><th>Prosjekt</th><th>Signaler</th><th></th></tr></thead><tbody>${store.sessions.slice().sort((a, b) => cmp(b.date, a.date) || cmp(b.finishedAt, a.finishedAt)).map(s => `<tr><td class="mono">${fmtDate(s.date)}</td><td>${esc(s.project.prosjekt)}</td><td><span class="lights-mini">${SIGNALS.map(S => `<i class="${SC[(s.sig[S.id] || {}).status || "OK"]}"></i>`).join("")}</span>${s.deep ? ' <span class="muted small">+ full ROMA</span>' : ""}</td><td><button type="button" class="btn small" data-open="${esc(s.id)}">Åpne</button></td></tr>`).join("")}</tbody></table></div></div>` : ""}
+      <details class="card" id="yearbox" hidden><summary>Årsutskrift til medarbeidersamtalen</summary><pre class="teams" id="year-pre" style="margin-top:10px"></pre><div class="btn-row" style="margin-top:8px"><button type="button" class="btn small" id="year-copy">Kopier</button></div></details>
       <div class="card"><div class="area-head"><div><h3>Dine data</h3><p class="muted small">Alt ligger kun i denne nettleseren. Bytter du maskin, ta sikkerhetskopi først. Deler du maskin, slett når du er ferdig. Safari kan slette lokale data etter 7 dager uten besøk, så ta sikkerhetskopi jevnlig.</p></div><button type="button" class="btn ghost danger" id="wipe-btn">Slett alle mine data</button></div></div>
       <p class="note privacy muted small">${esc(PRIVACY_TEXT)}</p>
     </div>`;
   $("#all-leder-btn", el).addEventListener("click", () => exportLeader(store.sessions));
+  $("#year-btn", el).addEventListener("click", () => { const box = $("#yearbox", el); box.hidden = false; box.open = true; $("#year-pre", el).textContent = yearReport(); box.scrollIntoView({ block: "start" }); });
+  $("#year-copy", el).addEventListener("click", async () => { try { await navigator.clipboard.writeText(yearReport()); toast("Kopiert"); } catch (e) { toast("Kunne ikke kopiere"); } });
   $("#backup-btn", el).addEventListener("click", () => saveFile(`${isoToday().replace(/-/g, "")}_ViaROMA_sikkerhetskopi.json`, JSON.stringify(store, null, 2)));
   $("#import-btn", el).addEventListener("click", () => $("#import-inp", el).click());
   $("#wipe-btn", el).addEventListener("click", ev => { const b = ev.currentTarget; if (b.dataset.armed) { wipeAll(); toast("Alt er slettet fra denne nettleseren"); renderHome(); } else { b.dataset.armed = "1"; b.textContent = "Sikker? Slett alt nå"; } });
@@ -1020,14 +1127,14 @@ function renderOverview() {
       const have = new Set(store.sessions.map(s => s.id));
       (Array.isArray(data.sessions) ? data.sessions : []).forEach(s => { const v = validSession(s); if (v && !have.has(v.id) && (projectById(v.projectId) || v.project.prosjekt)) { if (!projectById(v.projectId)) { const np = Object.assign({ id: v.projectId || uid() }, v.project); v.projectId = np.id; store.projects.push(np); } store.sessions.push(v); n++; } });
       const haveT = new Set(store.tiltak.map(t => t.id));
-      (Array.isArray(data.tiltak) ? data.tiltak : []).forEach(t => { if (t && typeof t === "object" && t.tekst && (t.id === undefined || ID_OK(t.id)) && (!t.projectId || ID_OK(t.projectId)) && !haveT.has(String(t.id))) store.tiltak.push({ id: String(t.id || uid()), sessionId: String(t.sessionId || ""), projectId: String(t.projectId || ""), dato: /^\d{4}-\d{2}-\d{2}$/.test(String(t.dato)) ? t.dato : isoToday(), prosjekt: String(t.prosjekt || ""), tekst: String(t.tekst), ansvarlig: String(t.ansvarlig || ""), frist: /^\d{4}-\d{2}-\d{2}$/.test(String(t.frist)) ? t.frist : "", status: t.status === "Lukket" ? "Lukket" : "Åpen", kommentar: String(t.kommentar || ""), area: String(t.area || "") }); });
+      (Array.isArray(data.tiltak) ? data.tiltak : []).forEach(t => { if (t && typeof t === "object" && t.tekst && (t.id === undefined || ID_OK(t.id)) && (!t.projectId || ID_OK(t.projectId)) && !haveT.has(String(t.id))) store.tiltak.push({ id: String(t.id || uid()), sessionId: String(t.sessionId || ""), projectId: String(t.projectId || ""), dato: /^\d{4}-\d{2}-\d{2}$/.test(String(t.dato)) ? t.dato : isoToday(), prosjekt: String(t.prosjekt || ""), tekst: String(t.tekst), ansvarlig: String(t.ansvarlig || ""), frist: /^\d{4}-\d{2}-\d{2}$/.test(String(t.frist)) ? t.frist : "", status: t.status === "Lukket" ? "Lukket" : "Åpen", kommentar: String(t.kommentar || ""), area: String(t.area || ""), lukket: /^\d{4}-\d{2}-\d{2}$/.test(String(t.lukket)) ? t.lukket : "", timer: Number(t.timer) || undefined }); });
       if (data.me && typeof data.me === "object" && !store.me.konsulent) { store.me.konsulent = String(data.me.konsulent || ""); store.me.teamleder = String(data.me.teamleder || ""); }
       if (data.best && typeof data.best === "object") Object.entries(data.best).forEach(([k, v]) => { if (ID_OK(k) && Number(v) > 0 && (!store.best[k] || Number(v) < store.best[k])) store.best[k] = Number(v); });
       saveStore(); toast(`Hentet ${n} runder`); renderOverview();
     } catch (e) { toast("Kunne ikke lese filen"); } };
     r.readAsText(f);
   });
-  $$("[data-tiltak]", el).forEach(cb => cb.addEventListener("change", () => { const t = store.tiltak.find(x => x.id === cb.dataset.tiltak); if (!t) return; t.status = cb.checked ? "Lukket" : "Åpen"; saveStore(); renderOverview(); }));
+  $$("[data-tiltak]", el).forEach(cb => cb.addEventListener("change", () => { const t = store.tiltak.find(x => x.id === cb.dataset.tiltak); if (!t) return; t.status = cb.checked ? "Lukket" : "Åpen"; if (cb.checked) { t.lukket = today; const days = Math.round((new Date(today) - new Date(t.dato)) / 86400000); toast(t.area === "Utvikling" ? "Utvikling fullført. Det teller i årsutskriften." : `Lukket etter ${days} dager.`); pop(); } else t.lukket = ""; saveStore(); renderOverview(); }));
   $$("[data-open]", el).forEach(b => b.addEventListener("click", () => { const s = store.sessions.find(x => x.id === b.dataset.open); if (s) renderDone([s]); }));
 }
 
