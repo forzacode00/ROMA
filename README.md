@@ -23,6 +23,8 @@ Hvis siden ikke svarer etter første push: Settings → Pages → Source: «GitH
 - **Lever**: Teams-tekst per prosjekt, Excel per prosjekt (Prosjektinfo, ROMA-samtale, Tiltak & Oppfølging, Statusoversikt), ledereksport med prosjektkort og puls.
 - **Oversikt**: prosjekter med neste samtale, trend, tiltakslogg, historikk, sikkerhetskopi og «Slett alle mine data».
 
-## Personvern
+## Personvern og sikkerhet
 
-Alt lagres kun i brukerens egen nettleser på egen enhet. Det finnes ingen server, ingen felles database og ingen sporing. Lenken kan deles fritt: hver kollega ser bare sine egne data. Puls og alt under Trygghet går kun i ledereksporten, ikke i prosjektmappen. Appen ber om at helseopplysninger, navn på personer hos kunde og private forhold tas muntlig, ikke i fritekst. «Slett alle mine data» i Oversikt tømmer nettleseren.
+Appen er én HTML-fil uten backend. Alt lagres kun i brukerens egen nettleser (localStorage) og sendes aldri til noen server. Lenken kan derfor deles åpent: hver kollega ser bare sine egne data. Data forlater maskinen kun når brukeren selv kopierer Teams-teksten eller laster ned Excel/JSON, og disse filene må brukeren selv håndtere. Teams-tekst og ledereksport inneholder puls og Trygghet-signal og er kun ment for nærmeste leder. Prosjekt-Excel inneholder ikke dette. Diktering bruker nettleserens innebygde taletjeneste (Google/Microsoft). «Slett alle mine data» i Oversikt fjerner alt appen har lagret. Bibliotekene for Excel og konfetti ligger i `vendor/` i repoet, så siden fungerer også der eksterne CDN er blokkert.
+
+Råd til kollegaene: bruk den offisielle lenken i vanlig nettleser (ikke som Teams-fane), ta sikkerhetskopi før maskinbytte, og bruk «Slett alle mine data» på delt maskin. Safari kan slette lokale data etter 7 dager uten besøk.
