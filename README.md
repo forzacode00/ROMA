@@ -26,7 +26,7 @@ Hvis siden ikke svarer etter første push: Settings → Pages → Source: «GitH
 
 ## Personvern og sikkerhet
 
-Appen er én HTML-fil uten backend. Alt lagres kun i brukerens egen nettleser (localStorage) og sendes aldri til noen server. Lenken kan derfor deles åpent: hver kollega ser bare sine egne data. Data forlater maskinen kun når brukeren selv kopierer Teams-teksten eller laster ned Excel/JSON, og disse filene må brukeren selv håndtere. Teams-tekst og ledereksport inneholder puls og Trygghet-signal og er kun ment for nærmeste leder. Prosjekt-Excel inneholder ikke dette. Diktering bruker nettleserens innebygde taletjeneste (Google/Microsoft). «Slett alle mine data» i Oversikt fjerner alt appen har lagret. Bibliotekene for Excel og konfetti ligger i `vendor/` i repoet, så siden fungerer også der eksterne CDN er blokkert.
+Appen er én HTML-fil uten backend. Alt lagres kun i brukerens egen nettleser (localStorage) og sendes aldri til noen server. Lenken kan derfor deles åpent: hver kollega ser bare sine egne data. Data forlater maskinen kun når brukeren selv kopierer Teams-teksten eller laster ned Excel/JSON, og disse filene må brukeren selv håndtere. Teams-tekst og ledereksport inneholder puls og Trygghet-signal og er kun ment for nærmeste leder. Prosjekt-Excel inneholder ikke dette. Diktering bruker nettleserens innebygde taletjeneste (Google/Microsoft). «Slett alle mine data» i Oversikt fjerner alt appen har lagret. Bibliotekene for Excel og konfetti ligger i `vendor/` i repoet, og siden laster ingen eksterne fonter eller skript, så ingen tredjepart ser at du bruker den.
 
 Råd til kollegaene: bruk den offisielle lenken i vanlig nettleser (ikke som Teams-fane), ta sikkerhetskopi før maskinbytte, og bruk «Slett alle mine data» på delt maskin. Safari kan slette lokale data etter 7 dager uten besøk.
 
@@ -39,4 +39,8 @@ Det som gjør at konsulenten fortsetter å svare ærlig, er at svaret fører til
 - **Rød**: «Lest, ringer deg i dag kl [tid]. Tiltak: [hva], jeg eier det, frist [dato]. Legger det i Planner nå.»
 - **Rolig måned**: «Lest, takk for ærlig puls. Rolig nå er ok, vi bruker det. Er du med på [utviklingsaktivitet], ca. [timer]? Jeg sjekker [kunde/tilbud] for neste fase innen [dato].»
 
-Appen spør konsulenten neste måned om leder svarte. To «nei» på rad vises i ledereksporten.
+Appen spør konsulenten neste måned om leder svarte. Ett «nei» vises øverst i neste ledertekst, to på rad ber om kopi til daglig leder. Utvikling konsulenten velger i rolige måneder sendes som forslag, og blir avtale når leder svarer.
+
+## Kvalitetssikring
+
+Versjon 5.1 er gjennomgått av 15 fagroller (prosjektsikring, arbeidsmiljø, kvalitet og miljø, ledelse, personvern, interaksjonsdesign, spilldesign, psykologi, kode) og fire konsulentpersonaer (mange små prosjekter, ett stort, intern rolle, mellom oppdrag) som testet flere måneders bruk i nettleser. Rundt 60 funn er rettet, blant annet: puls som forsvant når man la til prosjekt, «Mellom oppdrag» som ble utløst ved et uhell, kort runde som skjulte Trygghet og utløp av oppdrag, kontraktsflagg som forsvant etter oppstartssjekk, sluttevaluering som aldri nådde leder, kroniske gule og røde signaler uten eskalering, og personflagg som farget alle prosjekter røde.
