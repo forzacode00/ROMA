@@ -41,6 +41,24 @@ Det som gjør at konsulenten fortsetter å svare ærlig, er at svaret fører til
 
 Appen spør konsulenten neste måned om leder svarte. Ett «nei» vises øverst i neste ledertekst, to på rad ber om kopi til daglig leder. Utvikling konsulenten velger i rolige måneder sendes som forslag, og blir avtale når leder svarer.
 
+## Hvem appen er laget for
+
+Appen skiller på oppdragstype (kundeoppdrag med rådgivning eller innleie, salgsarbeid, intern rolle, mellom oppdrag) og på personen bak: stillingsprosent og avtalt kapasitet gir egne timegrenser, startdato gir en oppstartsrunde de første tre månedene i stedet for «mellom oppdrag», teamledere merker seg som det og rapporterer til daglig leder med en linje om teamet, og den som selv har kunde- og salgsansvar ber ledergruppen i stedet for «Involved». Måneder med ferie, permisjon eller annet fravær merkes med én knapp og teller ikke som hull. Prosjekter kan settes på pause med forventet gjenopptak. Kontrakt kan være signert, avrop i kundens portal, under arbeid eller mangle; opsjoner og forlengelser registreres med om de er utløst skriftlig; prosjekt overtatt fra kollega får egen overleveringssjekk. Tilbud og forlengelser, vunnet eller tapt, følger samme spor.
+
+Runden avsluttes med «Klar til å sende», og først når teksten er kopiert eller Teams-chatten åpnet, står det «Sendt». Leders e-post gir en knapp som åpner riktig Teams-chat med teksten klar. «Legg ROMA-dagen i Outlook» lager en månedlig kalenderhendelse med varsel. Etter tre runder uten sikkerhetskopi minner appen om det. Når noe har stått rødt to måneder på rad, trivsel er lav to måneder, eller leder ikke har svart to ganger, finnes en egen eskaleringstekst til daglig leder uten puls og trygghet. «Prøv med eksempel» på første skjerm gir en demo med tre måneders fiktiv historikk for opplæring. Appen kan legges til på hjemskjermen (PWA) og fungerer uten nett etter første besøk.
+
+## Forslag til oppdatert rutine
+
+Appen har endret praksisen fra 30–45 minutter til 3 minutter per prosjekt med en kvartalsvis full ROMA. Rutinedokumentet bør oppdateres tilsvarende, så det ikke er et avvik ved revisjon. Forslag til formuleringer:
+
+1. **Frekvens og form.** «ROMA-samtalen gjennomføres månedlig i to deler: en kort skriftlig runde i Via ROMA på ca. tre minutter per prosjekt som ressursen sender til nærmeste leder i Teams, og leders svar innen tre virkedager. Ved tunge signaler (belastning 4–5, trivsel 1–2, rødt på Trygghet, timer godt over avtalt) ringer leder innen tre virkedager. Full ROMA med 30 spørsmål gjennomføres kvartalsvis, ved oppstart og ved avslutning, og som samtale når leder eller ressurs ber om det.»
+2. **Omfang.** «Rutinen gjelder alle kundeoppdrag uansett varighet, innleie og rådgivning, interne roller, tilbudsarbeid og perioder mellom oppdrag. Avrop under samme rammeavtale følges som ett oppdrag.»
+3. **Ansvar, leder.** «Leder svarer på hver runde med Lest, Ringer eller Tar videre innen tre virkedager, følger opp tiltak der leder er ansvarlig, og bekrefter utviklingsforslag. Uteblir svar to måneder på rad, går runden også til daglig leder.»
+4. **Ansvar, ledergruppen.** «Ledergruppen mottar eskaleringstekst når et signal har stått rødt to måneder på rad, trivsel er lav to måneder, eller en ressurs har vært mellom oppdrag i to måneder, og følger opp på tvers. Fagbidrag samles til fag- og erfaringsrapporten i november.»
+5. **Gjennomføring.** Legg til trinn «Full ROMA (kvartalsvis, oppstart, avslutning)» og «Sluttevaluering i tre linjer: levert, lærdom, uavsluttet, pluss om kunden kan brukes som referanse».
+6. **Dokumentasjon.** «Prosjekt-Excel og PDF fra Via ROMA lagres i prosjektmappen og inneholder ikke puls, belastning, restitusjon eller trygghet. Ledereksport med disse opplysningene lagres i leders HR-mappe med hjemmel i arbeidsmiljøloven § 4-1. Ressursen har innsyns- og sletterett. Puls, timer og Trygghet brukes ikke i lønnsvurdering.»
+7. **Rapportering.** «Røde flagg legges i Planner av leder samme uke. Klager og reklamasjoner meldes i avvikssystemet, uønsket atferd i varslingsrutinen. Kvalitetsleder sender kundeundersøkelse ved avslutning av oppdrag og årlig for oppdrag over tolv måneder; appen lager tiltaket.»
+
 ## Kvalitetssikring
 
 Versjon 5.1 er gjennomgått av 15 fagroller (prosjektsikring, arbeidsmiljø, kvalitet og miljø, ledelse, personvern, interaksjonsdesign, spilldesign, psykologi, kode) og fire konsulentpersonaer (mange små prosjekter, ett stort, intern rolle, mellom oppdrag) som testet flere måneders bruk i nettleser. Rundt 60 funn er rettet, blant annet: puls som forsvant når man la til prosjekt, «Mellom oppdrag» som ble utløst ved et uhell, kort runde som skjulte Trygghet og utløp av oppdrag, kontraktsflagg som forsvant etter oppstartssjekk, sluttevaluering som aldri nådde leder, kroniske gule og røde signaler uten eskalering, og personflagg som farget alle prosjekter røde.

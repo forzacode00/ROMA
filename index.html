@@ -4,8 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; manifest-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>Via ROMA</title>
+<meta name="theme-color" content="#257A6B">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Via ROMA">
 <meta name="description" content="Involveds månedlige ROMA-samtale på 3 minutter per prosjekt: seks signaler per prosjekt, puls én gang, tre linjer med viktigste punkter, og eksport til leder og Excel.">
 <style>
   :root {
@@ -336,6 +342,11 @@
   .prt-fag { border: .5pt solid var(--p-gold); border-radius: 2mm; padding: 3mm 4mm; }
   .prt-q { margin: 6mm 0; } .prt-q p { font: 500 12pt/1.3 var(--font-display); } .prt-line { border-bottom: .3pt solid #bbb; height: 8mm; }
   .prt-foot { position: fixed; bottom: 0; left: 0; right: 0; font-size: 7.5pt; color: var(--p-muted); border-top: .3pt solid #bbb; padding-top: 2mm; background: #fff; }
+  .howto { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin: 4px 0 14px; }
+  .howto div { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: .92rem; display: flex; gap: 10px; align-items: flex-start; }
+  .howto b { font-family: var(--font-display); font-size: 1.3rem; color: var(--accent); line-height: 1; }
+  .demobar { background: var(--gold-soft); color: var(--gold-ink); padding: 8px 16px; display: flex; gap: 12px; align-items: center; justify-content: center; font-size: .9rem; flex-wrap: wrap; }
+  @media print { .demobar { display: none; } }
 </style>
 </head>
 <body>
@@ -371,7 +382,8 @@
    ===================================================================== */
 
 const LIMIT_SEC = 3 * 60;
-const STORE_KEY = "viaroma.v3";
+const DEMO = (() => { try { return sessionStorage.getItem("viaroma.demo") === "1"; } catch (e) { return false; } })();
+const STORE_KEY = DEMO ? "viaroma.demo" : "viaroma.v3";
 const OLD_KEYS = ["viaroma.v2", "viaroma.v1"];
 const STATUS = ["OK", "Risiko", "Krever tiltak"];
 const NR = "Ikke relevant";
@@ -392,7 +404,7 @@ const LEDIG_GRENSE = 70;                            // sum andel under dette ute
 /* ---------- signaler per prosjekt (belastning og tilhørighet måles per person) ---------- */
 const SIGNALS = [
   { id: "S2", roma: "O", name: "Fremdrift", t: "Våre leveranser er på plan.", ti: "Mine interne leveranser og milepæler er på plan.", ts: "Tilbudsarbeidet er på plan mot fristen.", deep: ["o1", "o5", "k1", "k2", "m2"], deepIntern: ["k3", "l3"], deepSalg: ["k1", "k3"], short: false },
-  { id: "S3", roma: "O", name: "Økonomi", t: "", ti: "Tiden min går til det rollen skal levere.", ts: "", deep: ["o2"], deepIntern: ["p1", "l3"], deepSalg: ["o2"], toggle: { k: "utestaende", l: "Utestående over 30 dager" }, short: true },
+  { id: "S3", roma: "O", name: "Økonomi", t: "", ti: "Tiden min går til det rollen skal levere.", ts: "", deep: ["o2"], deepIntern: ["p1", "l3"], deepSalg: ["o2"], toggle: { k: "utestaende", l: "Utestående over 30 dager" }, toggle2: { k: "timeliste", l: "Timeliste for forrige måned er ikke godkjent av kunden" }, short: true },
   { id: "S4", roma: "A", name: "Omfang og rolle", t: "Alt jeg gjør er innenfor avtalt omfang og rolle, eller skriftlig bestilt.", ti: "Ad hoc-oppgaver går ikke ut over det jeg skal levere.", ts: "Vi vet hva vi tilbyr, hva det koster oss, og hvem som bestemmer hos kunden.", deep: ["o3", "o4", "k4", "m3"], deepIntern: ["p1", "k4"], deepSalg: ["o4", "k4", "v1"], short: true },
   { id: "S5", roma: "M", name: "Kunde", ni: "Internt", t: "Kunden er fornøyd med oss.", ti: "Kollegene og ledelsen får det de trenger fra meg i tide.", ts: "Kunden svarer, og dialogen går fremover.", deep: ["s1", "s3", "s4", "s2", "o5"], deepIntern: ["p1", "p2"], deepSalg: ["s2", "v3"], short: true },
   { id: "S6", roma: "M", name: "Trygghet", t: "Jeg har det bra i prosjektet.", ti: "Jeg har det bra i rollen.", ts: "Jeg har det bra i dette arbeidet.", deep: ["p1", "p2", "p4"], deepIntern: ["p1", "p2", "p4"], deepSalg: ["p1", "p2", "p4"], sensitive: true, privacy: true, short: true },
@@ -405,26 +417,29 @@ const isKunde = p => !!p && !isIntern(p) && !isSalg(p) && p.type !== "mellom";
 const typeLabel = p => isIntern(p) ? "Intern rolle" : isSalg(p) ? "Salgsarbeid" : "Kundeoppdrag";
 function s3Config(p) {
   if (isIntern(p)) return { t: SIG_BY.S3.ti, fields: [] };
+  if (isKunde(p) && p.form === "innleie") return { t: "Timene mine er godkjent av kunden, og innleien går som avtalt.", fields: [] };
   if (isSalg(p)) return { t: "Timene jeg bruker på salgsarbeidet er avtalt med leder.", fields: [{ k: "salgstimer", l: "Timer på salg denne måneden, ca.", u: "t" }] };
   const kt = (p && p.kontraktstype) || "";
   if (kt === "Timer med ramme") return { t: "Timeforbruket er i takt med fremdriften.", fields: [{ k: "ramme", l: "Brukt av rammen, ca.", u: "%" }, { k: "fremdrift", l: "Ferdig med jobben, ca.", u: "%" }] };
   if (kt === "Fastpris") return { t: "Timeforbruket er i takt med fremdriften i kalkylen.", fields: [{ k: "ramme", l: "Brukt av kalkylen, ca.", u: "%" }, { k: "fremdrift", l: "Ferdig med jobben, ca.", u: "%" }] };
   return { t: "Alle timene mine faktureres.", fields: [] };
 }
-function sigText(S, s) { if (S.id === "S3") return s3Config(s.project).t; return isIntern(s.project) && S.ti ? S.ti : isSalg(s.project) && S.ts ? S.ts : S.t; }
+const INNLEIE_T = { S2: "Prosjektet er på plan, og jeg får gjort det jeg er leid inn for.", S4: "Rollen og ansvaret jeg faktisk har, er det innleieavtalen beskriver." };
+function sigText(S, s) { if (S.id === "S3") return s3Config(s.project).t; if (isKunde(s.project) && s.project.form === "innleie" && INNLEIE_T[S.id]) return INNLEIE_T[S.id]; return isIntern(s.project) && S.ti ? S.ti : isSalg(s.project) && S.ts ? S.ts : S.t; }
 function sigName(S, s) { return isIntern(s.project) && S.ni ? S.ni : S.name; }
-function sigFields(S, s) { if (S.id === "S3") return s3Config(s.project).fields; if (S.id === "S4" && isKunde(s.project)) return [{ k: "endringstimer", l: "Arbeid uten skriftlig bestilling, ca.", u: "t" }]; return []; }
-function sigDeep(S, s) { return isIntern(s.project) ? S.deepIntern : isSalg(s.project) ? S.deepSalg : S.deep; }
+function sigFields(S, s) { if (S.id === "S3") return s3Config(s.project).fields; if (S.id === "S4" && isKunde(s.project)) return [{ k: "endringstimer", l: s.project.form === "innleie" ? "Timer utover avtalt omfang eller rolle, ca." : "Arbeid uten skriftlig bestilling, ca.", u: "t" }]; return []; }
+function sigDeep(S, s) { const skip = isIntern(s.project) ? INTERN_SKIP : isSalg(s.project) ? SALG_SKIP : []; return (isIntern(s.project) ? S.deepIntern : isSalg(s.project) ? S.deepSalg : S.deep).filter(id => !skip.includes(id)); }
 function isShortRound(s) { return num(s.project.andel) > 0 && num(s.project.andel) <= SMALL_SHARE && !s.fullRound; }
 const INTERN_AREAS = ["oppdrag", "kvalitet", "trivsel", "ressurs", "laering"];   // full ROMA for intern rolle
 const SALG_AREAS = ["oppdrag", "kvalitet", "kunde", "trivsel", "ressurs", "merverdi", "laering"];
-const areasFor = p => AREAS.filter(a => isIntern(p) ? INTERN_AREAS.includes(a.id) : isSalg(p) ? SALG_AREAS.includes(a.id) : true);
+const INTERN_SKIP = ["o2", "o3", "o4", "o5", "k4", "p4"]; const SALG_SKIP = ["o2", "o3", "o4", "o5", "k2", "v2"];
+const areasFor = p => AREAS.filter(a => isIntern(p) ? INTERN_AREAS.includes(a.id) : isSalg(p) ? SALG_AREAS.includes(a.id) : true).map(a => { const skip = isIntern(p) ? INTERN_SKIP : isSalg(p) ? SALG_SKIP : []; return skip.length ? Object.assign({}, a, { qs: a.qs.filter(q => !skip.includes(q.id)) }) : a; });
 
 /* ---------- personnivå ---------- */
 const PERSON = {
   S1: { t: "Jeg kobler av fra jobb på kvelden og i helgen.", deep: ["r1", "r2", "r3", "r4"] },
-  N1: { t: "Jeg vet hva som skjer videre for meg, og når." },
-  N3: { t: "Jeg har meningsfulle oppgaver nå." }
+  N1: { t: "Jeg vet hva som skjer videre for meg, og når.", to: "Jeg vet hva som forventes av meg de første ukene, og hvem jeg spør." },
+  N3: { t: "Jeg har meningsfulle oppgaver nå.", to: "Jeg har tilgangene, utstyret og en fadder eller senior jeg kan spørre." }
 };
 const PUNKTER = [
   { k: "endret", l: "Endret siden sist", ph: "Ny PL hos byggherre 1.9, vil ha revidert plan innen 20.9", none: "Ikke noe nytt" },
@@ -441,7 +456,7 @@ const PUNKTER_SALG = [
   { k: "risiko", l: "Risiko nå", ph: "Konkurrent har lavere pris, vi mangler referanse på ITB", none: "Ingen nå" },
   { k: "trenger", l: "Trenger fra Involved", ph: "Hjelp til kalkyle og CV-er før 15.9", none: "Ingenting" }
 ];
-const punkterFor = s => s.projectId === "" ? PUNKTER_MELLOM : isIntern(s.project) ? PUNKTER_INTERN : isSalg(s.project) ? PUNKTER_SALG : PUNKTER;
+const punkterFor = s => (s.projectId === "" ? PUNKTER_MELLOM : isIntern(s.project) ? PUNKTER_INTERN : isSalg(s.project) ? PUNKTER_SALG : PUNKTER).map(P => P.k === "trenger" && store.me.eierKunde ? Object.assign({}, P, { l: "Trenger fra ledergruppen" }) : P);
 const PUNKTER_MELLOM = [
   { k: "endret", l: "Gjør nå", ph: "FSE-kurs, bidrar i tilbud Bane NOR (12 t)", none: "Ikke noe spesielt" },
   { k: "trenger", l: "Trenger fra Involved", ph: "En dato for når jeg får vite om neste oppdrag", none: "Ingenting" }
@@ -465,7 +480,7 @@ const PULSE = [
 const YEAR_HINTS = { 1: "Januar: medarbeidersamtale. Årsutskriften i Oversikt er din.", 5: "Mai: tid for kundeundersøkelse på oppdragene?", 6: "Juni: sjekk dekning i ferien under Neste fase.", 11: "November: kundeundersøkelse og fag- og erfaringsrapport. Erfaringsnotater teller.", 12: "Desember: årsavslutning. Se året i Oversikt." };
 const APP_VERSION = "6.0";
 const ROMA_QUOTES = { Travel: "Roma ble ikke bygget på én dag. Denne måneden la du én stein.", Balansert: "Alle veier fører til Roma. Denne tok __TID__.", Rolig: "Også Roma hadde rolige år. De bygde akvedukter." };
-const PRIVACY_TEXT = "Alt lagres bare i denne nettleseren på denne enheten. Ingen server, ingen innlogging, ingen andre ser dataene dine. Data forlater maskinen først når du selv kopierer Teams-teksten eller laster ned en fil. Teams-tekst og ledereksport er kun til nærmeste leder. Prosjekt-Excel inneholder ikke puls, belastning eller Trygghet. Diktering bruker nettleserens taletjeneste (Google/Microsoft). Ingen helseopplysninger, navn på personer hos kunde eller private forhold i fritekst. På delt maskin: «Slett alle mine data» i Oversikt når du er ferdig. Nedlastede filer og utklippstavlen slettes ikke av appen. Formålet med det som går til leder er Involveds oppfølging av arbeidsbelastning og arbeidsmiljø (arbeidsmiljøloven § 4-1). Leder lagrer det i sin HR-mappe, ikke i prosjektmappen, og du kan be om innsyn i og sletting av det som er sendt.";
+const PRIVACY_TEXT = "Alt lagres bare i denne nettleseren på denne enheten. Ingen server, ingen innlogging, ingen andre ser dataene dine. Data forlater maskinen først når du selv kopierer Teams-teksten eller laster ned en fil. Teams-tekst og ledereksport er kun til nærmeste leder. Prosjekt-Excel inneholder ikke puls, belastning eller Trygghet. Diktering bruker nettleserens taletjeneste (Google/Microsoft). Ingen helseopplysninger, navn på personer hos kunde eller private forhold i fritekst. På delt maskin: «Slett alle mine data» i Oversikt når du er ferdig. Nedlastede filer og utklippstavlen slettes ikke av appen. Formålet med det som går til leder er Involveds oppfølging av arbeidsbelastning og arbeidsmiljø (arbeidsmiljøloven § 4-1). Leder lagrer det i sin HR-mappe, ikke i prosjektmappen, og du kan be om innsyn i og sletting av det som er sendt. Puls, timer og Trygghet brukes ikke i lønnsvurdering.";
 const NOTHING = /^\s*(ingenting|ingen|ingen nå|ikke noe nytt|ikke noe spesielt|nei|ok|nope|[-–—.]*)\s*[.!]?\s*$/i;
 const ID_OK = v => /^[A-Za-z0-9_-]{1,32}$/.test(String(v));
 
@@ -548,7 +563,14 @@ function pop() { if (window.confetti && !matchMedia("(prefers-reduced-motion: re
 
 /* ---------- lagring (kun i denne nettleseren) ---------- */
 let storageBroken = false;
-function emptyStore() { return { me: { konsulent: "", teamleder: "" }, projects: [], sessions: [], tiltak: [], okt: null }; }
+function emptyStore() { return { me: { konsulent: "", teamleder: "", epost: "", stilling: 100, startdato: "", teamlederRolle: false, eierKunde: false }, projects: [], sessions: [], tiltak: [], okt: null, fravaer: [] }; }
+const lederNavn = () => store.me.teamleder || "daglig leder";
+const stilling = () => Math.max(10, Math.min(100, Number(store.me.stilling) || 100));
+function avtaltTimer(kap) { return Math.round(37.5 * (kap || stilling()) / 100 * 10) / 10; }
+function hoursLevel(t, kap) { const a = avtaltTimer(kap); t = num(t); if (!t) return "OK"; return t > a + 10 ? "Krever tiltak" : t > a + 5 ? "Risiko" : "OK"; }
+function overVarsel(t, kap) { return num(t) > avtaltTimer(kap) + 7.5; }
+const fravaerFor = m => (store.fravaer || []).find(f => f.m === m);
+function monthsSince(startIso, uptoIso) { return startIso ? monthsBetween(startIso, uptoIso) : 99; }
 function loadStore() {
   let s = null;
   try { const raw = localStorage.getItem(STORE_KEY); if (raw) s = JSON.parse(raw); } catch (e) { storageBroken = true; }
@@ -566,6 +588,8 @@ function loadStore() {
   }
   const d = emptyStore();
   for (const k of Object.keys(d)) if (s[k] === undefined || s[k] === null) s[k] = d[k];
+  s.me = Object.assign({}, d.me, s.me || {}); s.me.stilling = Math.max(10, Math.min(100, Number(s.me.stilling) || 100)); s.me.startdato = /^\d{4}-\d{2}-\d{2}$/.test(String(s.me.startdato)) ? s.me.startdato : ""; s.me.epost = String(s.me.epost || ""); s.me.teamlederRolle = !!s.me.teamlederRolle; s.me.eierKunde = !!s.me.eierKunde;
+  s.fravaer = (Array.isArray(s.fravaer) ? s.fravaer : []).filter(f => f && /^\d{4}-\d{2}$/.test(String(f.m))).map(f => ({ m: f.m, type: ["ferie", "permisjon", "annet"].includes(f.type) ? f.type : "annet" }));
   s.projects = s.projects.map(normProject).filter(Boolean);
   s.sessions = s.sessions.map(normSession).filter(Boolean);
   s.projects.forEach(p => { if (!p.oppstart && s.sessions.some(x => x.projectId === p.id)) p.oppstart = true; });
@@ -575,27 +599,52 @@ function normProject(p) {
   if (!p || typeof p !== "object" || !p.prosjekt) return null;
   const o = { id: ID_OK(p.id) ? String(p.id) : uid(), type: p.type === "intern" ? "intern" : p.type === "salg" ? "salg" : "prosjekt" };
   ["prosjekt", "kunde", "prosjektnummer", "rolle", "kontrakt", "kontraktstype", "sluttdato", "ku_dato", "ku_score", "avsluttet", "plan", "mal", "verdi", "vunnet"].forEach(k => { o[k] = String(p[k] || ""); }); o.sluttMeldt = !!p.sluttMeldt;
-  o.andel = Math.max(0, Math.min(100, Number(p.andel) || 0));
+  o.andel = Math.max(0, Math.min(100, Number(p.andel) || 0)); o.form = p.form === "innleie" ? "innleie" : "radgivning"; o.opsjon = /^\d{4}-\d{2}-\d{2}$/.test(String(p.opsjon)) ? p.opsjon : ""; o.opsjonVarslet = !!p.opsjonVarslet; o.overtatt = !!p.overtatt; o.pause = p.pause && typeof p.pause === "object" && /^\d{4}-\d{2}-\d{2}$/.test(String(p.pause.til)) ? { til: p.pause.til, fra: /^\d{4}-\d{2}-\d{2}$/.test(String(p.pause.fra)) ? p.pause.fra : "", hvorfor: String(p.pause.hvorfor || "") } : null; o.referanse = ["Ja", "Nei", "Ikke spurt"].includes(p.referanse) ? p.referanse : "";
   o.oppstart = !!p.oppstart;
   o.slutt = p.slutt && typeof p.slutt === "object" ? { levert: String(p.slutt.levert || ""), annerledes: String(p.slutt.annerledes || ""), uavsluttet: String(p.slutt.uavsluttet || ""), dato: /^\d{4}-\d{2}-\d{2}$/.test(String(p.slutt.dato)) ? p.slutt.dato : String(p.avsluttet || "") } : null;
   return o;
 }
 function saveStore() { try { localStorage.setItem(STORE_KEY, JSON.stringify(store)); } catch (e) { if (!storageBroken) { storageBroken = true; toast("Lagring i nettleseren er ikke tilgjengelig. Ta JSON-sikkerhetskopi når du er ferdig."); } } }
 function wipeAll() { try { localStorage.removeItem(STORE_KEY); OLD_KEYS.forEach(k => localStorage.removeItem(k)); } catch (e) { /* tom */ } store = emptyStore(); okt = null; }
-let store = loadStore();
+let store = loadStore(); let importArmed = null;
+function demoStore() {
+  const d = emptyStore(); const today = isoToday(); d.me = { konsulent: "Eksempel Konsulent", teamleder: "Stig Leder", epost: "", stilling: 100, startdato: "", teamlederRolle: false, eierKunde: false };
+  const p1 = { id: "demoP1", type: "prosjekt", prosjekt: "ITB Drammen stasjon", kunde: "Bane NOR", kontraktstype: "Fastpris", kontrakt: "Ja", andel: 60, sluttdato: addMonths(today, 7), rolle: "ITB-koordinator", form: "radgivning" };
+  const p2 = { id: "demoP2", type: "salg", prosjekt: "Tilbud Victoria terrasse", kunde: "Statsbygg", andel: 10, sluttdato: addDays(today, 20), verdi: "600" };
+  const p3 = { id: "demoP3", type: "intern", prosjekt: "Faggruppe ITB", andel: 20, plan: "Én fagdag per kvartal" };
+  d.projects = [p1, p2, p3].map(normProject);
+  const mk = (pr, date, sig, pulse, person, punkter, prevId, fields) => { const o = { id: uid(), date, projectId: pr.id, project: Object.assign({}, pr, { konsulent: d.me.konsulent, teamleder: d.me.teamleder }), sig: {}, fields: fields || {}, punkter: Object.assign({ endret: "", risiko: "", trenger: "" }, punkter || {}), answers: {}, deep: false, pulse, person, mode: pulse.belastning >= 4 ? "Travel" : "Balansert", elapsed: 150 + Math.floor(Math.random() * 60), finishedAt: date + "T09:12:00.000Z", prevId: prevId || null, sentAt: date + "T09:15:00.000Z" }; SIGNALS.forEach(S => { o.sig[S.id] = Object.assign(blankSig(), sig[S.id] || {}); }); return normSession(o); };
+  const m2 = addMonths(today, -2), m1 = addMonths(today, -1);
+  const per = (t, k, s1) => ({ timer_uke: t, kapasitet: "", S1: { status: s1 || "OK", comment: "" }, kontakt: k, N1: blankSig(), N3: blankSig() });
+  const a1 = mk(d.projects[0], m2, {}, { belastning: 3, trivsel: 4 }, per("38", "ja"), { endret: "Ny PL hos byggherre", risiko: "", trenger: "" }, null, { ramme: "40", fremdrift: "45" });
+  const b1 = mk(d.projects[0], m1, { S3: { status: "Risiko", comment: "Omprosjektering av tavlerom etter endret romprogram", tiltak: "Sender skriftlig varsel om tillegg til PL", ansvarlig: d.me.konsulent, frist: addDays(m1, 14) } }, { belastning: 4, trivsel: 3 }, per("43", "ja"), { endret: "", risiko: "Tegningsunderlag fra entreprenør uteblir, ca. 1 uke bak", trenger: "Sparring om NS 8401-ansvar" }, a1.id, { ramme: "70", fremdrift: "55" });
+  const a2 = mk(d.projects[1], m1, {}, { belastning: 4, trivsel: 3 }, per("43", "ja"), {}, null, { salgstimer: "12" });
+  const a3 = mk(d.projects[2], m2, {}, { belastning: 3, trivsel: 4 }, per("38", "ja"), {}, null); const b3 = mk(d.projects[2], m1, {}, { belastning: 4, trivsel: 3 }, per("43", "ja"), {}, a3.id);
+  [a1, a3].forEach(x => { x.lederSvar = "Ringte"; }); [b1, a2, b3].forEach(x => { x.lederSvar = "Nei"; });
+  d.sessions = [a1, a3, b1, a2, b3];
+  d.tiltak = [{ id: uid(), sessionId: b1.id, projectId: p1.id, dato: m1, prosjekt: p1.prosjekt, tekst: "Sender skriftlig varsel om tillegg til PL", ansvarlig: d.me.konsulent, frist: addDays(m1, 14), status: "Lukket", lukket: addDays(m1, 10), kommentar: "Varsel sendt, møte avtalt", area: "Økonomi" }, { id: uid(), sessionId: b1.id, projectId: p1.id, dato: m1, prosjekt: p1.prosjekt, tekst: "Sparring om NS 8401-ansvar", ansvarlig: d.me.teamleder, frist: addDays(m1, 14), status: "Åpen", kommentar: "", area: "Trenger fra Involved" }];
+  return d;
+}
+function startDemo() { try { localStorage.setItem("viaroma.demo", JSON.stringify(demoStore())); sessionStorage.setItem("viaroma.demo", "1"); } catch (e) { toast("Kunne ikke starte demo"); return; } location.reload(); }
+function stopDemo() { try { sessionStorage.removeItem("viaroma.demo"); localStorage.removeItem("viaroma.demo"); } catch (e) { /* tom */ } location.reload(); }
 const projectById = id => store.projects.find(p => p.id === id);
-const activeProjects = () => store.projects.filter(p => !p.avsluttet);
+const activeProjects = () => store.projects.filter(p => !p.avsluttet && !isPaused(p));
+const isPaused = p => !!(p && p.pause && !p.avsluttet);
+const pausedProjects = () => store.projects.filter(p => !p.avsluttet && isPaused(p));
 const sessionsFor = pid => store.sessions.filter(s => s.projectId === pid).sort((a, b) => cmp(a.date, b.date) || cmp(a.finishedAt, b.finishedAt));
 const lastSessionFor = pid => { const l = sessionsFor(pid); return l[l.length - 1] || null; };
 const allSessionsSorted = () => store.sessions.slice().sort((a, b) => cmp(a.date, b.date) || cmp(a.finishedAt, b.finishedAt));
 const lastSessionAny = () => allSessionsSorted().pop() || null;
 const openTiltak = pid => store.tiltak.filter(t => t.projectId === pid && t.status === "Åpen" && (pid !== "" || t.area !== "Utvikling"));
-function mellomStreak(uptoDate) { const months = new Set(store.sessions.filter(x => x.projectId === "" && x.date <= uptoDate).map(x => x.date.slice(0, 7))); let n = 0, cur = uptoDate.slice(0, 7); while (months.has(cur)) { n++; cur = addMonths(cur + "-15", -1).slice(0, 7); } return n; }
-function monthsSameStatus(s, S) { let n = 1, x = s; while (x.prevId) { const pr = store.sessions.find(y => y.id === x.prevId); if (!pr || !pr.sig || !pr.sig[S.id] || pr.sig[S.id].status !== s.sig[S.id].status || monthsBetween(pr.date, x.date) > 2) break; n++; x = pr; } return n; }
+function mellomStreak(uptoDate) { if (isOnboarding(uptoDate)) return 0; const months = new Set(store.sessions.filter(x => x.projectId === "" && x.date <= uptoDate && !x.onboarding).map(x => x.date.slice(0, 7))); let n = 0, cur = uptoDate.slice(0, 7); while (months.has(cur)) { n++; cur = addMonths(cur + "-15", -1).slice(0, 7); } return n; }
+const isOnboarding = (d = isoToday()) => !!store.me.startdato && monthsSince(store.me.startdato, d) < 3 && store.me.startdato <= d;
+function gapOk(a, b) { const d = monthsBetween(a, b); if (d <= 1) return true; for (let i = 1; i < d; i++) { if (!fravaerFor(addMonths(a.slice(0, 7) + "-15", i).slice(0, 7))) return false; } return true; }
+function monthsSameStatus(s, S) { let n = 1, x = s; while (x.prevId) { const pr = store.sessions.find(y => y.id === x.prevId); if (!pr || !pr.sig || !pr.sig[S.id] || pr.sig[S.id].status !== s.sig[S.id].status || !gapOk(pr.date, x.date)) break; n++; x = pr; } return n; }
 function personStreak(uptoDate) {
   const months = Array.from(new Set(store.sessions.filter(x => x.date <= uptoDate).map(x => x.date.slice(0, 7)))).sort().reverse();
   let streak = 0, cur = uptoDate.slice(0, 7);
-  for (const m of months) { if (m === cur) { streak++; cur = addMonths(cur + "-15", -1).slice(0, 7); } else if (m < cur) break; }
+  const set = new Set(months); let guard = 0;
+  while (guard++ < 36) { if (set.has(cur)) { streak++; cur = addMonths(cur + "-15", -1).slice(0, 7); } else if (fravaerFor(cur)) { cur = addMonths(cur + "-15", -1).slice(0, 7); } else break; }
   return streak;
 }
 const lastDeepFor = pid => sessionsFor(pid).filter(s => s.deep).pop() || null;
@@ -624,7 +673,7 @@ function makeSession(project) {
     if (S.id === "S7" && pa && pa.manual && pa.status === "OK" && prev.project && prev.project.sluttdato === project.sluttdato) a.manual = true;
     sig[S.id] = a;
   });
-  const fields = {}; const prevFields = prev && prev.fields ? prev.fields : {};
+  const fields = {}; const prevFields = prev && prev.fields && prev.project && prev.project.kontraktstype === project.kontraktstype ? prev.fields : {};
   const projSnap = Object.assign({}, project, { konsulent: store.me.konsulent, teamleder: store.me.teamleder });
   const s = { id: uid(), date: isoToday(), projectId: project.id, project: projSnap, sig, fields, prevFields, punkter: { endret: "", risiko: "", trenger: "" }, answers: {}, deep: false, fullRound: false, pulse: {}, person: null, elapsedBase: 0, startedAt: Date.now(), elapsed: 0, prevId: prev ? prev.id : null };
   if (isShortRound(s)) SIGNALS.forEach(S => { if (!S.short && s.sig[S.id].status === "OK") s.sig[S.id].status = NR; });
@@ -635,7 +684,7 @@ function makeSession(project) {
   return s;
 }
 function makeMellomSession() {
-  return { id: uid(), date: isoToday(), projectId: "", project: { id: "", type: "mellom", prosjekt: "Mellom oppdrag", kunde: "", rolle: "", kontraktstype: "", kontrakt: "", sluttdato: "", andel: 0, konsulent: store.me.konsulent, teamleder: store.me.teamleder }, sig: {}, fields: {}, prevFields: {}, punkter: { endret: "", risiko: "", trenger: "" }, answers: {}, deep: false, fullRound: false, pulse: {}, person: null, elapsedBase: 0, startedAt: Date.now(), elapsed: 0, prevId: null };
+  const ob = isOnboarding(); return { id: uid(), date: isoToday(), onboarding: ob, projectId: "", project: { id: "", type: "mellom", prosjekt: ob ? "Oppstart i Involved" : "Mellom oppdrag", kunde: "", rolle: "", kontraktstype: "", kontrakt: "", sluttdato: "", andel: 0, konsulent: store.me.konsulent, teamleder: store.me.teamleder }, sig: {}, fields: {}, prevFields: {}, punkter: { endret: "", risiko: "", trenger: "" }, answers: {}, deep: false, fullRound: false, pulse: {}, person: null, elapsedBase: 0, startedAt: Date.now(), elapsed: 0, prevId: null };
 }
 function elapsedSec(s = cur()) { return s ? Math.floor((s.elapsedBase || 0) + (Date.now() - s.startedAt) / 1000) : 0; }
 function saveDraft() { if (!okt) return; const s = cur(); if (s) s.elapsed = elapsedSec(s); store.okt = okt; saveStore(); }
@@ -648,7 +697,7 @@ window.addEventListener("pagehide", saveDraft);
 window.addEventListener("beforeunload", saveDraft);
 
 /* ---------- modus ---------- */
-function modeOf(pulse, timer, mellom) { if (mellom) return "Mellom"; const b = (pulse || {}).belastning; if (!b) return "Balansert"; if (b >= 4 || num(timer) > HOURS.gul) return "Travel"; if (b <= 2 && (!timer || num(timer) <= 37.5)) return "Rolig"; return "Balansert"; }
+function modeOf(pulse, timer, mellom, person) { if (mellom) return "Mellom"; const pv = pulse || {}; const b = pv.belastning; if (!b) return "Balansert"; const kap = person && person.kapasitet ? person.kapasitet : stilling(); if (b >= 4 || hoursLevel(timer, kap) !== "OK") return "Travel"; if (pv.trivsel && pv.trivsel <= 2) return "Balansert"; if (person && person.S1 && person.S1.status !== "OK") return "Balansert"; if (b <= 2 && (!timer || num(timer) <= avtaltTimer(kap))) return "Rolig"; return "Balansert"; }
 function isHeavy(pulse, person, sessions) { const pv = pulse || {}; return pv.belastning >= 5 || (pv.trivsel && pv.trivsel <= 2) || (person && person.S1 && person.S1.status === "Krever tiltak") || (sessions || []).some(x => x.sig && x.sig.S6 && x.sig.S6.status === "Krever tiltak"); }
 
 /* ---------- HUD ---------- */
@@ -690,16 +739,25 @@ function projectForm(p, submitLabel, idp, compact) {
       <div class="field" data-only="intern" ${type === "intern" ? "" : "hidden"}><label for="${idp}-periode">Neste vurdering (valgfritt)</label><input id="${idp}-periode" type="date" value="${esc(p.sluttdato)}"></div>
       ${compact ? "" : `
       <div class="field"><label for="${idp}-rolle" data-l="rolle">${FORM_L.rolle[type]}</label><input id="${idp}-rolle" value="${esc(p.rolle)}" placeholder="${FORM_PH.rolle[type]}"></div>
-      <div class="field" data-only="prosjekt" ${type === "intern" ? "hidden" : ""}><label for="${idp}-kontrakt">Kontrakt på SharePoint</label><select id="${idp}-kontrakt">${["", "Ja", "Nei", "Under arbeid"].map(v => `<option value="${v}" ${(p.kontrakt || "") === v ? "selected" : ""}>${v || "— Velg —"}</option>`).join("")}</select></div>
+      <div class="field" data-only="prosjekt" ${type === "intern" ? "hidden" : ""}><label for="${idp}-kontrakt">Kontrakt</label><select id="${idp}-kontrakt">${[["", "— Velg —"], ["Ja", "Signert og lagret på SharePoint"], ["Avrop", "Avrop i kundens portal eller under rammeavtale"], ["Under arbeid", "Under arbeid"], ["Nei", "Mangler"]].map(([v, l]) => `<option value="${v}" ${(p.kontrakt || "") === v ? "selected" : ""}>${l}</option>`).join("")}</select></div>
+      <div class="field" data-only="prosjekt" ${type === "intern" ? "hidden" : ""}><label>Oppdragsform</label><div class="chips" role="group"><button type="button" class="chip opt" data-form="radgivning" aria-pressed="${(p.form || "radgivning") === "radgivning"}">Rådgivning, Involved har leveranseansvar</button><button type="button" class="chip opt" data-form="innleie" aria-pressed="${p.form === "innleie"}">Innleie, kunden leder arbeidet</button></div><input type="hidden" id="${idp}-form" value="${esc(p.form || "radgivning")}"></div>
+      <div class="field" data-only="prosjekt" ${type === "intern" ? "hidden" : ""}><label for="${idp}-opsjon">Opsjon eller forlengelse til (valgfritt)</label><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><input id="${idp}-opsjon" type="date" value="${esc(p.opsjon)}"><label class="fld"><input type="checkbox" id="${idp}-opsjonVarslet" ${p.opsjonVarslet ? "checked" : ""}><span>Utløst eller varslet skriftlig</span></label></div></div>
+      <div class="field" data-only="prosjekt salg" ${type === "intern" ? "hidden" : ""}><label class="fld"><input type="checkbox" id="${idp}-overtatt" ${p.overtatt ? "checked" : ""}><span>Overtatt fra kollega</span></label></div>
       <div class="field" data-only="prosjekt" ${type === "intern" ? "hidden" : ""}><label for="${idp}-prosjektnummer">Prosjektnummer</label><input id="${idp}-prosjektnummer" value="${esc(p.prosjektnummer)}" placeholder="P-nr"></div>
       <div class="field" data-only="prosjekt" ${type === "intern" ? "hidden" : ""}><label for="${idp}-ku">Siste kundeundersøkelse (dato · score)</label><div style="display:flex;gap:6px"><input id="${idp}-ku" type="date" value="${esc(p.ku_dato)}" aria-label="Dato" style="flex:1;min-width:0"><input id="${idp}-kus" value="${esc(p.ku_score)}" placeholder="Score" aria-label="Score" style="width:6em"></div></div>`}
     </div>
-    <div class="btn-row"><button type="submit" class="btn primary">${submitLabel}</button>${p.id ? `<button type="button" class="btn ghost" data-cancel>Avbryt</button>${type === "salg" ? `<button type="button" class="btn ghost" data-won="${esc(p.id)}">Vunnet → kundeoppdrag</button>` : ""}<button type="button" class="btn ghost danger" data-end="${esc(p.id)}">${type === "intern" ? "Avslutt rollen" : type === "salg" ? "Tapt eller lagt bort" : "Avslutt prosjektet"}</button>` : ""}</div>
+    <div class="btn-row"><button type="submit" class="btn primary">${submitLabel}</button>${p.id ? `<button type="button" class="btn ghost" data-cancel>Avbryt</button>${type === "salg" ? `<button type="button" class="btn ghost" data-won="${esc(p.id)}">Vunnet → kundeoppdrag</button>` : ""}${p.pause ? `<button type="button" class="btn ghost" data-resume="${esc(p.id)}">Gjenoppta</button>` : `<button type="button" class="btn ghost" data-pause="${esc(p.id)}">Sett på pause</button>`}<button type="button" class="btn ghost danger" data-end="${esc(p.id)}">${type === "intern" ? "Avslutt rollen" : type === "salg" ? "Tapt eller lagt bort" : "Avslutt prosjektet"}</button>` : ""}</div>
+    ${p.id ? `<div class="slutt" data-pausebox="${esc(p.id)}" hidden>
+      <p class="small"><b>På pause.</b> Prosjektet tas ut av runden og belegget til det gjenopptas. Leder får én linje om det.</p>
+      <div class="grid-2"><div class="field"><label for="${idp}-pausetil">Forventet gjenopptak</label><input id="${idp}-pausetil" type="date" value="${esc((p.pause || {}).til || addMonths(isoToday(), 3))}"></div><div class="field"><label for="${idp}-pausehvorfor">Hvorfor (kort)</label><input id="${idp}-pausehvorfor" value="${esc((p.pause || {}).hvorfor || "")}" placeholder="Kundens beslutning, finansiering, faseovergang"></div></div>
+      <div class="btn-row"><button type="button" class="btn" data-pause-confirm="${esc(p.id)}">Sett på pause</button></div>
+    </div>` : ""}
     ${p.id ? `<div class="slutt" data-slutt="${esc(p.id)}" hidden>
       <p class="small"><b>Sluttevaluering</b> (rutinens trinn 4). Historikken beholdes i Oversikt og årsutskrift. Tre linjer. Du får en Teams-tekst til leder etterpå, og linjene går i Excel og årsutskriften. Ingen navn på personer.</p>
       <div class="field"><label for="${idp}-sl1">${SLUTT_Q[type][0]}</label><input id="${idp}-sl1" placeholder="${type === "intern" ? "Én setning." : type === "salg" ? "F.eks. tapt på pris, utsatt til 2027, kunden valgte rammeavtale" : "Én setning. Be gjerne om referanse eller kundeundersøkelse."}"></div>
       <div class="field"><label for="${idp}-sl2">${SLUTT_Q[type][1]}</label><input id="${idp}-sl2" placeholder="Én setning til fag- og erfaringsrapporten."></div>
       <div class="field"><label for="${idp}-sl3">${SLUTT_Q[type][2]}</label><input id="${idp}-sl3" placeholder="Skriv «Nei» hvis alt er i havn"></div>
+      ${type === "prosjekt" ? `<div class="field"><label for="${idp}-ref">Kan kunden brukes som referanse?</label><select id="${idp}-ref">${["", "Ja", "Nei", "Ikke spurt"].map(v => `<option value="${v}">${v || "— Velg —"}</option>`).join("")}</select></div>` : ""}
       ${openTiltak(p.id).length ? `<p class="muted small">Åpne tiltak: ${openTiltak(p.id).map(t => esc(t.tekst) + " (" + esc(t.ansvarlig) + ")").join(" · ")}. Lukkes bare hvis du skriver «Nei» over. Tiltak leder eier står uansett åpne.</p>` : ""}
       <div class="btn-row"><button type="button" class="btn danger" data-end-confirm="${esc(p.id)}">Avslutt og lagre</button></div>
     </div>` : ""}
@@ -709,6 +767,7 @@ const FORM_L = { prosjekt: { prosjekt: "Prosjekt", salg: "Tilbud eller mulighet"
 const FORM_PH = { prosjekt: { prosjekt: "F.eks. Nytt sykehus, ITB", salg: "F.eks. Tilbud ITB-koordinator, Bane NOR", intern: "F.eks. Kvalitetsleder, tilbudsansvarlig" }, rolle: { prosjekt: "F.eks. ITB-koordinator", salg: "F.eks. tilbudsansvarlig, fagressurs, CV", intern: "Hva rollen innebærer" } };
 const SLUTT_Q = { prosjekt: ["Hva ble levert, og hva sier kunden?", "Én lærdom faggruppen bør få", "Noe uavsluttet? Timer, endringsordre, sluttfaktura, dokumentasjon, åpne tiltak"], salg: ["Utfall: tapt, utsatt eller lagt bort, og hvorfor?", "Én lærdom til neste tilbud", "Noe uavsluttet? Oppfølging av kunden, referanser, neste anbud"], intern: ["Hva ble levert, og hva sier kollegene og ledelsen?", "Én lærdom faggruppen bør få", "Noe uavsluttet? Dokumentasjon, maler, overlevering, åpne tiltak"] };
 function bindTypeChips(form, idp) {
+  $$("[data-form]", form).forEach(b => b.addEventListener("click", () => { $(`#${idp}-form`, form).value = b.dataset.form; $$("[data-form]", form).forEach(x => x.setAttribute("aria-pressed", x === b)); }));
   $$("[data-type]", form).forEach(b => b.addEventListener("click", () => {
     const v = b.dataset.type; $(`#${idp}-type`, form).value = v; $$("[data-type]", form).forEach(x => x.setAttribute("aria-pressed", x === b));
     $$("[data-only]", form).forEach(f => { f.hidden = !f.dataset.only.split(" ").includes(v); });
@@ -723,6 +782,7 @@ function readProjectForm(el, idp, p) {
   ["prosjekt", "kunde", "prosjektnummer", "rolle", "kontrakt", "kontraktstype", "plan", "mal", "verdi"].forEach(k => { const f = $(`#${idp}-${k}`, el); if (f) p[k] = f.value.trim(); });
   const andel = $(`#${idp}-andel`, el); p.andel = andel && andel.value !== "" ? Math.max(0, Math.min(100, Number(andel.value) || 0)) : (activeProjects().filter(x => x.id !== p.id).length === 0 ? 100 : 0);
   const sd = $(`#${idp}-${p.type === "intern" ? "periode" : "sluttdato"}`, el); if (sd) p.sluttdato = sd.value;
+  const fm = $(`#${idp}-form`, el); p.form = fm && fm.value === "innleie" ? "innleie" : "radgivning"; const op = $(`#${idp}-opsjon`, el); p.opsjon = op ? op.value : ""; const ov = $(`#${idp}-opsjonVarslet`, el); p.opsjonVarslet = !!(ov && ov.checked); const ot = $(`#${idp}-overtatt`, el); p.overtatt = !!(ot && ot.checked);
   if (p.type === "intern") { p.kunde = ""; p.kontraktstype = ""; p.kontrakt = ""; p.prosjektnummer = ""; p.ku_dato = ""; p.ku_score = ""; p.verdi = ""; }
   if (p.type === "salg") { p.kontrakt = ""; p.prosjektnummer = ""; p.ku_dato = ""; p.ku_score = ""; p.plan = ""; p.mal = ""; }
   if (p.type === "prosjekt") { p.verdi = ""; }
@@ -734,7 +794,21 @@ function pulseBlock(pulse) {
 }
 function lightButtons(status, attr) { return STATUS.map((st, k) => `<button type="button" class="light ${SC[st]}" ${attr}="${st}" aria-pressed="${status === st}"><i></i>${LIGHT[st]}<kbd>${k + 1}</kbd></button>`).join(""); }
 let homePulse = null, homePerson = null, homeUtv = [], homeMellom = false, homeDate = "", endedNotice = null;
-function resetHomeState() { homePulse = {}; homePerson = { timer_uke: "", S1: blankSig(), kontakt: "", N1: blankSig(), N3: blankSig() }; homeUtv = []; homeDate = isoToday(); }
+function resetHomeState() { homePulse = {}; homePerson = { timer_uke: "", kapasitet: "", S1: blankSig(), kontakt: "", N1: blankSig(), N3: blankSig() }; homeUtv = []; homeDate = isoToday(); }
+function meExtraFields() {
+  const m = store.me;
+  return `<div class="grid-2" style="margin-top:8px">
+    <div class="field"><label for="me-epost">Leders e-post (valgfritt, for å åpne Teams-chat)</label><input id="me-epost" type="email" value="${esc(m.epost)}" placeholder="leder@involved.no" autocomplete="off"></div>
+    <div class="field"><label for="me-stilling">Stillingsprosent</label><div style="display:flex;gap:6px;align-items:center"><input id="me-stilling" type="number" min="10" max="100" step="5" value="${esc(m.stilling || 100)}" style="width:6em"><span class="muted small">% · timegrenser regnes ut fra dette</span></div></div>
+    <div class="field"><label for="me-startdato">Startet i Involved (valgfritt)</label><input id="me-startdato" type="date" value="${esc(m.startdato)}"><span class="muted small">De første tre månedene får du en oppstartsrunde i stedet for «Mellom oppdrag».</span></div>
+    <div class="field"><label>Roller</label><label class="fld"><input type="checkbox" id="me-teamlederRolle" ${m.teamlederRolle ? "checked" : ""}><span>Jeg er teamleder (nærmeste leder er da daglig leder)</span></label><label class="fld"><input type="checkbox" id="me-eierKunde" ${m.eierKunde ? "checked" : ""}><span>Jeg har selv kunde- og salgsansvar</span></label></div>
+  </div>`;
+}
+function readMe(f) {
+  store.me.konsulent = $("#me-konsulent", f).value.trim(); store.me.teamleder = $("#me-teamleder", f).value.trim(); store.me.epost = ($("#me-epost", f).value || "").trim();
+  store.me.stilling = Math.max(10, Math.min(100, Number($("#me-stilling", f).value) || 100)); store.me.startdato = $("#me-startdato", f).value || ""; store.me.teamlederRolle = $("#me-teamlederRolle", f).checked; store.me.eierKunde = $("#me-eierKunde", f).checked;
+  if (store.me.teamlederRolle && !store.me.teamleder) store.me.teamleder = "";
+}
 function renderHome() {
   if (okt) { saveDraft(); stopTimer(); okt = null; }
   hudMode = "idle"; renderHud(); show("home");
@@ -746,10 +820,13 @@ function renderHome() {
   if (!homePulse || homeDate !== today) resetHomeState();
   const act = activeProjects(); const ledig = act.length && !act.some(isIntern) ? Math.max(0, 100 - act.reduce((n, p) => n + num(p.andel), 0)) : 0;
   const closedSince = lastAny ? store.tiltak.filter(t => t.status === "Lukket" && t.lukket && t.lukket >= lastAny.date).length : 0;
-  const pStreak = lastAny ? personStreak(lastAny.date) : 0;
+  const pStreak = lastAny ? personStreak(lastAny.date.slice(0, 7) === today.slice(0, 7) ? today : lastAny.date) : 0;
   const hint = YEAR_HINTS[Number(today.slice(5, 7))];
   const sumAndel = act.reduce((n, p) => n + num(p.andel), 0);
-  const svarSession = lastAny && lastAny.lederSvar === undefined && store.me.teamleder && lastAny.date.slice(0, 7) < today.slice(0, 7) ? lastAny : null;
+  const svarSession = lastAny && lastAny.lederSvar === undefined && lastAny.date.slice(0, 7) < today.slice(0, 7) ? lastAny : null;
+  const thisMonth = store.sessions.filter(x => x.date.slice(0, 7) === today.slice(0, 7)); const unsent = thisMonth.length && !thisMonth.some(x => x.sentAt) ? thisMonth : null;
+  const fravNow = fravaerFor(today.slice(0, 7)); const prevMonth = addMonths(today.slice(0, 7) + "-15", -1).slice(0, 7); const gapMonths = lastAny ? monthsBetween(lastAny.date, today) - 1 : 0;
+  const backupDue = store.sessions.filter(x => !store.lastBackupAt || x.finishedAt > store.lastBackupAt).length; const onboarding = isOnboarding(today);
   el.innerHTML = `
     <div class="home">
       <div class="home-head">
@@ -758,16 +835,17 @@ function renderHome() {
         <p class="muted">${first ? "Seks påstander per prosjekt, tre linjer. Uenig? Sett gult eller rødt. Forrige måned ligger klar neste gang." : act.length ? "Huk av det du tar nå. Gult og rødt fra sist er beholdt, du endrer det som er nytt." : "Runden uten prosjekt tar to minutter."}</p>
         ${!first && (closedSince || pStreak >= 2 || hint) ? `<p class="muted small">${[closedSince ? `Siden sist: ${closedSince} tiltak lukket.` : "", pStreak >= 2 ? `${pStreak} måneder på rad med ROMA.` : "", hint || ""].filter(Boolean).join(" ")}</p>` : ""}
       </div>
-      ${first ? `<div class="roma-letters"><div><b>R</b>Ressurs</div><div><b>O</b>Oversikt</div><div><b>M</b>Menneske</div><div><b>A</b>Ansvar</div></div>` : ""}
+      ${first ? `<div class="roma-letters"><div><b>R</b>Ressurs</div><div><b>O</b>Oversikt</div><div><b>M</b>Menneske</div><div><b>A</b>Ansvar</div></div><div class="howto"><div><b>1</b>Du setter farge på seks påstander per prosjekt. Grønt er standard, du flagger det som ikke stemmer.</div><div><b>2</b>Du kopierer teksten selv til leder i Teams. Puls og Trygghet går bare dit, aldri i prosjektmappen.</div><div><b>3</b>Leder svarer innen tre virkedager. Appen spør deg neste måned om det skjedde.</div></div>` : ""}
       ${draft ? `<div class="resume"><div><b>Påbegynt runde</b><br><span class="muted">${draft.queue.length ? draft.queue.map(pid => esc((projectById(pid) || {}).prosjekt || "")).join(", ") : "Mellom oppdrag"} · ${fmtDate(draft.date)}</span></div><div class="btn-row"><button type="button" class="btn primary small" id="resume-btn">Fortsett der du slapp</button><button type="button" class="btn ghost small" id="discard-btn">Slett</button></div></div>` : ""}
       ${first ? `
       <form class="card" id="first-form" autocomplete="off"><div class="pform">
         <h2>Deg først</h2>
         <div class="grid-2">
           <div class="field"><label for="me-konsulent">Ditt navn</label><input id="me-konsulent" value="${esc(store.me.konsulent)}" required placeholder="Konsulent"></div>
-          <div class="field"><label for="me-teamleder">Nærmeste leder (valgfritt)</label><input id="me-teamleder" value="${esc(store.me.teamleder)}" placeholder="Teamleder"></div>
+          <div class="field"><label for="me-teamleder">Nærmeste leder</label><input id="me-teamleder" value="${esc(store.me.teamleder)}" placeholder="Navn, eller la stå tomt for daglig leder"></div>
         </div>
-        <div class="btn-row"><button type="submit" class="btn primary">Lagre</button></div>
+        ${meExtraFields()}
+        <div class="btn-row"><button type="submit" class="btn primary">Lagre</button><button type="button" class="btn ghost" id="first-import">Har du brukt Via ROMA før? Hent sikkerhetskopi</button><button type="button" class="btn ghost" id="demo-btn">Prøv med eksempel</button></div>
         <p class="muted small">Prosjekter og roller legger du til etterpå. Har du ingen akkurat nå, kjører du runden uten.</p>
       </div></form>` : `
       <div class="plist" id="plist">
@@ -782,10 +860,14 @@ function renderHome() {
           <form class="card" id="edit-${esc(p.id)}" hidden autocomplete="off">${projectForm(p, "Lagre", "e" + p.id)}</form>`;
         }).join("")}
         ${!act.length ? `<div class="empty">Ingen aktive prosjekter eller roller. Legg til når du har noe, eller kjør runden uten.</div>` : ""}
+        ${pausedProjects().map(p => `<div class="pcard off" data-pid="${esc(p.id)}"><span></span><span class="pname"><b>${esc(p.prosjekt)}</b><span class="pmeta"><span>på pause til ${fmtDate(p.pause.til)}${p.pause.hvorfor ? " · " + esc(p.pause.hvorfor) : ""}</span>${p.pause.til < today ? `<span class="due">pausen er utløpt: gjenoppta, forleng eller avslutt</span>` : ""}</span></span><button type="button" class="btn ghost small" data-edit="${esc(p.id)}">Endre</button></div><form class="card" id="edit-${esc(p.id)}" hidden autocomplete="off">${projectForm(p, "Lagre", "e" + p.id)}</form>`).join("")}
         ${sumAndel > 100 ? `<p class="muted small">Andelene summerer til ${sumAndel} %. Over 100 er i seg selv et signal.</p>` : ledig && ledig > 100 - LEDIG_GRENSE ? `<p class="muted small">Ca. ${ledig} % ledig. Hva bruker du det på? Utviklingsmenyen under puls er åpen.</p>` : ""}
       </div>
+      ${unsent ? `<div class="card" id="unsentbox"><div class="area-head"><div><b>${MONTHS_FULL[Number(today.slice(5, 7)) - 1]}runden er ferdig, men ikke sendt til ${esc(lederNavn())}.</b><br><span class="muted small">Teksten går ikke av seg selv. Kopier og lim inn i Teams.</span></div><div class="btn-row"><button type="button" class="btn small primary" id="unsent-copy">Kopier til Teams</button>${teamsLink() ? `<button type="button" class="btn small" id="unsent-open">Åpne Teams-chat</button>` : ""}</div></div></div>` : thisMonth.length && thisMonth.some(x => x.sentAt) ? `<p class="muted small">Sendt ${fmtDate(thisMonth.find(x => x.sentAt).sentAt.slice(0, 10))} til ${esc(lederNavn())}${lastAny && lastAny.lederSvar && lastAny.lederSvar !== "Nei" && lastAny.date.slice(0, 7) === today.slice(0, 7) ? " · svar mottatt" : ""}.</p>` : ""}
+      ${backupDue >= 3 ? `<div class="note gold small" id="backupnote">${backupDue} runder siden forrige sikkerhetskopi. Alt ligger bare i denne nettleseren. <button type="button" class="btn small" id="backup-now">Ta sikkerhetskopi nå</button></div>` : ""}
+      ${gapMonths >= 1 && !fravNow && !thisMonth.length ? `<div class="note small" id="gapnote">Ingen runde på ${gapMonths} måneder. Var det fravær? <button type="button" class="btn ghost small" data-frav-past="ferie">Ferie</button><button type="button" class="btn ghost small" data-frav-past="permisjon">Permisjon</button><button type="button" class="btn ghost small" data-frav-past="annet">Annet fravær</button> <span class="muted">Fravær teller ikke som hull i årsutskriften.</span></div>` : ""}
       ${endedNotice ? `<div class="card" id="endedbox"><div class="area-head"><div><b>${esc(endedNotice.prosjekt)} avsluttet.</b><br><span class="muted small">Sluttevalueringen som Teams-tekst til leder. Den ligger også i Excel og årsutskriften.</span></div><div class="btn-row"><button type="button" class="btn small primary" id="ended-copy">Kopier til Teams</button>${lastSessionFor(endedNotice.id) ? `<button type="button" class="btn small" id="ended-xl">Excel til ${isKunde(endedNotice) ? "prosjektmappen" : "leder"}</button>` : ""}<button type="button" class="btn ghost small" id="ended-close">Lukk</button></div></div><pre class="teams" style="margin-top:8px">${esc(sluttText(endedNotice))}</pre></div>` : ""}
-      ${svarSession ? `<div class="card" id="svarbox"><div class="area-head"><div><b>Fikk du svar fra ${esc(store.me.teamleder)} på runden i ${fmtMonth(svarSession.date)}?</b><br><span class="muted small">Ærlighet skal føre til noe. Svaret går i ledereksporten.</span></div><div class="btn-row"><button type="button" class="btn small" data-svar="Ja">Ja</button><button type="button" class="btn small" data-svar="Nei">Nei</button></div></div></div>` : ""}
+      ${svarSession ? `<div class="card" id="svarbox"><div class="area-head"><div><b>Fikk du svar fra ${esc(lederNavn())} på runden i ${esc(monthName(svarSession.date))}?</b><br><span class="muted small">Ærlighet skal føre til noe. Svaret går i ledereksporten.</span></div><div class="btn-row"><button type="button" class="btn small" data-svar="Ringte">Ringte</button><button type="button" class="btn small" data-svar="Skrev">Skrev</button><button type="button" class="btn small" data-svar="Nei">Nei</button></div></div></div>` : ""}
       <div class="card" id="pulse-card">
         <div class="area-head" style="margin-bottom:8px"><div><span class="eyebrow">Deg, én gang per måned</span></div><span class="muted small">Kun til nærmeste leder</span></div>
         ${pulseBlock(homePulse)}
@@ -793,17 +875,20 @@ function renderHome() {
           <div class="fields"><label class="fld"><span>Timer per uke, alle oppdrag inkl. reise, ca.</span><input type="number" inputmode="decimal" step="any" min="0" max="80" id="p-timer" value="${esc(homePerson.timer_uke)}" placeholder="${lp && lp.person && lp.person.timer_uke ? "sist " + esc(lp.person.timer_uke) : ""}"><em>t</em></label></div>
           <div class="detail" id="p-s1-detail" ${homePerson.S1.status === "OK" ? "hidden" : ""}><textarea id="p-s1-comment" placeholder="Hva skjer? Én setning. Tas muntlig med leder om du vil." aria-label="Kommentar" autocomplete="off">${esc(homePerson.S1.comment)}</textarea></div>
         </div>
+        <div class="fields" style="margin:6px 0 0"><label class="fld"><span>Avtalt kapasitet denne måneden</span><input type="number" min="10" max="100" step="10" id="p-kap" value="${esc(homePerson.kapasitet || "")}" placeholder="${stilling()}"><em>%</em></label><span class="muted small">Redusert etter avtale med leder? Sett prosenten. Ingen begrunnelse spørres.</span></div>
         <div class="sig" data-person="kontakt"><div class="sig-main"><div class="sig-text"><div class="lbl"><span class="roma">M</span><b>Tilhørighet</b>${lp && lp.person && lp.person.kontakt ? `<span class="sist">sist ${lp.person.kontakt}</span>` : ""}</div><p>Jeg har hatt reell kontakt med kollega eller leder i Involved siste måned.</p></div><div class="lights"><button type="button" class="light OK" data-kontakt="ja" aria-pressed="${homePerson.kontakt === "ja"}"><i></i>Ja</button><button type="button" class="light Risiko" data-kontakt="nei" aria-pressed="${homePerson.kontakt === "nei"}"><i></i>Nei</button></div></div></div>
+        ${store.me.teamlederRolle ? `<div class="fields" style="margin:6px 0 0"><label class="fld"><span>Teamet mitt: levert ROMA</span><input type="number" min="0" id="p-team-levert" value="${esc((homePerson.team || {}).levert || "")}"><em>av</em><input type="number" min="0" id="p-team-antall" value="${esc((homePerson.team || {}).antall || "")}"><em>· røde</em><input type="number" min="0" id="p-team-rode" value="${esc((homePerson.team || {}).rode || "")}"></label><span class="muted small">Går i din tekst til daglig leder.</span></div>` : ""}
         <div id="modebox" style="margin-top:12px"></div>
       </div>
       <div class="startbar card">
         <div><b id="start-count"></b><br><span class="muted small">${esc(store.me.konsulent)}${store.me.teamleder ? ` · leder ${esc(store.me.teamleder)}` : ""} · <button type="button" class="btn ghost small" id="me-edit">endre</button></span></div>
-        <div class="btn-row"><button type="button" class="btn" id="add-btn">+ Prosjekt eller rolle</button><button type="button" class="btn primary" id="start-btn">${draft ? "Start ny runde" : "Start"}</button></div>
+        <div class="btn-row"><button type="button" class="btn" id="add-btn">+ Prosjekt eller rolle</button>${!thisMonth.length && !fravNow ? `<button type="button" class="btn ghost" id="frav-btn" title="Ferie, permisjon eller annet fravær: måneden teller ikke som hull">Ingen runde denne måneden</button>` : fravNow ? `<span class="muted small">Merket som ${esc(fravNow.type)} denne måneden. <button type="button" class="btn ghost small" id="frav-undo">Angre</button></span>` : ""}<button type="button" class="btn primary" id="start-btn">${draft ? "Start ny runde" : act.length ? "Start" : onboarding ? "Start oppstartsrunde" : "Start runde uten prosjekt"}</button></div>
       </div>
       <form class="card" id="add-form" hidden autocomplete="off">${projectForm(null, "Legg til", "np", true)}</form>
       <form class="card" id="me-form" hidden autocomplete="off"><div class="pform"><div class="grid-2">
         <div class="field"><label for="me-konsulent">Ditt navn</label><input id="me-konsulent" value="${esc(store.me.konsulent)}" required></div>
-        <div class="field"><label for="me-teamleder">Nærmeste leder</label><input id="me-teamleder" value="${esc(store.me.teamleder)}"></div></div>
+        <div class="field"><label for="me-teamleder">Nærmeste leder</label><input id="me-teamleder" value="${esc(store.me.teamleder)}" placeholder="Navn, eller la stå tomt for daglig leder"></div></div>
+        ${meExtraFields()}
         <div class="btn-row"><button type="submit" class="btn primary">Lagre</button></div></div></form>`}
       <details class="note privacy muted small"><summary>Om data og personvern</summary><p style="margin-top:6px">${esc(PRIVACY_TEXT)}</p></details>
     </div>`;
@@ -812,19 +897,29 @@ function renderHome() {
     $("#discard-btn", el).addEventListener("click", ev => { const b = ev.currentTarget; if (b.dataset.armed) { store.okt = null; okt = null; saveStore(); renderHome(); } else { b.dataset.armed = "1"; b.textContent = "Sikker? Slett"; b.classList.add("danger"); } });
   } else if (store.okt) { store.okt = null; saveStore(); }
   if (first) {
-    $("#first-form", el).addEventListener("submit", ev => { ev.preventDefault(); store.me.konsulent = $("#me-konsulent", el).value.trim(); store.me.teamleder = $("#me-teamleder", el).value.trim(); if (!store.me.konsulent) { toast("Skriv navnet ditt"); return; } saveStore(); renderHome(); toast("Lagret. Legg til prosjekt eller rolle, eller kjør runden uten."); });
+    $("#first-form", el).addEventListener("submit", ev => { ev.preventDefault(); readMe($("#first-form", el)); if (!store.me.konsulent) { toast("Skriv navnet ditt"); return; } saveStore(); renderHome(); toast("Lagret. Legg til prosjekt eller rolle, eller kjør runden uten."); });
+    $("#first-import", el).addEventListener("click", () => { renderOverview(); setTimeout(() => { const b = $("#import-btn"); if (b) b.click(); }, 50); });
+    $("#demo-btn", el).addEventListener("click", () => startDemo());
     return;
   }
   $$("[data-pulse] button", el).forEach(b => b.addEventListener("click", () => { const g = b.closest("[data-pulse]"); homePulse[g.dataset.pulse] = Number(b.dataset.v); $$("button", g).forEach(x => x.setAttribute("aria-pressed", x === b)); $(`#anchor-${g.dataset.pulse}`, el).textContent = PULSE.find(x => x.k === g.dataset.pulse).anchors[Number(b.dataset.v) - 1]; renderModeBox(el); }));
   $$("[data-pst]", el).forEach(b => b.addEventListener("click", ev => { if (ev.isTrusted) homePerson.S1.auto = false; homePerson.S1.status = b.dataset.pst; $$("[data-pst]", el).forEach(x => x.setAttribute("aria-pressed", x === b)); const row = b.closest(".sig"); row.className = `sig st-${SC[homePerson.S1.status]}`; $("#p-s1-detail", el).hidden = homePerson.S1.status === "OK"; renderModeBox(el); }));
   $("#p-s1-comment", el).addEventListener("input", ev => { homePerson.S1.comment = ev.target.value; });
-  $("#p-timer", el).addEventListener("change", ev => { if (num(ev.target.value) > 80) ev.target.value = "80"; homePerson.timer_uke = ev.target.value; const t = num(ev.target.value); const sug = t > HOURS.rod ? "Krever tiltak" : t > HOURS.gul ? "Risiko" : "OK"; if (RANK[sug] > RANK[homePerson.S1.status]) { homePerson.S1.auto = true; $(`[data-pst="${sug}"]`, el).click(); toast(`Satt til ${LIGHT[sug].toLowerCase()} ut fra timene. Var det én uke eller hele måneden? Skriv gjerne en linje.`); } else if (homePerson.S1.auto && RANK[sug] < RANK[homePerson.S1.status]) { $(`[data-pst="${sug}"]`, el).click(); homePerson.S1.auto = sug !== "OK"; } else renderModeBox(el); });
+  ["levert", "antall", "rode"].forEach(k => { const i = $(`#p-team-${k}`, el); if (i) i.addEventListener("change", () => { homePerson.team = homePerson.team || {}; homePerson.team[k] = Number(i.value) || 0; }); });
+  $("#p-kap", el).addEventListener("change", ev => { const v = Number(ev.target.value); homePerson.kapasitet = v >= 10 && v <= 100 ? v : ""; ev.target.value = homePerson.kapasitet || ""; renderModeBox(el); });
+  const fb2 = $("#frav-btn", el); if (fb2) fb2.addEventListener("click", ev => { const b = ev.currentTarget; if (!b.dataset.armed) { b.dataset.armed = "1"; b.innerHTML = 'Hvorfor? <span class="chips" style="display:inline-flex;gap:4px"><span class="chip opt" data-frav="ferie">Ferie</span><span class="chip opt" data-frav="permisjon">Permisjon</span><span class="chip opt" data-frav="annet">Annet</span></span>'; $$("[data-frav]", b).forEach(c => c.addEventListener("click", e => { e.stopPropagation(); store.fravaer.push({ m: today.slice(0, 7), type: c.dataset.frav }); saveStore(); renderHome(); toast("Måneden er merket som fravær. God tur."); })); } });
+  const fu = $("#frav-undo", el); if (fu) fu.addEventListener("click", () => { store.fravaer = store.fravaer.filter(f => f.m !== today.slice(0, 7)); saveStore(); renderHome(); });
+  $$("[data-frav-past]", el).forEach(b => b.addEventListener("click", () => { for (let i = 1; i <= gapMonths; i++) { const m = addMonths(today.slice(0, 7) + "-15", -i).slice(0, 7); if (!fravaerFor(m) && lastAny && m > lastAny.date.slice(0, 7)) store.fravaer.push({ m, type: b.dataset.fravPast }); } saveStore(); renderHome(); toast("Registrert. Frister på gamle tiltak settes på nytt i neste runde."); }));
+  const uc = $("#unsent-copy", el); if (uc) uc.addEventListener("click", async () => { try { await navigator.clipboard.writeText(leaderText(unsent)); markSent(unsent); toast("Kopiert. Lim inn i Teams til leder."); renderHome(); } catch (e) { toast("Kunne ikke kopiere."); } });
+  const uo = $("#unsent-open", el); if (uo) uo.addEventListener("click", () => { markSent(unsent); openTeams(leaderText(unsent)); });
+  const bn = $("#backup-now", el); if (bn) bn.addEventListener("click", () => backupNow());
+  $("#p-timer", el).addEventListener("change", ev => { if (num(ev.target.value) > 80) ev.target.value = "80"; homePerson.timer_uke = ev.target.value; const t = num(ev.target.value); const sug = hoursLevel(t, homePerson.kapasitet); if (RANK[sug] > RANK[homePerson.S1.status]) { homePerson.S1.auto = true; $(`[data-pst="${sug}"]`, el).click(); toast(`Satt til ${LIGHT[sug].toLowerCase()} ut fra timene. Var det én uke eller hele måneden? Skriv gjerne en linje.`); } else if (homePerson.S1.auto && RANK[sug] < RANK[homePerson.S1.status]) { $(`[data-pst="${sug}"]`, el).click(); homePerson.S1.auto = sug !== "OK"; } else renderModeBox(el); });
   $$("[data-kontakt]", el).forEach(b => b.addEventListener("click", () => { homePerson.kontakt = b.dataset.kontakt; $$("[data-kontakt]", el).forEach(x => x.setAttribute("aria-pressed", x === b)); b.closest(".sig").className = `sig st-${homePerson.kontakt === "nei" ? "Risiko" : "OK"}`; }));
-  $$("[data-svar]", el).forEach(b => b.addEventListener("click", () => { const m = svarSession.date.slice(0, 7); store.sessions.forEach(x => { if (x.date.slice(0, 7) === m) x.lederSvar = b.dataset.svar; }); saveStore(); if (b.dataset.svar === "Ja") store.tiltak.forEach(t => { if (t.area === "Utvikling" && t.dato.slice(0, 7) === m && /^Foreslått/.test(t.kommentar || "")) t.kommentar = `Avtalt med ${store.me.teamleder || "leder"}`; }); saveStore(); $("#svarbox", el).innerHTML = `<p class="muted small">${b.dataset.svar === "Ja" ? "Bra. Sløyfen er lukket." : "Notert. Det står øverst i Teams-teksten til leder neste runde."}</p>`; }));
+  $$("[data-svar]", el).forEach(b => b.addEventListener("click", () => { const m = svarSession.date.slice(0, 7); store.sessions.forEach(x => { if (x.date.slice(0, 7) === m) x.lederSvar = b.dataset.svar; }); saveStore(); if (b.dataset.svar !== "Nei") store.tiltak.forEach(t => { if (t.area === "Utvikling" && t.dato.slice(0, 7) === m && /^Foreslått/.test(t.kommentar || "")) t.kommentar = `Avtalt med ${store.me.teamleder || "leder"}`; }); saveStore(); $("#svarbox", el).innerHTML = `<p class="muted small">${b.dataset.svar !== "Nei" ? "Bra. Sløyfen er lukket." : "Notert. Det står øverst i Teams-teksten til leder neste runde."}</p>`; }));
   const eb = $("#ended-copy", el); if (eb) eb.addEventListener("click", async () => { try { await navigator.clipboard.writeText(sluttText(endedNotice)); endedNotice.sluttMeldt = true; saveStore(); toast("Kopiert. Lim inn i Teams til leder."); } catch (e) { toast("Kunne ikke kopiere. Marker teksten og kopier manuelt."); } });
   const ex = $("#ended-xl", el); if (ex) ex.addEventListener("click", () => exportProject(lastSessionFor(endedNotice.id)));
   const ec = $("#ended-close", el); if (ec) ec.addEventListener("click", () => { endedNotice = null; renderHome(); });
-  const updateCount = () => { const chk = $$("#plist input[type=checkbox]:checked", el); const n = chk.length; const mins = chk.reduce((m, c) => { const pr = projectById(c.closest(".pcard").dataset.pid); return m + (pr && num(pr.andel) > 0 && num(pr.andel) <= SMALL_SHARE ? 1 : 3); }, 0); $("#start-count", el).textContent = n ? `${n} valgt · ≈ ${mins + 1} min med deg` : act.length ? "Velg minst ett prosjekt" : "Runde uten prosjekt, ≈ 2 min"; $$(".pcard", el).forEach(c => c.classList.toggle("off", !$("input", c).checked)); homeMellom = act.length === 0; renderModeBox(el); };
+  const updateCount = () => { const chk = $$("#plist input[type=checkbox]:checked", el); const n = chk.length; const mins = chk.reduce((m, c) => { const pr = projectById(c.closest(".pcard").dataset.pid); return m + (pr && num(pr.andel) > 0 && num(pr.andel) <= SMALL_SHARE ? 1 : 3); }, 0); $("#start-count", el).textContent = n ? `${n} valgt · ≈ ${mins + 1} min med deg` : act.length ? "Velg minst ett prosjekt" : "Runde uten prosjekt, ≈ 2 min"; $$(".pcard", el).forEach(c => { const i = $("input", c); if (i) c.classList.toggle("off", !i.checked); }); homeMellom = act.length === 0; renderModeBox(el); };
   $$("#plist input[type=checkbox]", el).forEach(c => c.addEventListener("change", updateCount)); updateCount();
   $("#start-btn", el).addEventListener("click", ev => {
     const ids = $$("#plist input[type=checkbox]:checked", el).map(c => c.closest(".pcard").dataset.pid);
@@ -838,16 +933,19 @@ function renderHome() {
   bindTypeChips($("#add-form", el), "np");
   $("#add-form", el).addEventListener("submit", ev => { ev.preventDefault(); const p = readProjectForm($("#add-form", el), "np"); if (!p.prosjekt || (p.type === "prosjekt" && !p.kontraktstype)) { toast(p.type === "prosjekt" ? "Fyll inn prosjekt og kontraktstype" : p.type === "salg" ? "Gi tilbudet et navn" : "Fyll inn rollen"); return; } store.projects.push(p); saveStore(); renderHome(); toast(`${p.prosjekt} lagt til`); });
   $("#me-edit", el).addEventListener("click", () => { const f = $("#me-form", el); f.hidden = !f.hidden; });
-  $("#me-form", el).addEventListener("submit", ev => { ev.preventDefault(); const f = $("#me-form", el); store.me.konsulent = $("#me-konsulent", f).value.trim(); store.me.teamleder = $("#me-teamleder", f).value.trim(); saveStore(); renderHome(); });
+  $("#me-form", el).addEventListener("submit", ev => { ev.preventDefault(); readMe($("#me-form", el)); saveStore(); renderHome(); });
   $$("[data-edit]", el).forEach(b => b.addEventListener("click", () => { const f = $(`#edit-${b.dataset.edit}`, el); f.hidden = !f.hidden; }));
-  act.forEach(p => {
+  act.concat(pausedProjects()).forEach(p => {
     const f = $(`#edit-${p.id}`, el); if (!f) return; bindTypeChips(f, "e" + p.id);
     f.addEventListener("submit", ev => { ev.preventDefault(); readProjectForm(f, "e" + p.id, p); saveStore(); renderHome(); toast("Lagret"); });
     $("[data-cancel]", f).addEventListener("click", () => { f.hidden = true; });
     $("[data-end]", f).addEventListener("click", () => { const box = $("[data-slutt]", f); box.hidden = !box.hidden; if (!box.hidden) box.scrollIntoView({ block: "center" }); });
+    const pb = $("[data-pause]", f); if (pb) pb.addEventListener("click", () => { const box = $("[data-pausebox]", f); box.hidden = !box.hidden; });
+    const pc = $("[data-pause-confirm]", f); if (pc) pc.addEventListener("click", () => { p.pause = { til: $(`#e${p.id}-pausetil`, f).value || addMonths(today, 3), fra: today, hvorfor: $(`#e${p.id}-pausehvorfor`, f).value.trim() }; if (store.okt && Array.isArray(store.okt.queue)) { store.okt.queue = store.okt.queue.filter(x => x !== p.id); delete store.okt.sessions[p.id]; if (!store.okt.queue.length) store.okt = null; } saveStore(); renderHome(); toast(`${p.prosjekt} er på pause til ${fmtDate(p.pause.til)}.`); });
+    const rb = $("[data-resume]", f); if (rb) rb.addEventListener("click", () => { p.pause = null; saveStore(); renderHome(); toast(`${p.prosjekt} er aktivt igjen.`); });
     const wb = $("[data-won]", f); if (wb) wb.addEventListener("click", ev => { const b = ev.currentTarget; if (!b.dataset.armed) { b.dataset.armed = "1"; b.textContent = "Bekreft: kontrakten er vunnet"; return; } readProjectForm(f, "e" + p.id, p); p.type = "prosjekt"; p.vunnet = today; p.oppstart = false; p.sluttdato = ""; p.verdi = ""; saveStore(); renderHome(); toast(`Gratulerer! ${p.prosjekt} er nå et kundeoppdrag. Sett kontraktstype, kontrakt og sluttdato under Endre.`); pop(); });
     $("[data-end-confirm]", f).addEventListener("click", () => {
-      p.slutt = { levert: $(`#e${p.id}-sl1`, f).value.trim(), annerledes: $(`#e${p.id}-sl2`, f).value.trim(), uavsluttet: $(`#e${p.id}-sl3`, f).value.trim(), dato: today };
+      p.slutt = { levert: $(`#e${p.id}-sl1`, f).value.trim(), annerledes: $(`#e${p.id}-sl2`, f).value.trim(), uavsluttet: $(`#e${p.id}-sl3`, f).value.trim(), dato: today }; const rf = $(`#e${p.id}-ref`, f); if (rf) p.referanse = rf.value;
       p.avsluttet = today; const open = openTiltak(p.id); const closeAll = !!p.slutt.uavsluttet && NOTHING.test(p.slutt.uavsluttet); let closed = 0;
       open.forEach(t => { if (!closeAll || (store.me.teamleder && t.ansvarlig === store.me.teamleder)) { t.kommentar = [t.kommentar, "Prosjektet er avsluttet, tiltaket står åpent"].filter(Boolean).join(" · "); return; } t.status = "Lukket"; t.lukket = today; closed++; t.kommentar = [t.kommentar, "Lukket ved avslutning av prosjektet"].filter(Boolean).join(" · "); });
       if (store.okt && Array.isArray(store.okt.queue)) { store.okt.queue = store.okt.queue.filter(x => x !== p.id); delete store.okt.sessions[p.id]; if (!store.okt.queue.length) store.okt = null; }
@@ -857,16 +955,16 @@ function renderHome() {
 }
 function sluttText(p) {
   const last = lastSessionFor(p.id); const open = openTiltak(p.id); const S = p.slutt || {};
-  return [`Kun til nærmeste leder.`, `${isSalg(p) ? "Salgsarbeid avsluttet" : "Avsluttet"} ${fmtDate(p.avsluttet)}: ${p.prosjekt}${isIntern(p) ? " (intern rolle)" : p.kunde ? ` (${p.kunde})` : ""} · ${store.me.konsulent}${last ? ` · siste ROMA ${fmtMonth(last.date)} ${AMPEL_EMOJI[ampel(last)]}` : ""}`, S.levert ? `• ${isSalg(p) ? "Utfall" : "Levert"}: ${S.levert}` : "", S.annerledes ? `• ${isSalg(p) ? "Lærdom til neste tilbud" : "Lærdom til faggruppen"}: ${S.annerledes}` : "", S.uavsluttet ? `• Uavsluttet: ${S.uavsluttet}` : "", open.length ? `→ Åpne tiltak: ${open.map(t => `${t.tekst} (${t.ansvarlig}${t.frist ? ", " + fmtDate(t.frist) : ""})`).join("; ")}` : "", isKunde(p) ? `Kundeundersøkelse: ${p.ku_dato ? "sendt " + fmtDate(p.ku_dato) + (p.ku_score ? ", score " + p.ku_score : "") : "ikke registrert, be kvalitetsleder sende"}` : ""].filter(Boolean).join("\n");
+  return [`Kun til nærmeste leder.`, `${isSalg(p) ? "Salgsarbeid avsluttet" : "Avsluttet"} ${fmtDate(p.avsluttet)}: ${p.prosjekt}${isIntern(p) ? " (intern rolle)" : p.kunde ? ` (${p.kunde})` : ""} · ${store.me.konsulent}${last ? ` · siste ROMA ${fmtMonth(last.date)} ${AMPEL_EMOJI[ampel(last)]}` : ""}`, S.levert ? `• ${isSalg(p) ? "Utfall" : "Levert"}: ${S.levert}` : "", S.annerledes ? `• ${isSalg(p) ? "Lærdom til neste tilbud" : "Lærdom til faggruppen"}: ${S.annerledes}` : "", S.uavsluttet ? `• Uavsluttet: ${S.uavsluttet}` : "", open.length ? `→ Åpne tiltak: ${open.map(t => `${t.tekst} (${t.ansvarlig}${t.frist ? ", " + fmtDate(t.frist) : ""})`).join("; ")}` : "", isKunde(p) ? `${p.referanse ? "Referanse: " + p.referanse.toLowerCase() + " · " : ""}Kundeundersøkelse: ${p.ku_dato ? "sendt " + fmtDate(p.ku_dato) + (p.ku_score ? ", score " + p.ku_score : "") : "ikke registrert, be kvalitetsleder sende"}` : ""].filter(Boolean).join("\n");
 }
 function renderModeBox(el) {
   const box = $("#modebox", el); if (!box) return;
   if (!PULSE.every(pm => homePulse[pm.k])) { box.innerHTML = ""; return; }
-  const mode = modeOf(homePulse, homePerson.timer_uke, homeMellom); const heavy = isHeavy(homePulse, homePerson, []);
+  const mode = modeOf(homePulse, homePerson.timer_uke, homeMellom, homePerson); const heavy = isHeavy(homePulse, homePerson, []);
   const leder = store.me.teamleder || "leder";
   let html = `<span class="modepill ${mode}">${MODE_LABEL[mode]}</span> <span class="muted small">${heavy ? "" : mode === "Travel" ? "Seks signaler, tre linjer. Resten kan vente." : mode === "Rolig" ? "Det er ikke et problem, det er en åpning." : mode === "Mellom" ? "Runden tar to minutter." : ""}</span>`;
   if (heavy) html += `<div class="note gold" style="margin-top:10px"><b>Takk for at du sier det.</b> Dette går bare til ${esc(leder)}. Involveds rutine er at ${esc(leder)} ringer deg ${SVAR}. Vil du heller ringe selv nå, er det greit. Du trenger ikke skrive mer her enn du vil.</div>`;
-  const ledigNaa = activeProjects().length && !activeProjects().some(isIntern) && activeProjects().reduce((n, p) => n + num(p.andel), 0) < LEDIG_GRENSE;
+  const kapNaa = homePerson.kapasitet || stilling(); const ledigNaa = kapNaa >= stilling() && activeProjects().length && !activeProjects().some(isIntern) && activeProjects().reduce((n, p) => n + num(p.andel), 0) < LEDIG_GRENSE * kapNaa / 100;
   const showUtv = !heavy && (mode === "Rolig" || mode === "Mellom" || ledigNaa || box.dataset.utv === "1");
   if (!showUtv && homeUtv.length && box.dataset.utv !== "1") homeUtv = [];
   if (showUtv) html += `<div class="utv" style="margin-top:10px"><div><b>${mode === "Mellom" ? "Hvis du vil: hva har du lyst til å bruke tiden på?" : "Du har rom nå. Hva vil du bruke det på?"}</b><br><span class="muted small">Fakturering svinger. Kompetanse gjør det ikke. Velg én eller to. Det går til leder som forslag, og blir avtale når leder svarer.</span></div><div class="chips">${UTVIKLING.map(u => `<button type="button" class="chip opt" data-utv="${u.k}" aria-pressed="${homeUtv.some(x => x.k === u.k)}" title="${esc(u.d)} · ca. ${u.t} t">${esc(u.l)}</button>`).join("")}</div>${homeUtv.map(x => `<div class="chosen"><span>${esc(UTV_BY[x.k].l)}</span><label class="muted small">ca. <input type="number" data-utvt="${x.k}" value="${x.t}" min="1"> t</label><label class="muted small">klart <input type="month" data-utvm="${x.k}" value="${x.m}"></label></div>`).join("")}</div>`;
@@ -879,7 +977,7 @@ function renderModeBox(el) {
 }
 function startOkt(ids) {
   const mellom = ids.length === 0;
-  okt = { id: uid(), date: isoToday(), queue: ids, idx: 0, pulse: Object.assign({}, homePulse), person: JSON.parse(JSON.stringify(homePerson)), utvikling: homeUtv.map(x => Object.assign({}, x)), mode: modeOf(homePulse, homePerson.timer_uke, mellom), sessions: {} };
+  okt = { id: uid(), date: isoToday(), queue: ids, idx: 0, pulse: Object.assign({}, homePulse), person: JSON.parse(JSON.stringify(homePerson)), utvikling: homeUtv.map(x => Object.assign({}, x)), mode: modeOf(homePulse, homePerson.timer_uke, mellom, homePerson), sessions: {} };
   ids.forEach(pid => { okt.sessions[pid] = makeSession(projectById(pid)); });
   if (mellom) { okt.sessions[""] = makeMellomSession(); okt.queue = []; }
   const s0 = mellom ? okt.sessions[""] : okt.sessions[ids[0]]; s0.startedAt = Date.now();
@@ -891,9 +989,9 @@ function startOkt(ids) {
    ===================================================================== */
 function sigAuto(S, s) {
   const f = s.fields || {};
-  if (S.id === "S3") { if (isIntern(s.project)) return null; if (isSalg(s.project)) return num(f.salgstimer) > 40 ? "Risiko" : null; const hasRamme = sigFields(S, s).length && f.ramme; const hasNums = hasRamme && f.fremdrift; return (hasNums && num(f.ramme) > 80 && num(f.fremdrift) < 60) || (hasRamme && num(f.ramme) >= 100) ? "Krever tiltak" : ((hasNums && num(f.ramme) > num(f.fremdrift) + 10) || (hasRamme && num(f.ramme) >= 90) || f.utestaende) ? "Risiko" : null; }
+  if (S.id === "S3") { if (isIntern(s.project)) return null; if (isSalg(s.project)) return num(f.salgstimer) > 40 ? "Risiko" : null; const hasRamme = sigFields(S, s).length && f.ramme; const hasNums = hasRamme && f.fremdrift; return (hasNums && num(f.ramme) > 80 && num(f.fremdrift) < 60) || (hasRamme && num(f.ramme) >= 100) ? "Krever tiltak" : ((hasNums && num(f.ramme) > num(f.fremdrift) + 10) || (hasRamme && num(f.ramme) >= 90) || f.utestaende || f.timeliste) ? "Risiko" : null; }
   if (S.id === "S4") { if (!isKunde(s.project)) return null; const t = num(f.endringstimer); return t > 20 ? "Krever tiltak" : t > 0 ? "Risiko" : null; }
-  if (S.id === "S7") { if (isIntern(s.project)) return null; const sd = s.project.sluttdato; if (!sd) return null; if (isSalg(s.project)) return sd < s.date ? "Krever tiltak" : sd < addDays(s.date, 14) ? "Risiko" : null; return sd < s.date ? "Krever tiltak" : sd < addDays(s.date, 30) ? "Krever tiltak" : sd < addDays(s.date, 90) ? "Risiko" : null; }
+  if (S.id === "S7") { if (isIntern(s.project)) return null; const sd = s.project.opsjonVarslet && s.project.opsjon && s.project.opsjon > (s.project.sluttdato || "") ? s.project.opsjon : s.project.sluttdato; if (!sd) return null; if (isSalg(s.project)) return sd < s.date ? "Krever tiltak" : sd < addDays(s.date, 14) ? "Risiko" : null; return sd < s.date ? "Krever tiltak" : sd < addDays(s.date, 30) ? "Krever tiltak" : sd < addDays(s.date, 90) ? "Risiko" : null; }
   return null;
 }
 function renderSig(s, S) {
@@ -902,7 +1000,7 @@ function renderSig(s, S) {
   const nr = a.status === NR;
   const lights = nr ? `<button type="button" class="light" data-st="OK"><i></i>Ta med likevel</button>` : lightButtons(a.status, "data-st");
   const flds = S.id === "S4" && !flagged ? [] : sigFields(S, s); const pf = s.prevFields || {}; const chronic = flagged ? monthsSameStatus(s, S) : 1;
-  const fields = !nr && (flds.length || (S.toggle && isKunde(s.project)) || (S.id === "S7" && !isIntern(s.project))) ? `<div class="fields">${flds.map(f => `<label class="fld"><span>${esc(f.l)}</span><input type="number" inputmode="decimal" step="any" data-fld="${f.k}" value="${esc(s.fields[f.k] || "")}" placeholder="${pf[f.k] ? "sist " + esc(pf[f.k]) : ""}"><em>${esc(f.u)}</em></label>`).join("")}${S.toggle && isKunde(s.project) ? `<label class="fld"><input type="checkbox" data-fld="${S.toggle.k}" ${s.fields[S.toggle.k] ? "checked" : ""}><span>${esc(S.toggle.l)}</span></label>` : ""}${S.id === "S3" && isKunde(s.project) && !s.project.kontraktstype ? `<span class="muted small">Sett kontraktstype under Endre for å få tallfelt.</span>` : ""}${S.id === "S7" && !isIntern(s.project) ? `<span class="fld"><span>${isSalg(s.project) ? "Frist" : "Løper ut"}</span><b class="mono">${fmtDate(s.project.sluttdato) || "ikke satt"}</b>${s.project.sluttdato && s.project.sluttdato < s.date ? `<span class="muted small">${isSalg(s.project) ? "passert: vunnet, tapt eller utsatt? Oppdater under Endre" : "passert: oppdater dato under Endre, eller avslutt prosjektet"}</span>` : a.status === "OK" && a.manual ? `<span class="muted small">neste fase avklart</span>` : ""}</span>` : ""}</div>` : "";
+  const fields = !nr && (flds.length || (S.toggle && isKunde(s.project)) || (S.id === "S7" && !isIntern(s.project))) ? `<div class="fields">${flds.map(f => `<label class="fld"><span>${esc(f.l)}</span><input type="number" inputmode="decimal" step="any" data-fld="${f.k}" value="${esc(s.fields[f.k] || "")}" placeholder="${pf[f.k] ? "sist " + esc(pf[f.k]) : ""}"><em>${esc(f.u)}</em></label>`).join("")}${S.toggle && isKunde(s.project) ? `<label class="fld"><input type="checkbox" data-fld="${S.toggle.k}" ${s.fields[S.toggle.k] ? "checked" : ""}><span>${esc(S.toggle.l)}</span></label><label class="fld"><input type="checkbox" data-fld="${S.toggle2.k}" ${s.fields[S.toggle2.k] ? "checked" : ""}><span>${esc(S.toggle2.l)}</span></label>` : ""}${S.id === "S3" && isKunde(s.project) && !s.project.kontraktstype ? `<span class="muted small">Sett kontraktstype under Endre for å få tallfelt.</span>` : ""}${S.id === "S7" && !isIntern(s.project) ? `<span class="fld"><span>${isSalg(s.project) ? "Frist" : "Løper ut"}</span><b class="mono">${fmtDate(s.project.sluttdato) || "ikke satt"}</b>${s.project.sluttdato && s.project.sluttdato < s.date ? `<span class="muted small">${isSalg(s.project) ? "passert: vunnet, tapt eller utsatt? Oppdater under Endre" : "passert: oppdater dato under Endre, eller avslutt prosjektet"}</span>` : a.status === "OK" && a.manual ? `<span class="muted small">neste fase avklart</span>` : ""}</span>` : ""}</div>` : "";
   const ku = S.id === "S5" && isKunde(s.project) ? (s.project.ku_dato ? `<div class="muted small">Siste kundeundersøkelse ${fmtDate(s.project.ku_dato)}${s.project.ku_score ? `, score ${esc(s.project.ku_score)}` : ""}${monthsBetween(s.project.ku_dato, s.date) >= 12 ? " · over ett år siden, tid for ny?" : ""}</div>` : `<div class="muted small">Ingen kundeundersøkelse registrert. Legg inn dato under Endre når den er sendt.</div>`) : "";
   const fristOpts = [["+2 uker", addDays(s.date, 14)], ["Neste ROMA", addMonths(s.date, 1)]];
   const detail = flagged ? `<div class="detail">
@@ -982,11 +1080,12 @@ function renderRun() {
   el.innerHTML = `
     <div class="run">
       <div class="run-head"><div><span class="eyebrow">${intern ? "Rolle" : isSalg(p) ? "Salgsarbeid" : "Prosjekt"} ${okt.idx + 1} av ${okt.queue.length} · ${fmtDate(s.date)}${short ? " · kort runde" : ""}</span><h1>${esc(p.prosjekt)}</h1><p class="muted small">${esc([intern ? "intern rolle" : isSalg(p) ? "salgsarbeid" : "", p.kunde, p.rolle, intern ? p.plan : p.kontraktstype, p.andel ? p.andel + " %" : "", isSalg(p) && p.verdi ? "ca. " + p.verdi + " t" : ""].filter(Boolean).join(" · "))}</p></div></div>
-      ${!p.oppstart && isKunde(p) && (!prev || p.vunnet) ? `<div class="note gold small" id="oppstart"><b>Første runde på prosjektet: oppstartssjekk</b> (rutinens trinn 1). Kontrakt signert og på SharePoint · rolle og ansvarsbegrensning avklart (NS 8401/8402) · omfang, ramme og sluttdato kjent · hvem er kontraktspart og beslutningstaker · hva må jeg lære de første ukene. ${p.kontrakt !== "Ja" ? `Kontraktfeltet står på «${esc(p.kontrakt || "ikke valgt")}» og flagges til leder til det er «Ja».` : ""} <button type="button" class="btn small" id="oppstart-ok">Gjennomgått</button></div>` : ""}
+      ${!p.oppstart && isKunde(p) && (!prev || p.vunnet) ? `<div class="note gold small" id="oppstart"><b>${p.overtatt ? "Overtatt fra kollega: overleveringssjekk" : "Første runde på prosjektet: oppstartssjekk"}</b> (rutinens trinn 1). ${p.overtatt ? "Overleveringsnotat mottatt · ramme eller avrop brukt hittil (fyll inn under Økonomi) · åpne avklaringer og endringer · kunden er informert skriftlig om byttet · hvem er kontraktspart og beslutningstaker." : `Kontrakt ${p.kontrakt === "Avrop" ? "eller avrop" : ""} på plass · rolle og ansvarsbegrensning avklart (${p.form === "innleie" ? "innleieavtale, hva jeg ikke skal ha ansvar for" : "NS 8401/8402"}) · omfang, ramme og sluttdato kjent · hvem er kontraktspart og beslutningstaker · hva må jeg lære de første ukene.`} ${p.kontrakt !== "Ja" ? `Kontraktfeltet står på «${esc(p.kontrakt || "ikke valgt")}» og flagges til leder til det er «Ja».` : ""} <button type="button" class="btn small" id="oppstart-ok">Gjennomgått</button></div>` : ""}
       ${prev ? `<div class="lastbox"><div><b>${fmtMonth(prev.date)}:</b> <span class="lights-mini">${SIGNALS.map(S => `<i class="${SC[(prev.sig && prev.sig[S.id] || {}).status || "OK"]}"></i>`).join("")}</span> ${prevFlags ? `${prevFlags} flagget` : "alt grønt"}${open.length ? ` · ${open.length} åpne tiltak` : ""}. Gult og rødt er beholdt${intern ? "" : ", økonomi settes fra tallene"}, Trygghet spørres på nytt.${prev.takeaway ? `<br><span class="muted">Du tok med deg: «${esc(prev.takeaway)}»</span>` : ""}${sameAsBefore ? `<br><span class="muted">Samme bilde som sist. Endre det som er nytt.</span>` : ""}</div><button type="button" class="btn small" id="unchanged-btn">Alt stemmer → punkter</button></div>` : `<div class="lastbox"><div>Første runde. Alt står grønt, du flagger det som ikke er det. Gult og rødt er informasjon, ikke karakter.</div></div>`}
       ${short ? `<p class="muted small">Kort runde for ${p.andel} %: økonomi, omfang, ${intern ? "internt" : "kunde"} og trygghet. <button type="button" class="btn ghost small" id="full-btn">Vis alle</button></p>` : ""}
       <div class="siglist" id="siglist">${SIGNALS.map(S => renderSig(s, S)).join("")}</div>
       ${punkterBlock(s, prev, PK, travel)}
+      ${travel ? "" : `<div class="card punkter" style="margin-top:8px"><div class="prow"><label for="pk-erfaring">Én erfaring andre kan bruke (valgfritt)</label><input id="pk-erfaring" value="${esc(s.erfaring || "")}" placeholder="Løsning, feil eller kundekrav faggruppen bør vite om. Går til fag- og erfaringsrapporten, uten personopplysninger." autocomplete="off"></div></div>`}
       ${open.length ? `<div class="prev muted small">Åpne tiltak: ${open.map(t => esc(t.tekst) + (t.frist && t.frist < s.date ? " (forfalt " + fmtDate(t.frist) + ")" : "")).join(" · ")}</div>` : ""}
       <details class="card" id="deep" ${s.deep ? "open" : ""}>
         <summary>Full ROMA, 30 spørsmål${deepDue ? (single ? " · anbefalt annenhver måned for deg med ett prosjekt" : " · anbefalt nå (kvartal)") : ` · sist ${fmtDate(lastDeep.date)}`}</summary>
@@ -1000,7 +1099,7 @@ function renderRun() {
   const ob = $("#oppstart-ok", el); if (ob) ob.addEventListener("click", () => { p.oppstart = true; const real = projectById(p.id); if (real) real.oppstart = true; saveStore(); $("#oppstart", el).remove(); toast("Oppstart gjennomgått"); });
   const fb = $("#full-btn", el); if (fb) fb.addEventListener("click", () => { s.fullRound = true; SIGNALS.forEach(S => { if (s.sig[S.id].status === NR) { const pa = prev && prev.sig && prev.sig[S.id]; s.sig[S.id].status = pa && (pa.status === "Risiko" || pa.status === "Krever tiltak") ? pa.status : "OK"; if (s.sig[S.id].status !== "OK") { s.sig[S.id].comment = pa.comment || ""; s.sig[S.id].tiltak = pa.tiltak || ""; s.sig[S.id].ansvarlig = pa.ansvarlig || store.me.konsulent; s.sig[S.id].frist = pa.frist || addDays(s.date, 14); } } }); saveDraft(); renderRun(); });
   const ub = $("#unchanged-btn", el); if (ub) ub.addEventListener("click", () => { $("#punkter").scrollIntoView({ block: "start" }); $("#pk-endret").focus(); });
-  bindPunkter(el, s, prev, PK);
+  bindPunkter(el, s, prev, PK); const er = $("#pk-erfaring", el); if (er) er.addEventListener("input", () => { s.erfaring = er.value; });
   const deep = $("#deep", el);
   const buildDeep = () => { if (deep.dataset.built) return; deep.dataset.built = "1"; $("#deeplist", el).innerHTML = areasFor(p).map(a => `<section class="area" id="area-${a.id}"><div class="area-head"><div><span class="eyebrow"><span class="roma">${a.roma}</span></span><h3>${esc(a.name)}</h3></div></div>${a.privacy ? `<p class="note privacy muted small">Ingen navn, helseopplysninger eller private forhold i fritekst.</p>` : ""}${a.opportunity ? `<p class="note gold small">Her er «Tiltak» en god ting: en mulighet vi følger opp.</p>` : ""}<div class="qlist">${a.qs.map((q, i) => renderRow(s, a, q, i)).join("")}</div></section>`).join(""); areasFor(p).forEach(a => a.qs.forEach(q => bindRow(s, a, q))); saveDraft(); };
   deep.addEventListener("toggle", () => { if (deep.open) buildDeep(); });
@@ -1015,10 +1114,10 @@ function renderMellom() {
   const s = okt.sessions[""]; const el = $("#screen-run"); cursorRow = null;
   const lp = lastMonthPerson(); const prevM = lp && lp.projectId === "" ? lp : null; const pp = prevM && prevM.person ? prevM.person : {};
   const open = openTiltak(""); const streak = mellomStreak(addMonths(s.date, -1)) + 1;
-  const rowHtml = k => { const a = okt.person[k]; const pa = pp[k]; return `<div class="sig st-${SC[a.status]}" data-psig="${k}" tabindex="-1"><div class="sig-main"><div class="sig-text"><div class="lbl"><span class="roma">${k === "N1" ? "A" : "M"}</span><b>${k === "N1" ? "Neste oppdrag" : "Innhold i dagene"}</b>${pa ? `<span class="sist">sist ${LIGHT[pa.status].toLowerCase()}</span>` : ""}</div><p>${PERSON[k].t}</p>${pa && pa.comment ? `<p class="muted small">Sist: ${esc(pa.comment)}</p>` : ""}</div><div class="lights">${lightButtons(a.status, "data-pst2")}</div></div>${a.status !== "OK" ? `<div class="detail"><textarea data-pcomment="${k}" placeholder="Hva skjer? Én setning." aria-label="Kommentar" autocomplete="off">${esc(a.comment)}</textarea></div>` : ""}</div>`; };
+  const rowHtml = k => { const a = okt.person[k]; const pa = pp[k]; return `<div class="sig st-${SC[a.status]}" data-psig="${k}" tabindex="-1"><div class="sig-main"><div class="sig-text"><div class="lbl"><span class="roma">${k === "N1" ? "A" : "M"}</span><b>${s.onboarding ? (k === "N1" ? "Forventninger" : "Støtte og tilganger") : k === "N1" ? "Neste oppdrag" : "Innhold i dagene"}</b>${pa ? `<span class="sist">sist ${LIGHT[pa.status].toLowerCase()}</span>` : ""}</div><p>${s.onboarding ? PERSON[k].to : PERSON[k].t}</p>${pa && pa.comment ? `<p class="muted small">Sist: ${esc(pa.comment)}</p>` : ""}</div><div class="lights">${lightButtons(a.status, "data-pst2")}</div></div>${a.status !== "OK" ? `<div class="detail"><textarea data-pcomment="${k}" placeholder="Hva skjer? Én setning." aria-label="Kommentar" autocomplete="off">${esc(a.comment)}</textarea></div>` : ""}</div>`; };
   el.innerHTML = `
     <div class="run">
-      <div class="run-head"><div><span class="eyebrow">Runde uten prosjekt · ${fmtDate(s.date)}${streak >= 2 ? ` · ${streak}. måned` : ""}</span><h1>Mellom oppdrag</h1><p class="muted small">Det er Involveds ansvar å finne neste oppdrag, og ditt å si hva du trenger og være klar: oppdatert CV, tilgjengelig for kundemøte, én utviklingsaktivitet i gang.</p></div></div>
+      <div class="run-head"><div><span class="eyebrow">${s.onboarding ? "Oppstartsrunde" : "Runde uten prosjekt"} · ${fmtDate(s.date)}${!s.onboarding && streak >= 2 ? ` · ${streak}. måned` : ""}${s.onboarding ? ` · måned ${monthsSince(store.me.startdato, s.date) + 1} i Involved` : ""}</span><h1>${s.onboarding ? "Oppstart i Involved" : "Mellom oppdrag"}</h1><p class="muted small">${s.onboarding ? "De første månedene handler om å komme inn: forventninger, tilganger og noen å spørre. Prøvetidens samtaler med leder er rundt måned 1, 3 og 5." : "Det er Involveds ansvar å finne neste oppdrag, og ditt å si hva du trenger og være klar: oppdatert CV, tilgjengelig for kundemøte, én utviklingsaktivitet i gang."}</p></div></div>
       <div class="siglist" id="psiglist">${["N1", "N3"].map(rowHtml).join("")}</div>
       ${punkterBlock(s, prevM, PUNKTER_MELLOM, false)}
       ${open.length ? `<div class="prev muted small">Åpne tiltak hos ${esc(store.me.teamleder || "leder")}: ${open.map(t => esc(t.tekst) + (t.frist && t.frist < s.date ? " (forfalt " + fmtDate(t.frist) + ")" : "")).join(" · ")}</div>` : ""}
@@ -1100,16 +1199,16 @@ function fieldText(q, ans) {
   (q.fields || []).forEach(f => { const v = (ans.fields || {})[f.k]; if (v) parts.push(`${f.l}: ${v}${f.u ? " " + f.u : ""}`); });
   return parts.join(" · ");
 }
-function sigFieldText(S, s) { const f = s.fields || {}; const parts = []; sigFields(S, s).forEach(x => { if (f[x.k]) parts.push(`${x.l} ${f[x.k]} ${x.u}`); }); if (S.toggle && f[S.toggle.k]) parts.push(S.toggle.l); if (S.id === "S7" && !isIntern(s.project) && s.project.sluttdato) parts.push(`${isSalg(s.project) ? "frist" : "løper ut"} ${fmtDate(s.project.sluttdato)}`); return parts.join(" · "); }
+function sigFieldText(S, s) { const f = s.fields || {}; const parts = []; sigFields(S, s).forEach(x => { if (f[x.k]) parts.push(`${x.l} ${f[x.k]} ${x.u}`); }); if (S.toggle && f[S.toggle.k]) parts.push(S.toggle.l); if (S.toggle2 && f[S.toggle2.k]) parts.push("Timeliste ikke godkjent"); if (S.id === "S7" && !isIntern(s.project) && s.project.sluttdato) parts.push(`${isSalg(s.project) ? "frist" : "løper ut"} ${fmtDate(s.project.sluttdato)}`); return parts.join(" · "); }
 function collectTiltak(s) {
   const out = [];
-  if (s.projectId !== "") SIGNALS.forEach(S => { const a = s.sig[S.id]; if (!a || a.status === "OK" || a.status === NR || S.sensitive) return; if (a.tiltak.trim() || a.status === "Krever tiltak") out.push({ area: sigName(S, s), tekst: a.tiltak.trim() || `Følg opp: ${sigName(S, s).toLowerCase()}`, ansvarlig: a.tiltak.trim() ? store.me.konsulent : (store.me.teamleder || store.me.konsulent), frist: a.frist, kommentar: a.comment }); });
+  if (s.projectId !== "") SIGNALS.forEach(S => { const a = s.sig[S.id]; if (!a || a.status === "OK" || a.status === NR || S.sensitive) return; if (a.tiltak.trim() || a.status === "Krever tiltak") out.push({ area: sigName(S, s), tekst: a.tiltak.trim() || `Følg opp: ${sigName(S, s).toLowerCase()}`, ansvarlig: a.tiltak.trim() ? store.me.konsulent : lederNavn(), frist: a.frist, kommentar: a.comment }); });
   const tr = (s.punkter.trenger || "").trim();
-  if (tr && !NOTHING.test(tr)) out.push({ area: "Trenger fra Involved", tekst: tr, ansvarlig: store.me.teamleder || "Leder", frist: addDays(s.date, 14), kommentar: "" });
+  if (tr && !NOTHING.test(tr)) out.push({ area: store.me.eierKunde ? "Trenger fra ledergruppen" : "Trenger fra Involved", tekst: tr, ansvarlig: lederNavn(), frist: addDays(s.date, 14), kommentar: "" });
   if (s.projectId === "" && s.person) {
     const openLeder = openTiltak("").filter(t => t.sessionId !== s.id && (t.area === "Neste oppdrag" || t.area === "Trenger fra Involved"));
-    if (s.person.N1 && s.person.N1.status !== "OK" && !(tr && !NOTHING.test(tr)) && !openLeder.length) out.push({ area: "Neste oppdrag", tekst: "Avklar neste oppdrag", ansvarlig: store.me.teamleder || "Leder", frist: addDays(s.date, 14), kommentar: s.person.N1.comment || "" });
-    if (s.person.N3 && s.person.N3.status !== "OK" && !openTiltak("").some(t => t.sessionId !== s.id && t.area === "Innhold i dagene")) out.push({ area: "Innhold i dagene", tekst: "Avtal innhold for de neste to ukene", ansvarlig: store.me.teamleder || "Leder", frist: addDays(s.date, 7), kommentar: s.person.N3.comment || "" });
+    if (s.person.N1 && s.person.N1.status !== "OK" && !(tr && !NOTHING.test(tr)) && !openLeder.length) out.push({ area: "Neste oppdrag", tekst: "Avklar neste oppdrag", ansvarlig: lederNavn(), frist: addDays(s.date, 14), kommentar: s.person.N1.comment || "" });
+    if (s.person.N3 && s.person.N3.status !== "OK" && !openTiltak("").some(t => t.sessionId !== s.id && t.area === "Innhold i dagene")) out.push({ area: "Innhold i dagene", tekst: "Avtal innhold for de neste to ukene", ansvarlig: lederNavn(), frist: addDays(s.date, 7), kommentar: s.person.N3.comment || "" });
   }
   deepRows(s).forEach(r => { if (r.status === "OK" || r.q.sensitive) return; if ((r.ans.tiltak || "").trim() || r.status === "Krever tiltak") out.push({ area: r.area.name, tekst: (r.ans.tiltak || "").trim() || `Følg opp: ${r.q.t}`, ansvarlig: r.ans.ansvarlig || store.me.konsulent, frist: r.ans.frist, kommentar: r.ans.comment }); });
   return out;
@@ -1120,10 +1219,12 @@ function redFlags(s, withSensitive = true) {
   const intern = isIntern(p); const salg = isSalg(p); const kunde = isKunde(p); const hasNums = kunde && sigFields(SIG_BY.S3, s).length > 0;
   if (!intern && hasNums && F.ramme && F.fremdrift && num(F.ramme) > 80 && num(F.fremdrift) < 60) f.push(`${p.kontraktstype === "Fastpris" ? "Kalkyle" : "Ramme"} ${F.ramme} % brukt med fremdrift ${F.fremdrift} %`);
   if (!intern && hasNums && F.ramme && num(F.ramme) >= 100) f.push(`${p.kontraktstype === "Fastpris" ? "Kalkylen" : "Rammen"} er brukt: skriftlig varsel eller tilleggsavtale før flere timer`);
-  if (kunde && num(F.endringstimer) > 20) f.push(`Over 20 timer arbeid uten skriftlig bestilling (${F.endringstimer} t)`);
-  if (G.S4.status === "Krever tiltak" && !(num(F.endringstimer) > 20)) f.push(intern ? "Rollen lar seg ikke gjennomføre som avtalt" : salg ? "Uklart hva vi tilbyr, hva det koster oss, eller hvem som bestemmer hos kunden" : "Arbeid utenfor omfang eller rolle uten skriftlig bestilling, sjekk forsikringsdekning");
+  if (kunde && num(F.endringstimer) > 20) f.push(p.form === "innleie" ? `Over 20 timer utover innleieavtalen (${F.endringstimer} t): sjekk ansvar og forsikring` : `Over 20 timer arbeid uten skriftlig bestilling (${F.endringstimer} t)`);
+  if (G.S4.status === "Krever tiltak" && !(num(F.endringstimer) > 20)) f.push(intern ? "Rollen lar seg ikke gjennomføre som avtalt" : salg ? "Uklart hva vi tilbyr, hva det koster oss, eller hvem som bestemmer hos kunden" : p.form === "innleie" ? "Rolle eller ansvar utover innleieavtalen: sjekk ansvar og forsikring" : "Arbeid utenfor omfang eller rolle uten skriftlig bestilling, sjekk forsikringsdekning");
   if (kunde && p.kontrakt === "Nei") f.push("Kontrakt ikke signert og lagret på SharePoint");
   if (kunde && p.kontrakt === "Under arbeid" && s.prevId) f.push("Kontrakt fortsatt under arbeid, ikke signert");
+  if (kunde && p.opsjon && !p.opsjonVarslet && p.opsjon >= s.date && p.sluttdato && p.sluttdato < addDays(s.date, 30)) f.push(`Opsjon til ${fmtDate(p.opsjon)} er ikke utløst skriftlig`);
+  if (kunde && F.timeliste) { const pr = prevOf(s); if (pr && (pr.fields || {}).timeliste) f.push("Timelister ikke godkjent to måneder på rad: fakturagrunnlag mangler, leder tar det med kunden"); }
   SIGNALS.forEach(S => { if (S.sensitive || S.id === "S7" || !G[S.id] || G[S.id].status === "OK" || G[S.id].status === NR) return; const n = monthsSameStatus(s, S); if ((G[S.id].status === "Krever tiltak" && n >= 2) || (G[S.id].status === "Risiko" && n >= 3)) f.push(`${sigName(S, s)} ${LIGHT[G[S.id].status].toLowerCase()} ${n}. måned på rad uten endring`); });
   if (G.S5.status === "Krever tiltak") f.push(intern ? "Interne leveranser svikter: avklar prioritering med leder" : salg ? "Kunden svarer ikke: leder tar kontakt med kunden" : "Kunden er misfornøyd: ring kunden, klage meldes i avvikssystemet");
   if (withSensitive && G.S6.status === "Krever tiltak") f.push(intern ? "Uønsket atferd eller konflikt i Involved: varslingsrutinen (HR/verneombud), ikke nærmeste leder" : `Uønsket atferd eller konflikt hos kunde: varslingsrutinen, leder tar kontakt ${SVAR}`);
@@ -1136,9 +1237,9 @@ function pulseWarnings(s, audience = "leder") {
   const prevP = allSessionsSorted().filter(x => x.pulse && x.pulse.belastning && x.date.slice(0, 7) < s.date.slice(0, 7)).pop(); const pp = prevP && monthsBetween(prevP.date, s.date) === 1 ? prevP.pulse : null; const ppAny = prevP ? prevP.pulse : null;
   const again = audience === "leder" ? "To måneder på rad: skriftlig tiltak, avtalt med konsulenten" : "To måneder på rad. Da avtaler du og leder én konkret endring, og den skrives ned";
   const rest = P.S1 && P.S1.status !== "OK" ? ` · restitusjon ${LIGHT[P.S1.status].toLowerCase()}` : ""; const timer = P.timer_uke ? ` · ${P.timer_uke} t/uke` : "";
-  if (pv.belastning >= 4 || (P.S1 && P.S1.status !== "OK") || num(P.timer_uke) > HOURS.varsel) w.push(`Belastning ${pv.belastning}/5${rest}${timer}${num(P.timer_uke) > HOURS.varsel ? " (over 45)" : ""}: ${audience === "leder" ? `leder ringer ${SVAR}` : `Involveds rutine er at leder ringer ${SVAR}`}${pp && pp.belastning >= 4 && pv.belastning >= 4 ? ". " + again : ""}${P.S1 && P.S1.comment ? ". " + P.S1.comment : ""}`);
+  if (pv.belastning >= 4 || (P.S1 && P.S1.status !== "OK") || overVarsel(P.timer_uke, P.kapasitet)) w.push(`Belastning ${pv.belastning}/5${rest}${timer}${overVarsel(P.timer_uke, P.kapasitet) ? ` (over ${String(avtaltTimer(P.kapasitet) + 7.5).replace(".", ",")})` : ""}: ${audience === "leder" ? `leder ringer ${SVAR}` : `Involveds rutine er at leder ringer ${SVAR}`}${pp && pp.belastning >= 4 && pv.belastning >= 4 ? ". " + again : ""}${P.S1 && P.S1.comment ? ". " + P.S1.comment : ""}`);
   if (pv.trivsel <= 2) w.push(`Trivsel ${pv.trivsel}/5: ${audience === "leder" ? `leder ringer ${SVAR}` : `Involveds rutine er at leder ringer ${SVAR}`}${pp && pp.trivsel <= 2 ? (audience === "leder" ? ". To måneder på rad: ledergruppen informeres" : ". To måneder på rad. Da avtaler du og leder én konkret endring") : ""}`);
-  if (ppAny) { if (pv.belastning - ppAny.belastning >= 2) w.push(`Belastning ${ppAny.belastning} → ${pv.belastning}: spør hvorfor`); if (ppAny.trivsel - pv.trivsel >= 2) w.push(`Trivsel ${ppAny.trivsel} → ${pv.trivsel}: spør hvorfor`); }
+  if (ppAny) { if (pv.belastning - ppAny.belastning >= 2) w.push(audience === "leder" ? `Belastning ${ppAny.belastning} → ${pv.belastning}: spør hvorfor` : `Belastning gikk fra ${ppAny.belastning} til ${pv.belastning}`); if (ppAny.trivsel - pv.trivsel >= 2) w.push(audience === "leder" ? `Trivsel ${ppAny.trivsel} → ${pv.trivsel}: spør hvorfor` : `Trivsel gikk fra ${ppAny.trivsel} til ${pv.trivsel}`); }
   const mwc = P.kontakt === "nei" ? monthsWithoutContact(s.date) : 0;
   if (mwc >= 3) w.push(`${mwc} måneder uten reell Involved-kontakt: avtal et fysisk møte`); else if (mwc >= 2) w.push(`${mwc} måneder uten reell Involved-kontakt`); else if (mwc === 1) w.push("Ingen reell Involved-kontakt denne måneden");
   if (s.projectId === "") { const ms = mellomStreak(s.date); if (ms >= 2) w.push(`${ms}. måned mellom oppdrag${audience === "leder" ? ": ledergruppen informeres, og konsulenten får en dato" : ". Be om en dato for når du får vite mer"}`); }
@@ -1153,24 +1254,24 @@ function fmtShort(iso, ref) { if (!iso || !/^\d{4}-\d{2}-\d{2}/.test(iso)) retur
 const monthName = iso => iso ? `${MONTHS_FULL[Number(iso.slice(5, 7)) - 1].toLowerCase()} ${iso.slice(0, 4)}` : "";
 const monthWord = iso => iso ? MONTHS_FULL[Number(iso.slice(5, 7)) - 1].toLowerCase() : "";
 const sent = t => { t = String(t || "").trim(); if (!t) return ""; return /[.!?…»]$/.test(t) ? t : t + "."; };
-const lc1 = t => { t = String(t || "").trim(); return t ? t.charAt(0).toLowerCase() + t.slice(1) : ""; };
+const lc1 = t => { t = String(t || "").trim(); if (!t) return ""; const w = t.split(/\s/)[0]; if ((w.match(/[A-ZÆØÅ]/g) || []).length >= 2) return t; return t.charAt(0).toLowerCase() + t.slice(1); };
 function sigWords(S, s) {
   const f = s.fields || {}; const p = s.project; const parts = [];
-  if (S.id === "S3") { if (isSalg(p)) { if (f.salgstimer) parts.push(`ca. ${f.salgstimer} t på salg denne måneden`); } else if (isKunde(p)) { const k = p.kontraktstype === "Fastpris" ? "kalkyle" : "ramme"; if (f.ramme) parts.push(`${k} ${f.ramme} % brukt`); if (f.fremdrift) parts.push(`${f.fremdrift} % ferdig`); if (f.utestaende) parts.push("faktura utestående over 30 dager"); } }
-  if (S.id === "S4" && isKunde(p) && f.endringstimer) parts.push(`ca. ${f.endringstimer} t uten skriftlig bestilling`);
-  if (S.id === "S7" && !isIntern(p) && p.sluttdato) parts.push(`${isSalg(p) ? "frist" : "løper til"} ${fmtShort(p.sluttdato, s.date)}`);
+  if (S.id === "S3") { if (isSalg(p)) { if (f.salgstimer) parts.push(`ca. ${f.salgstimer} t på salg denne måneden`); } else if (isKunde(p)) { const k = p.kontraktstype === "Fastpris" ? "kalkyle" : "ramme"; if (f.ramme) parts.push(`${k} ${f.ramme} % brukt`); if (f.fremdrift) parts.push(`${f.fremdrift} % ferdig`); if (f.utestaende) parts.push("faktura utestående over 30 dager"); if (f.timeliste) parts.push("timeliste for forrige måned ikke godkjent"); } }
+  if (S.id === "S4" && isKunde(p) && f.endringstimer) parts.push(p.form === "innleie" ? `ca. ${f.endringstimer} t utover innleieavtalen` : `ca. ${f.endringstimer} t uten skriftlig bestilling`);
+  if (S.id === "S7" && !isIntern(p) && p.sluttdato) parts.push(`${isSalg(p) ? "frist" : "løper til"} ${fmtShort(p.sluttdato, s.date).replace(/\.$/, "")}`);
   return parts.join(", ");
 }
 function prevOf(s) { return s.prevId ? store.sessions.find(x => x.id === s.prevId) : null; }
 function projTitle(s) { const p = s.project; return `${p.prosjekt}${isIntern(p) ? " (intern rolle)" : isSalg(p) ? ` (salgsarbeid${p.kunde ? ", " + p.kunde : ""})` : p.kunde ? ` (${p.kunde})` : ""}${p.andel ? ` · ${p.andel} %` : ""}`; }
 function statusLine(s) {
   const prev = prevOf(s); const fl = flaggedSignals(s).filter(S => !S.sensitive); const changed = changedSignals(s).filter(S => !S.sensitive);
-  const pm = prev ? monthWord(prev.date) : "";
-  if (!fl.length) { const extra = sigWords(SIG_BY.S3, s) || sigWords(SIG_BY.S7, s); return `Alt grønt${prev && !changed.length ? `, som i ${pm}` : ""}.${extra ? " " + extra.charAt(0).toUpperCase() + extra.slice(1) + "." : ""}`; }
+  const pm = prev ? monthWord(prev.date) : ""; const ktChg = prev && prev.project && prev.project.kontraktstype && prev.project.kontraktstype !== s.project.kontraktstype ? ` Kontraktstype endret fra ${prev.project.kontraktstype.toLowerCase()} til ${(s.project.kontraktstype || "").toLowerCase()}.` : "";
+  if (!fl.length) { const extra = sigWords(SIG_BY.S3, s) || sigWords(SIG_BY.S7, s); return `Alt grønt${prev && !changed.length ? `, som i ${pm}` : ""}.${extra ? " " + extra.charAt(0).toUpperCase() + extra.slice(1) + "." : ""}${ktChg}`; }
   const red = fl.filter(S => s.sig[S.id].status === "Krever tiltak").map(S => sigName(S, s).toLowerCase()); const yel = fl.filter(S => s.sig[S.id].status === "Risiko").map(S => sigName(S, s).toLowerCase());
-  const parts = []; if (red.length) parts.push(`Rødt på ${red.join(" og ")}`); if (yel.length) parts.push(`${red.length ? "gult" : "Gult"} på ${yel.join(" og ")}`);
+  const j = a => a.join(", "); const parts = []; if (red.length) parts.push(`Rødt på ${j(red)}`); if (yel.length) parts.push(`${red.length ? "gult" : "Gult"} på ${j(yel)}`);
   const back = changed.filter(S => s.sig[S.id].status === "OK").map(S => sigName(S, s).toLowerCase());
-  return `${parts.join(", ")}. ${fl.length < relevantSignals(s).filter(S => !S.sensitive).length ? "Ellers grønt." : ""}${back.length ? ` ${back.join(" og ").charAt(0).toUpperCase() + back.join(" og ").slice(1)} grønt igjen.` : ""}`.trim();
+  return `${parts.join(", ")}. ${fl.length < relevantSignals(s).filter(S => !S.sensitive).length ? "Ellers grønt." : ""}${back.length ? ` ${back.join(" og ").charAt(0).toUpperCase() + back.join(" og ").slice(1)} grønt igjen.` : ""}${ktChg}`.trim();
 }
 function sigLine(S, s) {
   const a = s.sig[S.id]; const prev = prevOf(s); const n = monthsSameStatus(s, S); const chg = prev && prev.sig && prev.sig[S.id] && prev.sig[S.id].status !== a.status;
@@ -1178,8 +1279,9 @@ function sigLine(S, s) {
   const w = sigWords(S, s); const c = sent(a.comment);
   return `${LIGHT_EMOJI[a.status]} ${sigName(S, s)}${tag}${w ? ": " + w + "." : c ? ":" : "."}${c ? " " + (w ? c.charAt(0).toUpperCase() + c.slice(1) : lc1(c)) : ""}`.replace(":  ", ": ");
 }
-function ownTiltak(s) { return collectTiltak(s).filter(t => t.ansvarlig === store.me.konsulent || !store.me.teamleder || (t.ansvarlig !== store.me.teamleder && t.ansvarlig !== "Leder")); }
-function askLeder(s) { return collectTiltak(s).filter(t => store.me.teamleder ? (t.ansvarlig === store.me.teamleder || t.ansvarlig === "Leder") : t.ansvarlig === "Leder"); }
+const isLederAnsv = a => !a || a === "Leder" || a === "daglig leder" || (store.me.teamleder && a === store.me.teamleder);
+function ownTiltak(s) { return collectTiltak(s).filter(t => !isLederAnsv(t.ansvarlig)); }
+function askLeder(s) { return collectTiltak(s).filter(t => isLederAnsv(t.ansvarlig)); }
 function hasText(s, k) { const v = (s.punkter || {})[k] || ""; return v.trim() && !NOTHING.test(v); }
 function projectBlock(s, opts = {}) {
   const lines = []; const P = punkterFor(s);
@@ -1197,8 +1299,8 @@ function projectBlock(s, opts = {}) {
 }
 function mellomBlock(s) {
   const P = s.person || {}; const ms = mellomStreak(s.date); const lines = [];
-  lines.push(`${AMPEL_EMOJI[ampel(s)]} Mellom oppdrag${ms >= 2 ? `, ${ordMonth(ms)}${ms >= 2 ? " (Involveds rutine: ledergruppen får beskjed)" : ""}` : ""}`);
-  ["N1", "N3"].forEach(k => { const a = P[k]; if (a && a.status !== "OK") lines.push(`${LIGHT_EMOJI[a.status]} ${k === "N1" ? "Neste oppdrag" : "Innhold i dagene"}: ${a.comment ? sent(lc1(a.comment)) : k === "N1" ? "har ikke fått dato ennå." : "for lite å gjøre."}`); });
+  if (s.onboarding) lines.push(`${AMPEL_EMOJI[ampel(s)]} Oppstart i Involved, måned ${monthsSince(store.me.startdato, s.date) + 1}`); else lines.push(`${AMPEL_EMOJI[ampel(s)]} Mellom oppdrag${ms >= 2 ? `, ${ordMonth(ms)}${ms >= 2 ? " (Involveds rutine: ledergruppen får beskjed)" : ""}` : ""}`);
+  ["N1", "N3"].forEach(k => { const a = P[k]; if (a && a.status !== "OK") lines.push(`${LIGHT_EMOJI[a.status]} ${s.onboarding ? (k === "N1" ? "Forventninger" : "Støtte og tilganger") : k === "N1" ? "Neste oppdrag" : "Innhold i dagene"}: ${a.comment ? sent(lc1(a.comment)) : s.onboarding ? "uklart ennå." : k === "N1" ? "har ikke fått dato ennå." : "for lite å gjøre."}`); });
   if (hasText(s, "endret")) lines.push(`Gjør nå: ${sent(lc1(s.punkter.endret))}`);
   return lines;
 }
@@ -1217,7 +1319,7 @@ function pulsLine(s0) {
   const pv = s0.pulse || {}; const P = s0.person || {}; if (!pv.belastning) return "";
   const prevP = allSessionsSorted().filter(x => x.pulse && x.pulse.belastning && x.date.slice(0, 7) < s0.date.slice(0, 7)).pop(); const pp = prevP && monthsBetween(prevP.date, s0.date) === 1 ? prevP.pulse : null;
   const bits = [`belastning ${pv.belastning}/5${pp && pp.belastning >= 4 && pv.belastning >= 4 ? ", andre måned på rad" : pp && pv.belastning - pp.belastning >= 2 ? `, opp fra ${pp.belastning}` : ""}`, `trivsel ${pv.trivsel}/5${pp && pp.trivsel <= 2 && pv.trivsel <= 2 ? ", andre måned på rad" : pp && pp.trivsel - pv.trivsel >= 2 ? `, ned fra ${pp.trivsel}` : ""}`];
-  if (P.timer_uke) bits.push(`${String(P.timer_uke).replace(".", ",")} t/uke${num(P.timer_uke) > HOURS.varsel ? ", over 45" : ""}`);
+  if (P.timer_uke) bits.push(`${String(P.timer_uke).replace(".", ",")} t/uke${overVarsel(P.timer_uke, P.kapasitet) ? ` av avtalt ${String(avtaltTimer(P.kapasitet)).replace(".", ",")}` : ""}`);
   if (P.S1 && P.S1.status !== "OK") bits.push(`restitusjon ${LIGHT[P.S1.status].toLowerCase()}${P.S1.comment ? ": " + lc1(P.S1.comment).replace(/\.$/, "") : ""}`);
   const mwc = P.kontakt === "nei" ? monthsWithoutContact(s0.date) : 0;
   bits.push(mwc >= 2 ? `ingen reell kontakt med Involved på ${mwc} måneder` : mwc === 1 ? "ingen reell kontakt med Involved denne måneden" : "kontakt med Involved: ja");
@@ -1233,20 +1335,41 @@ function fraDeg(sessions, s0) {
 }
 function leaderHead(s0, sessions) {
   const list = sessions || [s0]; const L = [];
-  L.push(`ROMA ${monthName(s0.date)} · ${store.me.konsulent} · kun til nærmeste leder, HR-mappe`);
+  L.push(`ROMA ${monthName(s0.date)} · ${store.me.konsulent} · ${store.me.teamleder ? "kun til nærmeste leder" : "til daglig leder (ingen nærmeste leder registrert)"}, HR-mappe`);
+  if (store.me.teamlederRolle && s0.person && s0.person.team) L.push(`Team: ${s0.person.team.levert || 0} av ${s0.person.team.antall || "?"} har levert ROMA${s0.person.team.rode ? `, ${s0.person.team.rode} røde` : ""}`);
+  if (isOnboarding(s0.date)) L.push(`Ny i Involved siden ${fmtShort(store.me.startdato, s0.date)}`);
+  if (s0.person && s0.person.kapasitet && s0.person.kapasitet < stilling()) L.push(`Avtalt kapasitet ${s0.person.kapasitet} % denne måneden`);
   const pl = pulsLine(s0); if (pl) L.push(pl);
   const act = activeProjects(); const sum = act.reduce((n, p) => n + num(p.andel), 0);
-  if (act.length && !act.some(isIntern) && sum < LEDIG_GRENSE) L.push(`Belegg ${sum} %, ${100 - sum} % ledig`); else if (sum > 100) L.push(`Andeler summerer til ${sum} %`);
+  const kap = (s0.person && s0.person.kapasitet) || stilling(); if (act.length && !act.some(isIntern) && !(s0.person && s0.person.kapasitet && s0.person.kapasitet < stilling()) && sum < LEDIG_GRENSE * kap / 100) L.push(`Belegg ${sum} % av ${kap} %, ${Math.max(0, kap - sum)} % ledig`); else if (sum > 110) L.push(`Andeler summerer til ${sum} %: hva prioriteres ned?`);
+  pausedProjects().forEach(p => L.push(`På pause: ${p.prosjekt} til ${fmtShort(p.pause.til, s0.date)}${p.pause.hvorfor ? " (" + lc1(p.pause.hvorfor).replace(/\.$/, "") + ")" : ""}`));
+  const gapM = (() => { const prev = allSessionsSorted().filter(x => x.date < s0.date && x.date.slice(0, 7) !== s0.date.slice(0, 7)).pop(); if (!prev) return ""; const d = monthsBetween(prev.date, s0.date); if (d <= 1) return ""; const fr = []; for (let i = 1; i < d; i++) { const m = addMonths(prev.date.slice(0, 7) + "-15", i).slice(0, 7); const f = fravaerFor(m); fr.push(f ? f.type : "ingen runde"); } return `Siden ${monthWord(prev.date)}: ${fr.join(", ")}`; })(); if (gapM) L.push(gapM);
   const fd = fraDeg(list, s0); if (fd.length) L.push(`Fra deg: ${fd.join(" · ")}`);
   list.filter(s => s.sig && s.sig.S6 && s.sig.S6.status !== "OK" && s.sig.S6.status !== NR).forEach(s => L.push(`${LIGHT_EMOJI[s.sig.S6.status]} Trygghet i ${s.project.prosjekt}${s.sig.S6.status === "Krever tiltak" ? ". Tar det muntlig, ingen detaljer her." : s.sig.S6.comment ? `: ${sent(lc1(s.sig.S6.comment))} Tar det på telefonen.` : ". Tar det på telefonen."}`));
-  const na = noAnswerLast(s0); if (noAnswerTwice()) L.push(`Fikk ikke svar i ${na ? monthWord(na.date) : "forrige måned"} heller, denne går derfor også til daglig leder.`); else if (na) L.push(`Fikk ikke svar på runden i ${monthWord(na.date)}.`);
+  const na = noAnswerLast(s0); if (noAnswerTwice()) L.push(`Fikk ikke svar i ${na ? monthWord(na.date) : "forrige måned"} heller, denne går derfor også til daglig leder.`); else if (na) L.push(`Fikk ikke svar fra ${lederNavn()} på runden i ${monthWord(na.date)}.`);
   store.projects.filter(p => p.avsluttet && p.slutt && monthsBetween(p.avsluttet, s0.date) <= 1 && p.avsluttet <= s0.date && !p.sluttMeldt).forEach(p => L.push(`Avsluttet ${fmtShort(p.avsluttet, s0.date)}: ${p.prosjekt}${p.slutt.levert ? ". " + sent(p.slutt.levert) : ""}${p.slutt.annerledes ? " Lærdom: " + sent(lc1(p.slutt.annerledes)) : ""}${p.slutt.uavsluttet && !NOTHING.test(p.slutt.uavsluttet) ? " Uavsluttet: " + sent(lc1(p.slutt.uavsluttet)) : ""}`));
+  return L.join("\n");
+}
+function eskaleringGrunner(sessions, s0) {
+  const g = []; const pv = s0.pulse || {}; const prevP = allSessionsSorted().filter(x => x.pulse && x.pulse.belastning && x.date.slice(0, 7) < s0.date.slice(0, 7)).pop();
+  sessions.forEach(s => { if (!s.sig) return; SIGNALS.forEach(S => { if (S.sensitive || !s.sig[S.id] || s.sig[S.id].status !== "Krever tiltak") return; const n = monthsSameStatus(s, S); if (n >= 2) g.push(`${s.project.prosjekt}: ${sigName(S, s).toLowerCase()} rødt ${ordMonth(n)} på rad`); }); });
+  if (pv.trivsel <= 2 && prevP && monthsBetween(prevP.date, s0.date) === 1 && prevP.pulse.trivsel <= 2) g.push("Trivsel lav to måneder på rad");
+  const ms = s0.projectId === "" ? mellomStreak(s0.date) : sessions.some(s => s.projectId === "") ? mellomStreak(s0.date) : 0; if (ms >= 2) g.push(`Mellom oppdrag ${ordMonth(ms)}`);
+  if (noAnswerTwice()) g.push("Ikke fått svar fra nærmeste leder to måneder på rad");
+  return g;
+}
+function eskaleringText(sessions, s0) {
+  const g = eskaleringGrunner(sessions, s0); const L = [`Til daglig leder · ROMA ${monthName(s0.date)} · ${store.me.konsulent}${store.me.teamleder ? ` · nærmeste leder ${store.me.teamleder}` : ""}`, `Involveds rutine sier at ledergruppen skal vite når noe står uendret over tid. Dette er slik status, uten puls og trygghet:`];
+  g.forEach(x => L.push(`• ${x}`));
+  sessions.filter(s => s.projectId !== "" && ampel(s, false) === "Rødt" && !g.some(x => x.startsWith(s.project.prosjekt + ":"))).forEach(s => { const fl = flaggedSignals(s).filter(S => !S.sensitive && s.sig[S.id].status === "Krever tiltak"); L.push(`${s.project.prosjekt}${s.project.kunde ? ` (${s.project.kunde})` : ""}: ${fl.map(S => sigName(S, s).toLowerCase()).join(", ")}${hasText(s, "trenger") ? ` · trenger: ${lc1(s.punkter.trenger)}` : ""}`); });
+  L.push("Jeg ber om at dette tas i ledergruppen, og at jeg får vite hvem som følger opp og når.");
   return L.join("\n");
 }
 function closingLine(sessions, s0) {
   const heavy = isHeavy(s0.pulse, s0.person, sessions); const fd = fraDeg(sessions, s0); const utv = (s0.utvikling || []).length;
   const opts = heavy ? ["Ringer", "Tar videre"] : fd.length ? ["Lest", "Ringer", "Tar videre"] : ["Lest"]; if (utv && !heavy) opts.push("OK");
-  return `Svar gjerne med ett ord: ${opts.join(" · ")}. Neste ROMA rundt ${fmtShort(addMonths(s0.date, 1), s0.date).replace(/\.$/, "")}.`;
+  const fr = fmtShort(svarFrist(s0.date), s0.date).replace(/\.$/, ""); const defs = opts.map(o => o === "Ringer" ? `Ringer = telefon innen ${fr}` : o === "Tar videre" ? "Tar videre = du sier hvem og når" : o === "OK" ? "OK = utviklingen er avtalt" : o).join(" · ");
+  return `Svar gjerne med ett ord innen ${fr}: ${defs}. Neste ROMA rundt ${fmtShort(addMonths(s0.date, 1), s0.date).replace(/\.$/, "")}.`;
 }
 function teamsText(s, compact = false) { return (compact ? projectBlock(s, { noHead: true }) : projectBlock(s)).join("\n"); }
 function leaderText(sessions) {
@@ -1286,12 +1409,15 @@ function finishOkt() {
     collectTiltak(s).forEach(t => {
       const prevDate = s.prevId ? (store.sessions.find(x => x.id === s.prevId) || {}).date || "" : "";
       const dup = store.tiltak.find(x => x.projectId === pid && x.tekst === t.tekst && (x.status === "Åpen" || (x.lukket && x.lukket >= prevDate && prevDate)));
-      if (dup) { if (!dup.kommentar) dup.kommentar = t.kommentar; return; }
+      if (dup) { if (!dup.kommentar) dup.kommentar = t.kommentar; if (dup.status === "Åpen" && dup.frist && dup.frist < s.date && t.frist && t.frist > dup.frist) { dup.kommentar = [dup.kommentar, `utsatt fra ${fmtDate(dup.frist)}`].filter(Boolean).join(" · "); dup.frist = t.frist; } return; }
       store.tiltak.push({ id: uid(), sessionId: s.id, projectId: pid, dato: s.date, prosjekt: s.project.prosjekt, tekst: t.tekst, ansvarlig: t.ansvarlig, frist: t.frist, status: "Åpen", kommentar: t.kommentar, area: t.area });
     });
     finished.push(s);
   });
   (okt.utvikling || []).forEach(u => { const U = UTV_BY[u.k]; if (!U) return; const tekst = `${U.l}, ca. ${u.t} t`; if (store.tiltak.some(x => x.status === "Åpen" && x.area === "Utvikling" && x.tekst === tekst)) return; store.tiltak.push({ id: uid(), sessionId: finished[0].id, projectId: "", dato: okt.date, prosjekt: "Utvikling", tekst, ansvarlig: store.me.konsulent, frist: u.m ? u.m + "-28" : addMonths(okt.date, 1), status: "Åpen", kommentar: `Foreslått til ${store.me.teamleder || "leder"}, venter på svar`, area: "Utvikling", timer: u.t }); });
+  store.projects.forEach(pr => { if (pr.avsluttet && pr.slutt && monthsBetween(pr.avsluttet, okt.date) <= 1 && pr.avsluttet <= okt.date) pr.sluttMeldt = true; });
+  const kuDue = store.projects.filter(pr => isKunde(pr) && (finished.some(s => s.projectId === pr.id) || (pr.avsluttet && monthsBetween(pr.avsluttet, okt.date) <= 1)) && (!pr.ku_dato || monthsBetween(pr.ku_dato, okt.date) >= 12) && sessionsFor(pr.id).length >= (pr.avsluttet ? 1 : 6));
+  kuDue.forEach(pr => { const tekst = `Kundeundersøkelse ${pr.avsluttet ? "ved avslutning" : "årlig"}: ${pr.prosjekt}`; if (store.tiltak.some(x => x.projectId === pr.id && /^Kundeundersøkelse/.test(x.tekst) && (x.status === "Åpen" || (x.lukket && monthsBetween(x.lukket, okt.date) < 12)))) return; store.tiltak.push({ id: uid(), sessionId: finished[0].id, projectId: pr.id, dato: okt.date, prosjekt: pr.prosjekt, tekst, ansvarlig: "Kvalitetsleder", frist: addDays(okt.date, 30), status: "Åpen", kommentar: "Rutinen: kvalitetsleder sender, konsulenten registrerer dato og score under Endre", area: "Kunde" }); });
   const firstEver = store.sessions.length === finished.length;
   okt = null; store.okt = null; saveStore();
   renderDone(finished);
@@ -1301,6 +1427,16 @@ function finishOkt() {
 /* =====================================================================
    MÅL
    ===================================================================== */
+function markSent(sessions) { const t = new Date().toISOString(); sessions.forEach(s => { const real = store.sessions.find(x => x.id === s.id); if (real) real.sentAt = t; s.sentAt = t; }); saveStore(); }
+function teamsLink() { return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(store.me.epost || "") ? `https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(store.me.epost)}` : ""; }
+function openTeams(text) { const base = teamsLink(); if (!base) return; const msg = encodeURIComponent(text); const url = base + (msg.length < 1800 ? `&message=${msg}` : ""); navigator.clipboard.writeText(text).catch(() => {}); window.open(url, "_blank", "noopener"); toast(msg.length < 1800 ? "Teams åpnes med teksten klar." : "Teams åpnes. Teksten ligger i utklippstavlen, lim inn."); }
+function downloadIcs() {
+  const now = new Date(); const y = now.getFullYear(); const m = now.getMonth() + 1; const first = new Date(y, m - 1, 1); const off = (8 - first.getDay()) % 7; const d = new Date(y, m - 1, 1 + off); if (d < now) d.setMonth(d.getMonth() + 1);
+  const dt = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`; const stamp = now.toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
+  const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Involved//Via ROMA//NB", "BEGIN:VEVENT", `UID:viaroma-${uid()}@involved`, `DTSTAMP:${stamp}`, `DTSTART:${dt}T090000`, `DTEND:${dt}T091500`, "RRULE:FREQ=MONTHLY;BYDAY=1MO", "SUMMARY:ROMA-runden (3 min per prosjekt)", `DESCRIPTION:Åpne Via ROMA og kjør månedens runde. ${location.href.split("?")[0]}`, "BEGIN:VALARM", "TRIGGER:-PT10M", "ACTION:DISPLAY", "DESCRIPTION:ROMA-runden", "END:VALARM", "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+  saveFile("ROMA-dagen.ics", new Blob([ics], { type: "text/calendar" }));
+}
+function backupNow() { store.lastBackupAt = new Date().toISOString(); saveStore(); saveFile(`${isoToday().replace(/-/g, "")}_ViaROMA_sikkerhetskopi.json`, JSON.stringify(store, null, 2)); }
 function renderDone(sessions) {
   if (okt) { saveDraft(); stopTimer(); okt = null; }
   hudMode = "idle"; renderHud(); show("done");
@@ -1322,13 +1458,13 @@ function renderDone(sessions) {
     <div class="done">
       <div>
         <span class="eyebrow">Levert · ${fmtDate(s0.date)} · ${mellom ? "uten prosjekt" : `${sessions.length} ${sessions.length === 1 ? "prosjekt" : "prosjekter"}`} · ${fmtMin(totalSec)} · ${MODE_LABEL[mode].toLowerCase()}</span>
-        <h1>${heavy ? "Levert. Det viktigste står øverst." : nThings === 0 ? "Levert. Leder får dette i dag." : `Levert. ${nThings === 1 ? "Én ting" : nThings + " ting"} leder må vite, de står øverst.`}</h1>
+        <h1 id="done-h1">${sessions.some(s => s.sentAt) ? `Sendt til ${esc(lederNavn())} ✓` : heavy ? `Klar til å sende til ${esc(lederNavn())}. Det viktigste står øverst.` : nThings === 0 ? `Klar til å sende til ${esc(lederNavn())}. Alt grønt.` : `Klar til å sende til ${esc(lederNavn())}. ${nThings === 1 ? "Én ting" : nThings + " ting"} leder må vite, de står øverst.`}</h1>
         <p class="muted small">${heavy ? `Send Teams-teksten. Resten er ${esc(genitiv(store.me.teamleder))} jobb.` : mellom ? "Du har sagt hva du trenger. Neste steg er leders." : firstEver ? "Første runde levert. Neste måned ligger denne klar, og du endrer bare det som er nytt." : firstRed ? "Første røde. Det er dette samtalen er til. Leder får det øverst." : greenRun.length ? `Tre grønne måneder på ${esc(greenRun.join(", "))}. Fint. Full ROMA neste gang fanger det som ikke får en farge.` : paused ? "Det ble en pause. Runden starter der du er, ikke der du slapp." : pStreak >= 2 ? `${pStreak} måneder på rad.` : ""}</p>
         ${!heavy && !mellom ? `<p class="quote">${esc((ROMA_QUOTES[mode] || ROMA_QUOTES.Balansert).replace("__TID__", fmtMin(totalSec)))}</p>` : ""}
       </div>
       <div class="card export">
-        <div class="btn-row"><button type="button" class="btn primary" id="copy-all">Kopier til Teams${multi ? " (samlet)" : ""}</button>${mellom ? "" : `<button type="button" class="btn" id="xlsx-btn">Excel per prosjekt</button>`}<button type="button" class="btn" id="leder-btn">Ledereksport med puls (Excel)</button><button type="button" class="btn ghost" id="print-btn">Månedsrapport PDF</button></div>
-        <p class="muted small" style="margin-top:8px">Teams-teksten er nok, og går kun til nærmeste leder. Ledereksport og månedsrapport inneholder puls og Trygghet og lagres i leders HR-mappe.${mellom ? "" : sessions.every(s => !isKunde(s.project)) ? " Excel per rolle eller tilbud lagres hos leder, ikke i en prosjektmappe." : " Excel per prosjekt er hele prosjekthistorikken, lagres i prosjektmappen og inneholder ikke puls, belastning eller Trygghet."}${multi && !mellom ? " Nettleseren kan spørre om lov til å laste ned flere filer." : ""}</p>
+        <div class="btn-row"><button type="button" class="btn primary" id="copy-all">Kopier til Teams${multi ? " (samlet)" : ""}</button>${teamsLink() ? `<button type="button" class="btn" id="open-teams">Åpne Teams-chat med ${esc(lederNavn())}</button>` : ""}${eskaleringGrunner(sessions, s0).length ? `<button type="button" class="btn ghost" id="esk-btn" title="Uten puls og trygghet">Kopier eskaleringstekst til daglig leder</button>` : ""}${mellom ? "" : `<button type="button" class="btn" id="xlsx-btn">Excel per prosjekt</button>`}<button type="button" class="btn" id="leder-btn">Ledereksport med puls (Excel)</button><button type="button" class="btn ghost" id="print-btn">Månedsrapport PDF</button></div>
+        <p class="muted small" style="margin-top:8px">Teksten går ikke av seg selv: kopier og lim inn i Teams. ${!store.sessions.some(x => x.sentAt && !sessions.includes(x)) ? `<button type="button" class="btn ghost small" id="ics-btn">Legg ROMA-dagen i Outlook</button> ` : ""}<button type="button" class="btn ghost small" id="done-backup">Sikkerhetskopi (JSON)</button><br>Teams-teksten er nok, og går kun til nærmeste leder. Ledereksport og månedsrapport inneholder puls og Trygghet og lagres i leders HR-mappe.${mellom ? "" : sessions.every(s => !isKunde(s.project)) ? " Excel per rolle eller tilbud lagres hos leder, ikke i en prosjektmappe." : " Excel per prosjekt er hele prosjekthistorikken, lagres i prosjektmappen og inneholder ikke puls, belastning eller Trygghet."}${multi && !mellom ? " Nettleseren kan spørre om lov til å laste ned flere filer." : ""}</p>
       </div>
       ${heavy && pw.length ? `<div class="note gold"><b>Puls</b><ul>${pw.map(x => `<li>${esc(x)}</li>`).join("")}</ul><p class="small" style="margin-top:6px">Dette går bare til ${esc(store.me.teamleder || "leder")}. Involveds rutine er at leder ringer ${SVAR}. Vil du heller ringe selv nå, er det greit.</p></div>` : ""}
       ${allFlags.length ? `<div class="note red"><b>${heavy ? "Røde flagg. Send Teams-teksten, resten er leders jobb." : "Røde flagg. Meld til leder, alvorlige forhold også i Planner."}</b><ul>${allFlags.map(f => `<li>${multi ? `<b>${esc(f.p)}:</b> ` : ""}${esc(f.x)}</li>`).join("")}</ul></div>` : ""}
@@ -1340,7 +1476,11 @@ function renderDone(sessions) {
       <div class="btn-row no-print"><button type="button" class="btn" id="overview-btn">Se oversikt</button><button type="button" class="btn ghost" id="home-btn">Til forsiden</button></div>
     </div>`;
   const copy = async (text, label) => { try { await navigator.clipboard.writeText(text); toast(label); } catch (e) { toast("Kunne ikke kopiere. Marker teksten og kopier manuelt."); } };
-  $("#copy-all", el).addEventListener("click", () => copy(leaderText(sessions), "Kopiert. Lim inn i Teams til leder."));
+  $("#copy-all", el).addEventListener("click", async () => { await copy(leaderText(sessions), "Kopiert. Lim inn i Teams til leder."); markSent(sessions); $("#done-h1", el).textContent = `Sendt til ${lederNavn()} ✓`; });
+  const ot = $("#open-teams", el); if (ot) ot.addEventListener("click", () => { markSent(sessions); $("#done-h1", el).textContent = `Sendt til ${lederNavn()} ✓`; openTeams(leaderText(sessions)); });
+  const ek = $("#esk-btn", el); if (ek) ek.addEventListener("click", () => copy(eskaleringText(sessions, s0), "Kopiert. Lim inn i Teams til daglig leder."));
+  const ib = $("#ics-btn", el); if (ib) ib.addEventListener("click", () => downloadIcs());
+  const db = $("#done-backup", el); if (db) db.addEventListener("click", () => backupNow());
   $$("[data-copy]", el).forEach(b => b.addEventListener("click", () => { const s = sessions.find(x => x.id === b.dataset.copy); copy(multi ? teamsText(s) : leaderText([s]), "Kopiert"); }));
   const xb = $("#xlsx-btn", el); if (xb) xb.addEventListener("click", async () => { let i = 0; for (const s of sessions) { if (!s.projectId) continue; if (i++) await new Promise(r => setTimeout(r, 900)); const ok = await exportProject(s); if (!ok) break; } });
   $("#leder-btn", el).addEventListener("click", () => exportLeader(sessions));
@@ -1439,7 +1579,8 @@ function buildLeaderWorkbook(sessions) {
     todo.forEach((t, i) => { xRow(ws, r, todoCols, ["", t[1], t[2], t[3] ? xdate(t[3]) : "", t[0], "", "", ""], { stripe: i % 2 === 1 }); ws.getCell(r, 5).alignment = { horizontal: "center" }; r++; });
     ws.dataValidations.add(`F18:F${r + 2}`, { type: "list", allowBlank: true, formulae: ['"Har lest,Ringt,Tatt videre,Ikke nå"'] });
     r++; sec(r, "Forslag til første setning"); r++;
-    latest.forEach(s => { ws.getCell(r, 2).value = s.project.prosjekt; ws.getCell(r, 2).font = { name: "Calibri", size: 10, bold: true, color: { argb: XC.ink } }; ws.getCell(r, 2).alignment = { vertical: "top", wrapText: true }; ws.mergeCells(r, 3, r, 8); const c = ws.getCell(r, 3); c.value = firstSentence(s); c.font = { name: "Calibri", size: 10, italic: true, color: { argb: XC.ink } }; c.alignment = { wrapText: true, vertical: "top" }; ws.getRow(r).height = 30; r++; });
+    const fs0 = firstSentence(s0); ws.getCell(r, 2).value = store.me.konsulent; ws.getCell(r, 2).font = { name: "Calibri", size: 10, bold: true, color: { argb: XC.ink } }; ws.mergeCells(r, 3, r, 8); ws.getCell(r, 3).value = fs0; ws.getCell(r, 3).font = { name: "Calibri", size: 10, italic: true, color: { argb: XC.ink } }; ws.getCell(r, 3).alignment = { wrapText: true, vertical: "top" }; ws.getRow(r).height = 30; r++;
+    latest.filter(s => firstSentence(s) !== fs0).forEach(s => { ws.getCell(r, 2).value = s.project.prosjekt; ws.getCell(r, 2).font = { name: "Calibri", size: 10, bold: true, color: { argb: XC.ink } }; ws.getCell(r, 2).alignment = { vertical: "top", wrapText: true }; ws.mergeCells(r, 3, r, 8); const c = ws.getCell(r, 3); c.value = firstSentence(s); c.font = { name: "Calibri", size: 10, italic: true, color: { argb: XC.ink } }; c.alignment = { wrapText: true, vertical: "top" }; ws.getRow(r).height = 30; r++; });
     r++; sec(r, "Prosjekter og roller"); r++;
     const pc = [{ h: "", w: 3 }, { h: "Prosjekt / rolle", w: 22, wrap: true }, { h: "Ampel", w: 14, status: true, bold: true, align: "center" }, { h: "Type", w: 14 }, { h: "Andel %", w: 14, fmt: "0", align: "center" }, { h: "Åpne tiltak", w: 14, fmt: "0", align: "center" }, { h: "Over frist", w: 14, fmt: "0", align: "center" }, { h: "Løper ut / frist", w: 14, align: "center" }];
     xHeader(ws, r, pc); r++;
@@ -1479,10 +1620,10 @@ function buildLeaderWorkbook(sessions) {
     if (i === 0) { push([kons, "", "", "", "Alt grønt uten kommentarer i perioden.", "", "", "", "", "", ""]); }
     ws.autoFilter = { from: { row: 5, column: 1 }, to: { row: r - 1, column: cols.length } }; r++; xFoot(ws, r, foot, cols.length); xPage(ws, true, "1:5", hdr, ftr); }
   /* 5 Team-rad */
-  { const cols = [{ h: "Konsulent", w: 18 }, { h: "Måned", w: 10 }, { h: "Leder", w: 16 }, { h: "Ampel person", w: 12, status: true, bold: true, align: "center" }, { h: "Belastning", w: 10, fmt: "0", align: "center" }, { h: "Trivsel", w: 8, fmt: "0", align: "center" }, { h: "Timer/uke", w: 9, fmt: "0.0", align: "center" }, { h: "Kontakt", w: 8, align: "center" }, { h: "Belegg %", w: 9, fmt: "0", align: "center" }, { h: "Røde prosjekter", w: 9, fmt: "0", align: "center" }, { h: "Gule prosjekter", w: 9, fmt: "0", align: "center" }, { h: "Handlinger til leder", w: 10, fmt: "0", align: "center" }, { h: "Første frist", w: 11, align: "center" }, { h: "Fikk svar sist", w: 9, align: "center" }];
+  { const cols = [{ h: "Konsulent", w: 18 }, { h: "Måned", w: 10 }, { h: "Leder", w: 16 }, { h: "Ampel person", w: 12, status: true, bold: true, align: "center" }, { h: "Belastning", w: 10, fmt: "0", align: "center" }, { h: "Trivsel", w: 8, fmt: "0", align: "center" }, { h: "Timer/uke", w: 9, fmt: "0.0", align: "center" }, { h: "Kontakt", w: 8, align: "center" }, { h: "Belegg %", w: 9, fmt: "0", align: "center" }, { h: "Røde prosjekter", w: 9, fmt: "0", align: "center" }, { h: "Gule prosjekter", w: 9, fmt: "0", align: "center" }, { h: "Handlinger til leder", w: 10, fmt: "0", align: "center" }, { h: "Første frist", w: 11, align: "center" }, { h: "Fikk svar sist", w: 9, align: "center" }, { h: "Eskalering", w: 12, align: "center" }];
     const ws = wb.addWorksheet("5 Team-rad", { views: [{ state: "frozen", ySplit: 1, showGridLines: false }] }); xHeader(ws, 1, cols);
     const act = activeProjects(); const sum = act.reduce((n, p) => n + num(p.andel), 0); const amp = latest.map(s => ampel(s)); const todo = leaderTodo(sessions, s0); const pa = isHeavy(s0.pulse, s0.person, sessions) ? "Rødt" : (s0.pulse || {}).belastning >= 4 || (s0.person && s0.person.kontakt === "nei") ? "Gult" : "Grønt";
-    xRow(ws, 2, cols, [kons, s0.date.slice(0, 7), leder, ampelText(pa), xnum((s0.pulse || {}).belastning), xnum((s0.pulse || {}).trivsel), xnum((s0.person || {}).timer_uke), (s0.person || {}).kontakt || "", act.length ? sum : null, amp.filter(a => a === "Rødt").length, amp.filter(a => a === "Gult").length, todo.length, todo.filter(t => t[3]).map(t => t[3]).sort()[0] ? xdate(todo.filter(t => t[3]).map(t => t[3]).sort()[0]) : "", noAnswerLast(s0) ? "Nei" : ""]);
+    xRow(ws, 2, cols, [kons, s0.date.slice(0, 7), leder || "daglig leder", ampelText(pa), xnum((s0.pulse || {}).belastning), xnum((s0.pulse || {}).trivsel), xnum((s0.person || {}).timer_uke), (s0.person || {}).kontakt || "", act.length ? sum : null, amp.filter(a => a === "Rødt").length, amp.filter(a => a === "Gult").length, todo.length, todo.filter(t => t[3]).map(t => t[3]).sort()[0] ? xdate(todo.filter(t => t[3]).map(t => t[3]).sort()[0]) : "", noAnswerLast(s0) ? "Nei" : "", eskaleringGrunner(sessions, s0).length ? "Ja" : ""]);
     xFoot(ws, 4, "Én rad per konsulent, identiske overskrifter i alle filer. Slå sammen med Power Query (mappe → kombiner) eller lim inn i teamarket.", cols.length); xPage(ws, true, null, hdr, ftr); }
   return wb;
 }
@@ -1575,14 +1716,14 @@ function yearDots(pid, today) {
 function normSession(s) {
   if (!s || typeof s !== "object" || (s.projectId && !ID_OK(s.projectId)) || !/^\d{4}-\d{2}-\d{2}$/.test(String(s.date)) || !s.project || typeof s.project !== "object" || !s.sig || typeof s.sig !== "object") return null;
   const o = { id: ID_OK(s.id) ? String(s.id) : uid(), date: s.date, projectId: String(s.projectId || ""), project: {}, sig: {}, fields: {}, punkter: {}, answers: {}, deep: !!s.deep, deepConfirmed: !!s.deepConfirmed, fullRound: !!s.fullRound, pulse: {}, person: null, elapsed: Number(s.elapsed) || 0, finishedAt: String(s.finishedAt || ""), prevId: s.prevId && ID_OK(s.prevId) ? String(s.prevId) : null, takeaway: String(s.takeaway || ""), mode: Object.keys(MODE_LABEL).includes(s.mode) ? s.mode : undefined, utvikling: Array.isArray(s.utvikling) ? s.utvikling.filter(u => u && UTV_BY[u.k]).map(u => ({ k: u.k, t: Number(u.t) || UTV_BY[u.k].t, m: /^\d{4}-\d{2}$/.test(String(u.m)) ? u.m : "" })) : [] };
-  if (s.lederSvar === "Ja" || s.lederSvar === "Nei") o.lederSvar = s.lederSvar;
+  if (["Ja", "Nei", "Ringte", "Skrev"].includes(s.lederSvar)) o.lederSvar = s.lederSvar; if (s.sentAt) o.sentAt = String(s.sentAt); if (s.onboarding) o.onboarding = true; if (s.erfaring) o.erfaring = String(s.erfaring);
   ["konsulent", "teamleder", "prosjekt", "prosjektnummer", "kunde", "rolle", "kontrakt", "kontraktstype", "sluttdato", "ku_dato", "ku_score", "id", "plan", "mal"].forEach(k => { o.project[k] = String(s.project[k] || ""); });
   o.project.type = s.project.type === "intern" ? "intern" : s.project.type === "mellom" ? "mellom" : s.project.type === "salg" ? "salg" : "prosjekt"; o.project.andel = Number(s.project.andel) || 0; o.project.oppstart = !!s.project.oppstart;
   const okStatus = v => STATUS.includes(v) ? v : v === NR ? NR : "OK";
   if (o.projectId) SIGNALS.forEach(S => { const a = (s.sig[S.id] && typeof s.sig[S.id] === "object") ? s.sig[S.id] : {}; const b = blankSig(); b.status = okStatus(a.status); ["comment", "tiltak", "ansvarlig", "frist"].forEach(k => { b[k] = String(a[k] || ""); }); if (a.manual) b.manual = true; o.sig[S.id] = b; });
   // eldre runder (før v5) hadde S1 per prosjekt: flytt til person
   if (s.sig.S1 && typeof s.sig.S1 === "object" && !s.person) { o.person = { timer_uke: String((s.fields || {}).timer_uke || ""), S1: { status: okStatus(s.sig.S1.status), comment: String(s.sig.S1.comment || "") }, kontakt: "", N1: blankSig(), N3: blankSig() }; }
-  if (s.person && typeof s.person === "object") { const P = s.person; o.person = { timer_uke: String(P.timer_uke || ""), S1: { status: okStatus((P.S1 || {}).status), comment: String((P.S1 || {}).comment || "") }, kontakt: P.kontakt === "ja" || P.kontakt === "nei" ? P.kontakt : "", N1: { status: okStatus((P.N1 || {}).status), comment: String((P.N1 || {}).comment || "") }, N3: { status: okStatus((P.N3 || {}).status), comment: String((P.N3 || {}).comment || "") } }; }
+  if (s.person && typeof s.person === "object") { const P = s.person; o.person = { team: P.team && typeof P.team === "object" ? { levert: Number(P.team.levert) || 0, antall: Number(P.team.antall) || 0, rode: Number(P.team.rode) || 0 } : undefined, timer_uke: String(P.timer_uke || ""), kapasitet: Number(P.kapasitet) >= 10 ? Number(P.kapasitet) : "", S1: { status: okStatus((P.S1 || {}).status), comment: String((P.S1 || {}).comment || "") }, kontakt: P.kontakt === "ja" || P.kontakt === "nei" ? P.kontakt : "", N1: { status: okStatus((P.N1 || {}).status), comment: String((P.N1 || {}).comment || "") }, N3: { status: okStatus((P.N3 || {}).status), comment: String((P.N3 || {}).comment || "") } }; }
   if (s.fields && typeof s.fields === "object") Object.entries(s.fields).forEach(([k, v]) => { o.fields[String(k)] = String(v || ""); });
   ["endret", "risiko", "trenger"].forEach(k => { o.punkter[k] = String((s.punkter || {})[k] || ""); });
   PULSE.forEach(p => { const v = Number(s.pulse && s.pulse[p.k]); if (v >= 1 && v <= 5) o.pulse[p.k] = v; });
@@ -1653,19 +1794,19 @@ function yearData() {
   const pids = Array.from(new Set(store.sessions.filter(x => x.date >= from).map(x => x.projectId)));
   const rows = pids.map(pid => { const ss = store.sessions.filter(x => x.projectId === pid && x.date >= from).sort((a, b) => cmp(a.date, b.date)); const p = projectById(pid) || ss[ss.length - 1].project; const cells = months.map(m => { const l = ss.filter(x => x.date.slice(0, 7) === m).pop(); return l ? { a: ampel(l), deep: l.deep } : null; }); return { pid, p, ss, cells }; });
   const byM = {}; store.sessions.filter(x => x.date >= from && x.pulse && x.pulse.belastning).forEach(x => { byM[x.date.slice(0, 7)] = x; });
-  const answered = Object.keys(byM).length; const svar = store.sessions.filter(x => x.date >= from && x.lederSvar === "Ja").map(x => x.date.slice(0, 7)); const svarN = new Set(svar).size; const asked = new Set(store.sessions.filter(x => x.date >= from && x.lederSvar !== undefined).map(x => x.date.slice(0, 7))).size;
+  const answered = Object.keys(byM).length; const firstM = allSessionsSorted()[0]; const frav = (store.fravaer || []).filter(f => f.m >= from.slice(0, 7) && f.m <= today.slice(0, 7)).length; const denom = Math.max(1, Math.min(12, firstM ? monthsBetween(firstM.date, today) + 1 : 12) - frav); const svar = store.sessions.filter(x => x.date >= from && x.lederSvar && x.lederSvar !== "Nei").map(x => x.date.slice(0, 7)); const svarN = new Set(svar).size; const asked = new Set(store.sessions.filter(x => x.date >= from && x.lederSvar !== undefined).map(x => x.date.slice(0, 7))).size;
   const timer = Object.values(byM).map(x => xnum((x.person || {}).timer_uke)).filter(v => v !== null); const tAvg = timer.length ? Math.round(timer.reduce((a, b) => a + b, 0) / timer.length * 10) / 10 : null;
   const closed = store.tiltak.filter(t => t.status === "Lukket" && t.lukket && t.lukket >= from && t.area !== "Utvikling"); const open = store.tiltak.filter(t => t.status === "Åpen" && t.area !== "Utvikling"); const utv = store.tiltak.filter(t => t.area === "Utvikling" && t.dato >= from);
-  const fag = []; store.sessions.filter(x => x.date >= from && x.deep).forEach(x => { const A = x.answers || {}; const pn = x.project.prosjekt; if (A.m2 && A.m2.comment) fag.push(`${pn}: miljø, ${A.m2.comment}`); ["l2", "l3"].forEach(k => { if (A[k] && A[k].status !== "OK" && A[k].comment) fag.push(`${pn}: ${A[k].comment}`); }); }); store.projects.filter(p => p.slutt && p.slutt.annerledes && p.avsluttet >= from).forEach(p => fag.push(`${p.prosjekt}: ${p.slutt.annerledes}`));
-  const mm = new Set(store.sessions.filter(x => x.date >= from && x.projectId === "").map(x => x.date.slice(0, 7))).size; const deep = store.sessions.filter(x => x.date >= from && x.deep).length;
+  const fag = []; store.sessions.filter(x => x.date >= from && x.erfaring && x.erfaring.trim()).forEach(x => fag.push(`${x.project.prosjekt}: ${x.erfaring.trim()}`)); store.sessions.filter(x => x.date >= from && x.deep).forEach(x => { const A = x.answers || {}; const pn = x.project.prosjekt; if (A.m2 && A.m2.comment) fag.push(`${pn}: miljø, ${A.m2.comment}`); ["l2", "l3"].forEach(k => { if (A[k] && A[k].status !== "OK" && A[k].comment) fag.push(`${pn}: ${A[k].comment}`); }); }); store.projects.filter(p => p.slutt && p.slutt.annerledes && p.avsluttet >= from).forEach(p => fag.push(`${p.prosjekt}: ${p.slutt.annerledes}`));
+  const mm = new Set(store.sessions.filter(x => x.date >= from && x.projectId === "" && !x.onboarding).map(x => x.date.slice(0, 7))).size; const deep = store.sessions.filter(x => x.date >= from && x.deep).length;
   const qs = []; rows.forEach(r => { let run = 0, best = null; r.cells.forEach((c, i) => { if (c && c.a !== "Grønt") { run++; if (run >= 2 && !best) best = months[i]; } else run = 0; }); if (best) qs.push(`Hva skjedde i ${r.p.prosjekt} i ${monthWord(best + "-01")}, og hva gjorde vi?`); });
-  const bel = Object.keys(byM).sort().map(m => byM[m].pulse.belastning); if (bel.filter(b => b >= 4).length >= 2) qs.push("Når var uka tyngst, og hva skal vi endre?"); if (utv.some(t => t.status === "Åpen")) qs.push("Hva vil du bli god på neste år?"); if (mm) qs.push("Hva lærte du i månedene mellom oppdrag, og hva trenger du for å komme raskere i gang neste gang?"); qs.push("Hva er du stolt av?"); qs.push("Hva vil du ha mer av, og mindre av, neste år?");
-  return { today, from, months, rows, byM, answered, svarN, asked, tAvg, closed, open, utv, fag, mm, deep, qs: qs.slice(0, 3) };
+  const bel = Object.keys(byM).sort().map(m => byM[m].pulse.belastning); if (bel.filter(b => b >= 4).length >= 2) qs.push("Når var uka tyngst, og hva skal vi endre?"); if (utv.some(t => t.status === "Åpen")) qs.push("Hva vil du bli god på neste år?"); if (mm) qs.push("Hva lærte du i månedene mellom oppdrag, og hva trenger du for å komme raskere i gang neste gang?"); qs.push("Hva er du stolt av?"); qs.push("Hva vil du ha mer av, og mindre av, neste år?"); qs.push("Hva trenger du fra leder for å lykkes neste år?");
+  return { today, from, months, rows, byM, answered, denom, frav, svarN, asked, tAvg, closed, open, utv, fag, mm, deep, qs: qs.slice(0, 3) };
 }
 function yearReport() {
   const Y = yearData(); const L = [];
   L.push(`Årsutskrift ROMA · ${store.me.konsulent} · ${fmtDate(Y.from)} til ${fmtDate(Y.today)}`); L.push("Til medarbeidersamtalen. Kun for deg og nærmeste leder.");
-  L.push(""); L.push(`Måneder besvart: ${Y.answered} av 12${Y.asked ? ` · leder svarte ${Y.svarN} av ${Y.asked}` : ""}${Y.tAvg !== null ? ` · snitt ${String(Y.tAvg).replace(".", ",")} t/uke` : ""}${Y.mm ? ` · ${Y.mm} måneder mellom oppdrag` : ""}`);
+  L.push(""); L.push(`Måneder besvart: ${Y.answered} av ${Y.denom}${Y.frav ? ` (${Y.frav} med fravær)` : ""}${Y.asked ? ` · leder svarte ${Y.svarN} av ${Y.asked}` : ""}${Y.tAvg !== null ? ` · snitt ${String(Y.tAvg).replace(".", ",")} t/uke` : ""}${Y.mm ? ` · ${Y.mm} måneder mellom oppdrag` : ""}`);
   Y.rows.forEach(r => { const p = r.p; const ss = r.ss; L.push(""); L.push(`${p.prosjekt}${isIntern(p) ? " (intern rolle)" : isSalg(p) ? " (salgsarbeid)" : p.kunde ? " (" + p.kunde + ")" : ""}${p.vunnet ? ", vunnet " + fmtDate(p.vunnet) : ""}${p.avsluttet ? ", avsluttet " + fmtDate(p.avsluttet) : ""}: ${ss.length} runde${ss.length > 1 ? "r" : ""} · ${ss.map(x => `${MONTHS[Number(x.date.slice(5, 7)) - 1]} ${AMPEL_EMOJI[ampel(x)]}`).join(" ")}`);
     const tc = store.tiltak.filter(t => t.projectId === r.pid); const cl = tc.filter(t => t.status === "Lukket").length; if (tc.length) L.push(`  Tiltak: ${cl} lukket, ${tc.length - cl} åpne`);
     const risks = ss.map(x => x.punkter && x.punkter.risiko).filter(v => v && !NOTHING.test(v)); if (risks.length) L.push(`  Risiko meldt: ${risks.slice(-3).join(" · ")}`);
@@ -1676,13 +1817,14 @@ function yearReport() {
   L.push(`Utvikling: ${Y.utv.length ? Y.utv.map(t => `${t.tekst} (${t.status === "Lukket" ? "fullført" : /^Avtalt/.test(t.kommentar || "") ? "avtalt" : "foreslått"})`).join(" · ") : "ingen registrert"}`);
   L.push(`Full ROMA gjennomført: ${Y.deep} ${Y.deep === 1 ? "gang" : "ganger"}`);
   L.push(""); L.push("Tre spørsmål til samtalen:"); Y.qs.forEach((q, i) => L.push(`  ${i + 1}. ${q}`));
+  L.push(""); L.push("Puls, timer og Trygghet er selvrapportert for å få hjelp og brukes ikke i lønnsvurdering. Det som kan tas med videre: prosjektampel, tiltak lukket, utvikling gjennomført og erfaringsnotater.");
   return L.join("\n");
 }
 function printAar() {
   const Y = yearData(); const ms = Object.keys(Y.byM).sort();
   const spark = (() => { const pts = Y.months.map(m => Y.byM[m]).filter(Boolean); if (pts.length < 2) return ""; const x = i => 10 + i * (380 / 11); const y = v => 52 - ((v - 1) / 4) * 44; const path = k => Y.months.map((m, i) => Y.byM[m] ? `${x(i).toFixed(1)},${y(Y.byM[m].pulse[k]).toFixed(1)}` : null).filter(Boolean).map((p, i) => (i ? "L" : "M") + p).join(" "); return `<svg viewBox="0 0 400 60" class="prt-spark"><line x1="10" y1="${y(3)}" x2="390" y2="${y(3)}"/><line x1="10" y1="${y(5)}" x2="390" y2="${y(5)}"/><path class="bel" d="${path("belastning")}"/><path class="triv" d="${path("trivsel")}"/></svg>`; })();
   const html = `<div class="prt prt-aar">
-    ${prtHead("Via ROMA · Årsutskrift", store.me.konsulent, [`${fmtDate(Y.from)} – ${fmtDate(Y.today)}`, "Kun for deg og nærmeste leder", `Besvart ${Y.answered} av 12 måneder${Y.asked ? ` · leder svarte ${Y.svarN} av ${Y.asked}` : ""}`])}
+    ${prtHead("Via ROMA · Årsutskrift", store.me.konsulent, [`${fmtDate(Y.from)} – ${fmtDate(Y.today)}`, "Kun for deg og nærmeste leder", `Besvart ${Y.answered} av ${Y.denom} måneder${Y.asked ? ` · leder svarte ${Y.svarN} av ${Y.asked}` : ""}`])}
     <section class="prt-block"><h2>Tolv måneder</h2><table class="prt-table prt-year"><thead><tr><th>Prosjekt</th>${Y.months.map(m => `<th>${MONTHS[Number(m.slice(5, 7)) - 1]}</th>`).join("")}</tr></thead><tbody>${Y.rows.map(r => `<tr><td><b>${esc(r.p.prosjekt)}</b><br><span class="prt-sub">${esc([isIntern(r.p) ? "intern rolle" : isSalg(r.p) ? "salgsarbeid" : r.p.kunde, r.p.avsluttet ? "avsluttet " + fmtDate(r.p.avsluttet) : ""].filter(Boolean).join(" · "))}</span></td>${r.cells.map(c => `<td class="${c ? pcls(c.a) : ""}">${c ? PSYM[c.a] : ""}${c && c.deep ? "<small>F</small>" : ""}</td>`).join("")}</tr>`).join("")}</tbody></table><p class="prt-sub">● grønt · ▲ gult · ■ rødt · F = full ROMA</p>
     ${Y.rows.map(r => { const tc = store.tiltak.filter(t => t.projectId === r.pid); const cl = tc.filter(t => t.status === "Lukket").length; const risks = r.ss.map(x => x.punkter && x.punkter.risiko).filter(v => v && !NOTHING.test(v)).slice(-3); return `<p class="prt-small"><b>${esc(r.p.prosjekt)}</b>: ${r.ss.length} runder${tc.length ? ` · tiltak ${cl} lukket, ${tc.length - cl} åpne` : ""}${risks.length ? ` · risiko meldt: ${esc(risks.join("; "))}` : ""}${r.p.slutt ? ` · levert: ${esc(r.p.slutt.levert || "")}${r.p.slutt.annerledes ? " · lærdom: " + esc(r.p.slutt.annerledes) : ""}` : ""}</p>`; }).join("")}</section>
     <section class="prt-block"><h2>Puls</h2>${spark}<table class="prt-table prt-year"><thead><tr><th></th>${Y.months.map(m => `<th>${MONTHS[Number(m.slice(5, 7)) - 1]}</th>`).join("")}</tr></thead><tbody><tr><td>B / T</td>${Y.months.map(m => `<td class="mono">${Y.byM[m] ? `${Y.byM[m].pulse.belastning}/${Y.byM[m].pulse.trivsel}` : "–"}</td>`).join("")}</tr><tr><td>t/uke</td>${Y.months.map(m => `<td class="mono">${Y.byM[m] && (Y.byM[m].person || {}).timer_uke ? esc(Y.byM[m].person.timer_uke) : "–"}</td>`).join("")}</tr></tbody></table><p class="prt-sub">B = belastning, T = trivsel (1–5)${Y.tAvg !== null ? ` · snitt ${String(Y.tAvg).replace(".", ",")} t/uke` : ""}${Y.mm ? ` · ${Y.mm} måneder mellom oppdrag` : ""}</p></section>
@@ -1715,16 +1857,17 @@ function renderOverview() {
         ${store.tiltak.length ? `<div class="table-wrap"><table><thead><tr><th></th><th>Opprettet</th><th>Prosjekt</th><th>Tiltak</th><th>Ansvarlig</th><th>Frist</th><th>Status</th></tr></thead><tbody>${store.tiltak.slice().sort((a, b) => (a.status === b.status ? cmp(a.frist || "9", b.frist || "9") : a.status === "Åpen" ? -1 : 1)).map(t => `<tr><td><input type="checkbox" data-tiltak="${esc(t.id)}" ${t.status === "Lukket" ? "checked" : ""} aria-label="Lukk tiltak"></td><td class="mono">${fmtDate(t.dato)}</td><td>${esc(t.prosjekt)}${t.timer ? `<br><span class="muted small">ca. ${t.timer} t</span>` : ""}</td><td>${esc(t.tekst)}<br><span class="muted small">${esc(t.area)}${t.kommentar ? " · " + esc(t.kommentar) : ""}</span></td><td>${esc(t.ansvarlig)}</td><td class="mono" style="${t.status === "Åpen" && t.frist && t.frist < today ? "color:var(--tiltak-ink)" : ""}">${fmtDate(t.frist)}</td><td><span class="pill ${t.status === "Åpen" ? "open" : "closed"}">${esc(t.status)}</span></td></tr>`).join("")}</tbody></table></div>` : `<p class="muted">Ingen tiltak logget ennå.</p>`}
       </div>
       ${store.sessions.length ? `<div class="card"><div class="area-head" style="margin-bottom:8px"><h3>Leverte runder</h3></div><div class="table-wrap"><table><thead><tr><th>Dato</th><th>Prosjekt</th><th>Signaler</th><th></th></tr></thead><tbody>${all.slice().reverse().map(s => `<tr><td class="mono">${fmtDate(s.date)}</td><td>${esc(s.project.prosjekt)}</td><td>${s.projectId ? `<span class="lights-mini">${SIGNALS.map(S => `<i class="${SC[(s.sig[S.id] || {}).status || "OK"]}"></i>`).join("")}</span>` : `<span class="muted small">${esc(ampel(s))}</span>`}${s.deep ? ' <span class="muted small">+ full ROMA</span>' : ""}</td><td><button type="button" class="btn small" data-open="${esc(s.id)}">Åpne</button></td></tr>`).join("")}</tbody></table></div></div>` : ""}
-      <details class="card" id="yearbox" hidden><summary>Årsutskrift til medarbeidersamtalen</summary><pre class="teams" id="year-pre" style="margin-top:10px"></pre><div class="btn-row" style="margin-top:8px"><button type="button" class="btn small" id="year-copy">Kopier</button></div></details>
+      <details class="card" id="yearbox" hidden><summary>Årsutskrift til medarbeidersamtalen</summary><pre class="teams" id="year-pre" style="margin-top:10px"></pre><div class="btn-row" style="margin-top:8px"><button type="button" class="btn small" id="year-copy">Kopier</button><button type="button" class="btn ghost small" id="fag-copy" title="Bare erfaringer, ingen personopplysninger">Kopier fagbidrag til kvalitetsleder</button></div></details>
       <div class="card"><div class="area-head"><div><h3>Dine data</h3><p class="muted small">Alt ligger kun i denne nettleseren. Bytter du maskin, ta sikkerhetskopi først. Deler du maskin, slett når du er ferdig. Safari kan slette lokale data etter 7 dager uten besøk, så ta sikkerhetskopi jevnlig.</p></div><button type="button" class="btn ghost danger" id="wipe-btn">Slett alle mine data</button></div></div>
       <p class="note privacy muted small">${esc(PRIVACY_TEXT)}</p>
     </div>`;
   $("#all-leder-btn", el).addEventListener("click", () => exportLeader(store.sessions));
   $("#year-btn", el).addEventListener("click", () => { const box = $("#yearbox", el); box.hidden = false; box.open = true; $("#year-pre", el).textContent = yearReport(); box.scrollIntoView({ block: "start" }); });
   $("#year-print", el).addEventListener("click", () => printAar());
+  $("#fag-copy", el).addEventListener("click", async () => { const Y = yearData(); const t = [`Fagbidrag fra ${store.me.konsulent} · ${fmtDate(Y.from)} til ${fmtDate(Y.today)}`, ...(Y.fag.length ? Y.fag.map(x => `• ${x}`) : ["Ingen erfaringer registrert ennå."])].join("\n"); try { await navigator.clipboard.writeText(t); toast("Kopiert. Uten puls eller personopplysninger."); } catch (e) { toast("Kunne ikke kopiere"); } });
   $$("[data-pxl]", el).forEach(b => b.addEventListener("click", () => { const s = lastSessionFor(b.dataset.pxl); if (s) exportProject(s); }));
   $("#year-copy", el).addEventListener("click", async () => { try { await navigator.clipboard.writeText(yearReport()); toast("Kopiert"); } catch (e) { toast("Kunne ikke kopiere"); } });
-  $("#backup-btn", el).addEventListener("click", ev => { const b = ev.currentTarget; if (!b.dataset.armed) { b.dataset.armed = "1"; b.textContent = "Filen inneholder alt, også puls og Trygghet. Lagre privat, aldri i prosjektmappen. Last ned"; return; } saveFile(`${isoToday().replace(/-/g, "")}_ViaROMA_sikkerhetskopi.json`, JSON.stringify(store, null, 2)); });
+  $("#backup-btn", el).addEventListener("click", ev => { const b = ev.currentTarget; if (!b.dataset.armed) { b.dataset.armed = "1"; b.textContent = "Filen inneholder alt, også puls og Trygghet. Lagre privat, aldri i prosjektmappen. Last ned"; return; } backupNow(); });
   $$("[data-reopen]", el).forEach(b => b.addEventListener("click", () => { const p = projectById(b.dataset.reopen); if (!p) return; p.avsluttet = ""; saveStore(); toast(`${p.prosjekt} er aktivt igjen. Sluttevalueringen er beholdt.`); renderOverview(); }));
   $("#import-btn", el).addEventListener("click", () => $("#import-inp", el).click());
   $("#wipe-btn", el).addEventListener("click", ev => { const b = ev.currentTarget; if (b.dataset.armed) { wipeAll(); toast("Alt er slettet fra denne nettleseren"); renderHome(); } else { b.dataset.armed = "1"; b.textContent = "Sikker? Slett alt nå"; } });
@@ -1732,6 +1875,8 @@ function renderOverview() {
     const f = ev.target.files[0]; if (!f) return; const r = new FileReader();
     r.onload = () => { try {
       const data = JSON.parse(r.result); if (!data || typeof data !== "object") throw new Error("format"); let n = 0;
+      const owner = data.me && data.me.konsulent ? String(data.me.konsulent) : ""; if (owner && store.me.konsulent && owner.trim().toLowerCase() !== store.me.konsulent.trim().toLowerCase()) { if (!importArmed || importArmed !== owner) { importArmed = owner; toast(`Filen tilhører ${owner}, ikke ${store.me.konsulent}. Velg filen igjen for å erstatte ALT med den, eller la det være.`); ev.target.value = ""; return; } try { localStorage.setItem(STORE_KEY + ".angre", JSON.stringify(store)); } catch (e) { /* tom */ } store = emptyStore(); }
+      importArmed = null;
       (Array.isArray(data.projects) ? data.projects : []).forEach(p => { const o = normProject(p); if (o && !store.projects.some(x => x.id === o.id)) store.projects.push(o); });
       const have = new Set(store.sessions.map(s => s.id));
       (Array.isArray(data.sessions) ? data.sessions : []).forEach(s => { const v = normSession(s); if (v && !have.has(v.id) && (!v.projectId || projectById(v.projectId) || v.project.prosjekt)) { if (v.projectId && !projectById(v.projectId)) { const np = normProject(Object.assign({ id: v.projectId }, v.project)); if (np) store.projects.push(np); } store.sessions.push(v); n++; } });
@@ -1747,6 +1892,8 @@ function renderOverview() {
 }
 
 /* ---------- oppstart ---------- */
+if ("serviceWorker" in navigator && location.protocol === "https:") { navigator.serviceWorker.register("sw.js").catch(() => {}); }
+if (DEMO) { const b = document.createElement("div"); b.className = "demobar"; b.innerHTML = '<span>Eksempeldata. Ingenting her er ekte, og det slettes når du avslutter.</span><button type="button" class="btn small" id="demo-stop">Avslutt demo</button>'; document.body.prepend(b); b.querySelector("#demo-stop").addEventListener("click", stopDemo); }
 renderHome();
 
 </script>
