@@ -277,6 +277,65 @@
   .lights-mini i.Skip { background: var(--line); border: 1px dashed var(--line-strong); }
   .sig.st-Skip { opacity: .7; }
   .pill.skip { background: var(--surface-2); color: var(--muted); }
+  /* ---------- utskrift / PDF ---------- */
+  .prt { display: none; }
+  @media print {
+    @page { size: A4 portrait; margin: 18mm 16mm 22mm 16mm; }
+    html[data-print] #app, html[data-print] .top, html[data-print] .toast, html[data-print] canvas { display: none !important; }
+    html[data-print] .prt { display: block; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    html[data-print] body { background: #fff; }
+  }
+  .prt { --p-ink: #111; --p-muted: #555; --p-line: #BDBDBD; --p-ok: #2E8B57; --p-risk: #B07A00; --p-tiltak: #B8372A; --p-accent: #257A6B; --p-gold: #8A6414; color: var(--p-ink); font: 9.5pt/1.4 var(--font-body); background: #fff; padding-bottom: 8mm; }
+  .prt h1 { font: 500 20pt/1.15 var(--font-display); margin: 0; break-after: avoid; }
+  .prt h2 { font: 600 13pt/1.2 var(--font-display); margin: 0 0 2mm; break-after: avoid; }
+  .prt .prt-big { font-size: 16pt; }
+  .prt p, .prt li { orphans: 3; widows: 3; margin: 0 0 1mm; }
+  .prt .mono { font-family: var(--font-mono); font-size: 8.5pt; font-variant-numeric: tabular-nums; }
+  .prt-eyebrow { display: block; font-size: 7pt; letter-spacing: .12em; text-transform: uppercase; color: var(--p-muted); margin-bottom: 1mm; }
+  .prt-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 6mm; border-bottom: .5pt solid var(--p-ink); padding-bottom: 3mm; margin-bottom: 4mm; }
+  .prt-meta { font-family: var(--font-mono); font-size: 8.5pt; color: var(--p-muted); text-align: right; }
+  .prt-sub, .prt-small { font-size: 8pt; color: var(--p-muted); }
+  .prt-block { break-inside: avoid; page-break-inside: avoid; margin-bottom: 5mm; }
+  .prt-page { break-before: page; page-break-before: always; }
+  .prt-ampel { display: grid; grid-template-columns: repeat(auto-fill, minmax(42mm, 1fr)); gap: 3mm; margin-bottom: 5mm; break-inside: avoid; }
+  .prt-ampbox { border: .5pt solid var(--p-line); border-radius: 2mm; padding: 2mm 3mm; display: flex; flex-direction: column; gap: .5mm; }
+  .prt-ampbox.st-Tiltak { border: 1pt solid var(--p-tiltak); background: #FBEEEC; }
+  .prt-ampbox.st-Risiko { border-color: var(--p-risk); }
+  .prt-ampbox b { font: 500 11pt/1.2 var(--font-display); }
+  .prt-amp { font-size: 14pt; line-height: 1; }
+  .st-OK .prt-amp, .prt-amp.st-OK, td.st-OK, .prt-pill.st-OK { color: var(--p-ok); }
+  .st-Risiko .prt-amp, .prt-amp.st-Risiko, td.st-Risiko, .prt-pill.st-Risiko { color: var(--p-risk); }
+  .st-Tiltak .prt-amp, .prt-amp.st-Tiltak, td.st-Tiltak, .prt-pill.st-Tiltak { color: var(--p-tiltak); }
+  .prt-pill.st-NR { color: var(--p-line); }
+  .prt-pill { display: inline-block; border: .5pt solid currentColor; border-radius: 2mm; padding: .5mm 2mm; font-size: 8pt; margin: 0 1mm 1mm 0; }
+  .prt-pill.st-Tiltak { background: #FBEEEC; }
+  .prt-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(28mm, 1fr)); gap: 3mm; margin-bottom: 2mm; }
+  .prt-kpi { background: #EEF3EF; border-radius: 2mm; padding: 2mm 3mm; }
+  .prt-kpi span { display: block; font-size: 7.5pt; color: var(--p-muted); }
+  .prt-kpi b { font: 600 14pt/1.2 var(--font-display); }
+  .prt-todo { border: .5pt dashed var(--p-accent); border-radius: 2mm; padding: 3mm 4mm; }
+  .prt-todo ol { margin: 0 0 2mm; padding-left: 5mm; }
+  .prt-proj { border-top: .5pt solid var(--p-line); padding-top: 3mm; }
+  .prt-proj-head { display: flex; align-items: center; gap: 3mm; margin-bottom: 2mm; }
+  .prt-proj-head .prt-right { margin-left: auto; text-align: right; max-width: 60mm; }
+  .prt-pills { margin-bottom: 2mm; }
+  .prt-flags { list-style: none; padding: 0; margin: 0 0 2mm; color: var(--p-tiltak); font-weight: 600; }
+  .prt-lines { list-style: none; padding: 0; margin: 0 0 2mm; }
+  .prt-pk { display: grid; grid-template-columns: 34mm 1fr; gap: .5mm 3mm; margin: 0 0 2mm; }
+  .prt-pk dt { font-weight: 600; color: var(--p-muted); }
+  .prt-pk dd { margin: 0; }
+  .prt-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; margin-bottom: 2mm; }
+  .prt-table th { text-align: left; font-size: 7pt; letter-spacing: .06em; text-transform: uppercase; color: var(--p-muted); border-bottom: .5pt solid var(--p-ink); padding: 1mm 1.5mm; }
+  .prt-table td { border-bottom: .3pt solid var(--p-line); padding: 1mm 1.5mm; vertical-align: top; }
+  .prt-table thead { display: table-header-group; } .prt-table tr { break-inside: avoid; }
+  .prt-year th, .prt-year td { text-align: center; width: 9mm; } .prt-year th:first-child, .prt-year td:first-child { text-align: left; width: auto; }
+  .prt-year small { font-size: 6pt; vertical-align: super; }
+  .prt-quote { font: italic 11pt/1.35 var(--font-display); border-left: 2pt solid var(--p-accent); padding-left: 3mm; margin: 2mm 0 0; }
+  .prt-spark { width: 100%; height: 22mm; margin: 1mm 0 2mm; }
+  .prt-spark line { stroke: var(--p-line); stroke-width: .3; } .prt-spark path { fill: none; stroke-width: 1.5; } .prt-spark .bel { stroke: var(--p-tiltak); } .prt-spark .triv { stroke: var(--p-accent); }
+  .prt-fag { border: .5pt solid var(--p-gold); border-radius: 2mm; padding: 3mm 4mm; }
+  .prt-q { margin: 6mm 0; } .prt-q p { font: 500 12pt/1.3 var(--font-display); } .prt-line { border-bottom: .3pt solid #bbb; height: 8mm; }
+  .prt-foot { position: fixed; bottom: 0; left: 0; right: 0; font-size: 7.5pt; color: var(--p-muted); border-top: .3pt solid #bbb; padding-top: 2mm; background: #fff; }
 </style>
 </head>
 <body>
@@ -297,8 +356,9 @@
   </main>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div id="print-root"></div>
 
-<script async src="vendor/xlsx.full.min.js"></script>
+<script async src="vendor/exceljs.min.js"></script>
 <script async src="vendor/confetti.browser.min.js"></script>
 <script>
 /* =====================================================================
@@ -403,6 +463,7 @@ const PULSE = [
   { k: "trivsel", name: "Trivsel", anchors: ["Mistrives", "Lav", "Grei", "God", "Svært god"] }
 ];
 const YEAR_HINTS = { 1: "Januar: medarbeidersamtale. Årsutskriften i Oversikt er din.", 5: "Mai: tid for kundeundersøkelse på oppdragene?", 6: "Juni: sjekk dekning i ferien under Neste fase.", 11: "November: kundeundersøkelse og fag- og erfaringsrapport. Erfaringsnotater teller.", 12: "Desember: årsavslutning. Se året i Oversikt." };
+const APP_VERSION = "6.0";
 const ROMA_QUOTES = { Travel: "Roma ble ikke bygget på én dag. Denne måneden la du én stein.", Balansert: "Alle veier fører til Roma. Denne tok __TID__.", Rolig: "Også Roma hadde rolige år. De bygde akvedukter." };
 const PRIVACY_TEXT = "Alt lagres bare i denne nettleseren på denne enheten. Ingen server, ingen innlogging, ingen andre ser dataene dine. Data forlater maskinen først når du selv kopierer Teams-teksten eller laster ned en fil. Teams-tekst og ledereksport er kun til nærmeste leder. Prosjekt-Excel inneholder ikke puls, belastning eller Trygghet. Diktering bruker nettleserens taletjeneste (Google/Microsoft). Ingen helseopplysninger, navn på personer hos kunde eller private forhold i fritekst. På delt maskin: «Slett alle mine data» i Oversikt når du er ferdig. Nedlastede filer og utklippstavlen slettes ikke av appen. Formålet med det som går til leder er Involveds oppfølging av arbeidsbelastning og arbeidsmiljø (arbeidsmiljøloven § 4-1). Leder lagrer det i sin HR-mappe, ikke i prosjektmappen, og du kan be om innsyn i og sletting av det som er sendt.";
 const NOTHING = /^\s*(ingenting|ingen|ingen nå|ikke noe nytt|ikke noe spesielt|nei|ok|nope|[-–—.]*)\s*[.!]?\s*$/i;
@@ -513,7 +574,7 @@ function loadStore() {
 function normProject(p) {
   if (!p || typeof p !== "object" || !p.prosjekt) return null;
   const o = { id: ID_OK(p.id) ? String(p.id) : uid(), type: p.type === "intern" ? "intern" : p.type === "salg" ? "salg" : "prosjekt" };
-  ["prosjekt", "kunde", "prosjektnummer", "rolle", "kontrakt", "kontraktstype", "sluttdato", "ku_dato", "ku_score", "avsluttet", "plan", "mal", "verdi", "vunnet"].forEach(k => { o[k] = String(p[k] || ""); });
+  ["prosjekt", "kunde", "prosjektnummer", "rolle", "kontrakt", "kontraktstype", "sluttdato", "ku_dato", "ku_score", "avsluttet", "plan", "mal", "verdi", "vunnet"].forEach(k => { o[k] = String(p[k] || ""); }); o.sluttMeldt = !!p.sluttMeldt;
   o.andel = Math.max(0, Math.min(100, Number(p.andel) || 0));
   o.oppstart = !!p.oppstart;
   o.slutt = p.slutt && typeof p.slutt === "object" ? { levert: String(p.slutt.levert || ""), annerledes: String(p.slutt.annerledes || ""), uavsluttet: String(p.slutt.uavsluttet || ""), dato: /^\d{4}-\d{2}-\d{2}$/.test(String(p.slutt.dato)) ? p.slutt.dato : String(p.avsluttet || "") } : null;
@@ -559,7 +620,7 @@ function makeSession(project) {
   SIGNALS.forEach(S => {
     const a = blankSig(); const pa = prev && prev.sig && prev.sig[S.id];
     // gult og rødt fra sist beholdes for det som ikke styres av tall (S3 settes på nytt fra tallene)
-    if (pa && !S.sensitive && (S.id !== "S3" || !isKunde(project)) && (pa.status === "Risiko" || pa.status === "Krever tiltak")) Object.assign(a, { status: pa.status, comment: pa.comment || "", tiltak: pa.tiltak || "", ansvarlig: pa.ansvarlig || (pa.status === "Krever tiltak" && store.me.teamleder ? store.me.teamleder : store.me.konsulent), frist: pa.frist && pa.frist >= isoToday() ? pa.frist : addDays(isoToday(), 14) });
+    if (pa && !S.sensitive && (S.id !== "S3" || !isKunde(project)) && (pa.status === "Risiko" || pa.status === "Krever tiltak")) Object.assign(a, { status: pa.status, comment: pa.comment || "", tiltak: pa.tiltak || "", ansvarlig: store.me.konsulent, frist: pa.frist && pa.frist >= isoToday() ? pa.frist : addDays(isoToday(), 14) });
     if (S.id === "S7" && pa && pa.manual && pa.status === "OK" && prev.project && prev.project.sluttdato === project.sluttdato) a.manual = true;
     sig[S.id] = a;
   });
@@ -723,7 +784,7 @@ function renderHome() {
         ${!act.length ? `<div class="empty">Ingen aktive prosjekter eller roller. Legg til når du har noe, eller kjør runden uten.</div>` : ""}
         ${sumAndel > 100 ? `<p class="muted small">Andelene summerer til ${sumAndel} %. Over 100 er i seg selv et signal.</p>` : ledig && ledig > 100 - LEDIG_GRENSE ? `<p class="muted small">Ca. ${ledig} % ledig. Hva bruker du det på? Utviklingsmenyen under puls er åpen.</p>` : ""}
       </div>
-      ${endedNotice ? `<div class="card" id="endedbox"><div class="area-head"><div><b>${esc(endedNotice.prosjekt)} avsluttet.</b><br><span class="muted small">Sluttevalueringen som Teams-tekst til leder. Den ligger også i Excel og årsutskriften.</span></div><div class="btn-row"><button type="button" class="btn small primary" id="ended-copy">Kopier til Teams</button><button type="button" class="btn ghost small" id="ended-close">Lukk</button></div></div><pre class="teams" style="margin-top:8px">${esc(sluttText(endedNotice))}</pre></div>` : ""}
+      ${endedNotice ? `<div class="card" id="endedbox"><div class="area-head"><div><b>${esc(endedNotice.prosjekt)} avsluttet.</b><br><span class="muted small">Sluttevalueringen som Teams-tekst til leder. Den ligger også i Excel og årsutskriften.</span></div><div class="btn-row"><button type="button" class="btn small primary" id="ended-copy">Kopier til Teams</button>${lastSessionFor(endedNotice.id) ? `<button type="button" class="btn small" id="ended-xl">Excel til ${isKunde(endedNotice) ? "prosjektmappen" : "leder"}</button>` : ""}<button type="button" class="btn ghost small" id="ended-close">Lukk</button></div></div><pre class="teams" style="margin-top:8px">${esc(sluttText(endedNotice))}</pre></div>` : ""}
       ${svarSession ? `<div class="card" id="svarbox"><div class="area-head"><div><b>Fikk du svar fra ${esc(store.me.teamleder)} på runden i ${fmtMonth(svarSession.date)}?</b><br><span class="muted small">Ærlighet skal føre til noe. Svaret går i ledereksporten.</span></div><div class="btn-row"><button type="button" class="btn small" data-svar="Ja">Ja</button><button type="button" class="btn small" data-svar="Nei">Nei</button></div></div></div>` : ""}
       <div class="card" id="pulse-card">
         <div class="area-head" style="margin-bottom:8px"><div><span class="eyebrow">Deg, én gang per måned</span></div><span class="muted small">Kun til nærmeste leder</span></div>
@@ -760,7 +821,8 @@ function renderHome() {
   $("#p-timer", el).addEventListener("change", ev => { if (num(ev.target.value) > 80) ev.target.value = "80"; homePerson.timer_uke = ev.target.value; const t = num(ev.target.value); const sug = t > HOURS.rod ? "Krever tiltak" : t > HOURS.gul ? "Risiko" : "OK"; if (RANK[sug] > RANK[homePerson.S1.status]) { homePerson.S1.auto = true; $(`[data-pst="${sug}"]`, el).click(); toast(`Satt til ${LIGHT[sug].toLowerCase()} ut fra timene. Var det én uke eller hele måneden? Skriv gjerne en linje.`); } else if (homePerson.S1.auto && RANK[sug] < RANK[homePerson.S1.status]) { $(`[data-pst="${sug}"]`, el).click(); homePerson.S1.auto = sug !== "OK"; } else renderModeBox(el); });
   $$("[data-kontakt]", el).forEach(b => b.addEventListener("click", () => { homePerson.kontakt = b.dataset.kontakt; $$("[data-kontakt]", el).forEach(x => x.setAttribute("aria-pressed", x === b)); b.closest(".sig").className = `sig st-${homePerson.kontakt === "nei" ? "Risiko" : "OK"}`; }));
   $$("[data-svar]", el).forEach(b => b.addEventListener("click", () => { const m = svarSession.date.slice(0, 7); store.sessions.forEach(x => { if (x.date.slice(0, 7) === m) x.lederSvar = b.dataset.svar; }); saveStore(); if (b.dataset.svar === "Ja") store.tiltak.forEach(t => { if (t.area === "Utvikling" && t.dato.slice(0, 7) === m && /^Foreslått/.test(t.kommentar || "")) t.kommentar = `Avtalt med ${store.me.teamleder || "leder"}`; }); saveStore(); $("#svarbox", el).innerHTML = `<p class="muted small">${b.dataset.svar === "Ja" ? "Bra. Sløyfen er lukket." : "Notert. Det står øverst i Teams-teksten til leder neste runde."}</p>`; }));
-  const eb = $("#ended-copy", el); if (eb) eb.addEventListener("click", async () => { try { await navigator.clipboard.writeText(sluttText(endedNotice)); toast("Kopiert. Lim inn i Teams til leder."); } catch (e) { toast("Kunne ikke kopiere. Marker teksten og kopier manuelt."); } });
+  const eb = $("#ended-copy", el); if (eb) eb.addEventListener("click", async () => { try { await navigator.clipboard.writeText(sluttText(endedNotice)); endedNotice.sluttMeldt = true; saveStore(); toast("Kopiert. Lim inn i Teams til leder."); } catch (e) { toast("Kunne ikke kopiere. Marker teksten og kopier manuelt."); } });
+  const ex = $("#ended-xl", el); if (ex) ex.addEventListener("click", () => exportProject(lastSessionFor(endedNotice.id)));
   const ec = $("#ended-close", el); if (ec) ec.addEventListener("click", () => { endedNotice = null; renderHome(); });
   const updateCount = () => { const chk = $$("#plist input[type=checkbox]:checked", el); const n = chk.length; const mins = chk.reduce((m, c) => { const pr = projectById(c.closest(".pcard").dataset.pid); return m + (pr && num(pr.andel) > 0 && num(pr.andel) <= SMALL_SHARE ? 1 : 3); }, 0); $("#start-count", el).textContent = n ? `${n} valgt · ≈ ${mins + 1} min med deg` : act.length ? "Velg minst ett prosjekt" : "Runde uten prosjekt, ≈ 2 min"; $$(".pcard", el).forEach(c => c.classList.toggle("off", !$("input", c).checked)); homeMellom = act.length === 0; renderModeBox(el); };
   $$("#plist input[type=checkbox]", el).forEach(c => c.addEventListener("change", updateCount)); updateCount();
@@ -846,7 +908,7 @@ function renderSig(s, S) {
   const detail = flagged ? `<div class="detail">
       <textarea data-field="comment" placeholder="${S.sensitive ? "Kort, uten navn. Detaljene tas muntlig med leder." : a.status === "Krever tiltak" ? "Hva skjer? Én setning. Tiltak er valgfritt, leder tar det ellers." : "Hva skjer? Én setning."}" aria-label="Kommentar" autocomplete="off">${esc(a.comment)}</textarea>
       ${S.sensitive ? (a.status === "Krever tiltak" ? `<p class="note red small"><b>Dette tas muntlig, ikke i tekst.</b> Ingen navn her. ${isIntern(s.project) ? "Gjelder det kolleger eller leder, går det til varslingsrutinen (HR eller verneombud), ikke nærmeste leder." : `${esc(store.me.teamleder || "Leder")} kontakter deg ${SVAR}.`} Saken går utenom tiltaksloggen.</p>` : `<p class="muted small">Går kun til nærmeste leder, ikke i prosjektmappen.</p>`) : `<div class="tiltak-grid">
-        <input type="text" data-field="tiltak" placeholder="Tiltak (ansvarlig: ${esc(a.ansvarlig || store.me.konsulent)})" value="${esc(a.tiltak)}" aria-label="Tiltak" autocomplete="off">
+        <input type="text" data-field="tiltak" placeholder="Det jeg gjør (valgfritt)${a.status === "Krever tiltak" && store.me.teamleder ? ", ellers følger " + esc(store.me.teamleder) + " opp" : ""}" value="${esc(a.tiltak)}" aria-label="Tiltak" autocomplete="off">
         <div class="frist" role="group" aria-label="Frist">${fristOpts.map(([lab, d]) => `<button type="button" data-frist="${d}" aria-pressed="${a.frist === d}">${lab}</button>`).join("")}<input type="date" data-field="frist" value="${esc(a.frist)}" aria-label="Frist, dato"></div>
       </div>`}
       <details class="deeper" data-deeper="${S.id}"><summary>Gå dypere (${sigDeep(S, s).length} spørsmål)</summary><div class="qlist"></div></details>
@@ -873,7 +935,7 @@ function bindSig(s, S) {
 }
 function setSig(s, S, status, mode) {
   const a = s.sig[S.id]; const was = a.status; a.status = status; if (S.id === "S7" && (mode === "click" || mode === "key")) a.manual = true;
-  if (status !== "OK") { if (!a.frist) a.frist = addDays(s.date, 14); a.ansvarlig = status === "Krever tiltak" && store.me.teamleder ? store.me.teamleder : store.me.konsulent; }
+  if (status !== "OK") { if (!a.frist) a.frist = addDays(s.date, 14); a.ansvarlig = store.me.konsulent; }
   else { a.tiltak = ""; a.frist = ""; a.comment = ""; }
   saveDraft();
   const old = $(`.sig[data-sig="${S.id}"]`); const hadCursor = old.classList.contains("cursor");
@@ -1041,7 +1103,7 @@ function fieldText(q, ans) {
 function sigFieldText(S, s) { const f = s.fields || {}; const parts = []; sigFields(S, s).forEach(x => { if (f[x.k]) parts.push(`${x.l} ${f[x.k]} ${x.u}`); }); if (S.toggle && f[S.toggle.k]) parts.push(S.toggle.l); if (S.id === "S7" && !isIntern(s.project) && s.project.sluttdato) parts.push(`${isSalg(s.project) ? "frist" : "løper ut"} ${fmtDate(s.project.sluttdato)}`); return parts.join(" · "); }
 function collectTiltak(s) {
   const out = [];
-  if (s.projectId !== "") SIGNALS.forEach(S => { const a = s.sig[S.id]; if (!a || a.status === "OK" || a.status === NR || S.sensitive) return; if (a.tiltak.trim() || a.status === "Krever tiltak") out.push({ area: sigName(S, s), tekst: a.tiltak.trim() || `Følg opp: ${sigName(S, s).toLowerCase()}`, ansvarlig: a.ansvarlig || store.me.konsulent, frist: a.frist, kommentar: a.comment }); });
+  if (s.projectId !== "") SIGNALS.forEach(S => { const a = s.sig[S.id]; if (!a || a.status === "OK" || a.status === NR || S.sensitive) return; if (a.tiltak.trim() || a.status === "Krever tiltak") out.push({ area: sigName(S, s), tekst: a.tiltak.trim() || `Følg opp: ${sigName(S, s).toLowerCase()}`, ansvarlig: a.tiltak.trim() ? store.me.konsulent : (store.me.teamleder || store.me.konsulent), frist: a.frist, kommentar: a.comment }); });
   const tr = (s.punkter.trenger || "").trim();
   if (tr && !NOTHING.test(tr)) out.push({ area: "Trenger fra Involved", tekst: tr, ansvarlig: store.me.teamleder || "Leder", frist: addDays(s.date, 14), kommentar: "" });
   if (s.projectId === "" && s.person) {
@@ -1084,57 +1146,123 @@ function pulseWarnings(s, audience = "leder") {
 }
 function ampel(s, withSensitive = true) { if (s.projectId === "") { const P = s.person || {}; return (P.N1 && P.N1.status === "Krever tiltak") || (P.N3 && P.N3.status === "Krever tiltak") || mellomStreak(s.date) >= 3 ? "Rødt" : (P.N1 && P.N1.status !== "OK") || (P.N3 && P.N3.status !== "OK") ? "Gult" : "Grønt"; } const fl = flaggedSignals(s).filter(S => withSensitive || !S.sensitive); if (redFlags(s, withSensitive).length || fl.some(S => s.sig[S.id].status === "Krever tiltak")) return "Rødt"; return fl.length ? "Gult" : "Grønt"; }
 function changedSignals(s) { const prev = s.prevId ? store.sessions.find(x => x.id === s.prevId) : null; if (!prev) return []; return SIGNALS.filter(S => prev.sig && prev.sig[S.id] && prev.sig[S.id].status !== s.sig[S.id].status && s.sig[S.id].status !== NR); }
-function teamsText(s, compact = false) {
-  const prev = s.prevId ? store.sessions.find(x => x.id === s.prevId) : null;
-  const lines = [];
-  if (s.projectId === "") {
-    const P = s.person || {}; const ms = mellomStreak(s.date);
-    lines.push(`${AMPEL_EMOJI[ampel(s)]} Mellom oppdrag${ms >= 2 ? ` (${ms}. måned)` : ""} · ${s.project.konsulent} · ROMA ${fmtMonth(s.date)}`);
-    ["N1", "N3"].forEach(k => { const a = P[k]; if (a && a.status !== "OK") lines.push(`${LIGHT_EMOJI[a.status]} ${k === "N1" ? "Neste oppdrag" : "Innhold i dagene"}${a.comment ? ": " + a.comment : ""}`); });
-    PUNKTER_MELLOM.forEach(Pk => { const v = (s.punkter[Pk.k] || "").trim(); if (v && !NOTHING.test(v)) lines.push(`• ${Pk.l}: ${v}`); });
-    collectTiltak(s).forEach(t => lines.push(`→ Tiltak: ${t.tekst} (${t.ansvarlig}, ${fmtDate(t.frist) || "frist?"})`));
-    lines.push(`Neste ROMA: ${fmtDate(addMonths(s.date, 1))}`);
-    return lines.join("\n");
+/* ---------- Teams-tekst (premium mal) ---------- */
+const ORD = ["", "første", "andre", "tredje", "fjerde", "femte", "sjette", "sjuende", "åttende", "niende", "tiende", "ellevte", "tolvte"];
+const ordMonth = n => ORD[n] ? `${ORD[n]} måned` : `${n}. måned`;
+function fmtShort(iso, ref) { if (!iso || !/^\d{4}-\d{2}-\d{2}/.test(iso)) return ""; const [y, m, d] = iso.slice(0, 10).split("-"); return y === (ref || isoToday()).slice(0, 4) ? `${Number(d)}.${Number(m)}.` : `${Number(d)}.${Number(m)}.${y}`; }
+const monthName = iso => iso ? `${MONTHS_FULL[Number(iso.slice(5, 7)) - 1].toLowerCase()} ${iso.slice(0, 4)}` : "";
+const monthWord = iso => iso ? MONTHS_FULL[Number(iso.slice(5, 7)) - 1].toLowerCase() : "";
+const sent = t => { t = String(t || "").trim(); if (!t) return ""; return /[.!?…»]$/.test(t) ? t : t + "."; };
+const lc1 = t => { t = String(t || "").trim(); return t ? t.charAt(0).toLowerCase() + t.slice(1) : ""; };
+function sigWords(S, s) {
+  const f = s.fields || {}; const p = s.project; const parts = [];
+  if (S.id === "S3") { if (isSalg(p)) { if (f.salgstimer) parts.push(`ca. ${f.salgstimer} t på salg denne måneden`); } else if (isKunde(p)) { const k = p.kontraktstype === "Fastpris" ? "kalkyle" : "ramme"; if (f.ramme) parts.push(`${k} ${f.ramme} % brukt`); if (f.fremdrift) parts.push(`${f.fremdrift} % ferdig`); if (f.utestaende) parts.push("faktura utestående over 30 dager"); } }
+  if (S.id === "S4" && isKunde(p) && f.endringstimer) parts.push(`ca. ${f.endringstimer} t uten skriftlig bestilling`);
+  if (S.id === "S7" && !isIntern(p) && p.sluttdato) parts.push(`${isSalg(p) ? "frist" : "løper til"} ${fmtShort(p.sluttdato, s.date)}`);
+  return parts.join(", ");
+}
+function prevOf(s) { return s.prevId ? store.sessions.find(x => x.id === s.prevId) : null; }
+function projTitle(s) { const p = s.project; return `${p.prosjekt}${isIntern(p) ? " (intern rolle)" : isSalg(p) ? ` (salgsarbeid${p.kunde ? ", " + p.kunde : ""})` : p.kunde ? ` (${p.kunde})` : ""}${p.andel ? ` · ${p.andel} %` : ""}`; }
+function statusLine(s) {
+  const prev = prevOf(s); const fl = flaggedSignals(s).filter(S => !S.sensitive); const changed = changedSignals(s).filter(S => !S.sensitive);
+  const pm = prev ? monthWord(prev.date) : "";
+  if (!fl.length) { const extra = sigWords(SIG_BY.S3, s) || sigWords(SIG_BY.S7, s); return `Alt grønt${prev && !changed.length ? `, som i ${pm}` : ""}.${extra ? " " + extra.charAt(0).toUpperCase() + extra.slice(1) + "." : ""}`; }
+  const red = fl.filter(S => s.sig[S.id].status === "Krever tiltak").map(S => sigName(S, s).toLowerCase()); const yel = fl.filter(S => s.sig[S.id].status === "Risiko").map(S => sigName(S, s).toLowerCase());
+  const parts = []; if (red.length) parts.push(`Rødt på ${red.join(" og ")}`); if (yel.length) parts.push(`${red.length ? "gult" : "Gult"} på ${yel.join(" og ")}`);
+  const back = changed.filter(S => s.sig[S.id].status === "OK").map(S => sigName(S, s).toLowerCase());
+  return `${parts.join(", ")}. ${fl.length < relevantSignals(s).filter(S => !S.sensitive).length ? "Ellers grønt." : ""}${back.length ? ` ${back.join(" og ").charAt(0).toUpperCase() + back.join(" og ").slice(1)} grønt igjen.` : ""}`.trim();
+}
+function sigLine(S, s) {
+  const a = s.sig[S.id]; const prev = prevOf(s); const n = monthsSameStatus(s, S); const chg = prev && prev.sig && prev.sig[S.id] && prev.sig[S.id].status !== a.status;
+  const tag = n >= 2 ? `, ${ordMonth(n)}` : chg && prev ? `, nytt siden ${monthWord(prev.date)}` : "";
+  const w = sigWords(S, s); const c = sent(a.comment);
+  return `${LIGHT_EMOJI[a.status]} ${sigName(S, s)}${tag}${w ? ": " + w + "." : c ? ":" : "."}${c ? " " + (w ? c.charAt(0).toUpperCase() + c.slice(1) : lc1(c)) : ""}`.replace(":  ", ": ");
+}
+function ownTiltak(s) { return collectTiltak(s).filter(t => t.ansvarlig === store.me.konsulent || !store.me.teamleder || (t.ansvarlig !== store.me.teamleder && t.ansvarlig !== "Leder")); }
+function askLeder(s) { return collectTiltak(s).filter(t => store.me.teamleder ? (t.ansvarlig === store.me.teamleder || t.ansvarlig === "Leder") : t.ansvarlig === "Leder"); }
+function hasText(s, k) { const v = (s.punkter || {})[k] || ""; return v.trim() && !NOTHING.test(v); }
+function projectBlock(s, opts = {}) {
+  const lines = []; const P = punkterFor(s);
+  if (s.projectId === "") return mellomBlock(s);
+  if (!opts.noHead) lines.push(`${AMPEL_EMOJI[ampel(s, false)]} ${projTitle(s)}`); else lines.push(s.project.prosjekt);
+  if (!opts.noHead) lines.push(statusLine(s));
+  flaggedSignals(s).filter(S => !S.sensitive).forEach(S => lines.push(sigLine(S, s)));
+  const comments = new Set(flaggedSignals(s).map(S => (s.sig[S.id].comment || "").trim().toLowerCase()).filter(Boolean));
+  const nytt = hasText(s, "endret") && !comments.has(s.punkter.endret.trim().toLowerCase()) ? sent(lc1(s.punkter.endret)) : ""; const risk = hasText(s, "risiko") && !comments.has(s.punkter.risiko.trim().toLowerCase()) ? sent(lc1(s.punkter.risiko)) : "";
+  if (nytt) lines.push(`${P[0].l === "Gjør nå" ? "Gjør nå" : "Nytt"}: ${nytt}`); if (risk) lines.push(`Risiko: ${risk}`);
+  const own = ownTiltak(s).filter(t => !/^Følg opp:/.test(t.tekst)); if (own.length) lines.push(`Jeg gjør: ${own.map(t => `${lc1(t.tekst).replace(/\.$/, "")}${t.frist && !/\d{1,2}\.\d{1,2}/.test(t.tekst) ? ", innen " + fmtShort(t.frist, s.date).replace(/\.$/, "") : ""}`).join(" · ")}.`);
+  if (s.deep) { const dr = deepRows(s).filter(r => r.status !== "OK" && !r.q.sensitive); lines.push(`Full ROMA gjennomgått${s.deepConfirmed ? ", bekreftet grønt" : ""}${dr.length ? ": " + dr.map(r => `${LIGHT_EMOJI[r.status]} ${lc1(r.q.t)}${r.ans.comment ? " " + sent(r.ans.comment) : ""}`).join(" ") : "."}`);
   }
-  const changed = changedSignals(s); const fl = flaggedSignals(s).filter(S => !S.sensitive); const rel = relevantSignals(s).filter(S => !S.sensitive); const nG = rel.length - fl.length;
-  if (!compact) {
-    lines.push(`${AMPEL_EMOJI[ampel(s, false)]} ${s.project.prosjekt}${isIntern(s.project) ? " (intern rolle)" : isSalg(s.project) ? ` (salgsarbeid${s.project.kunde ? ", " + s.project.kunde : ""})` : s.project.kunde ? ` (${s.project.kunde})` : ""}${s.project.andel ? ` · ${s.project.andel} %` : ""} · ${s.project.konsulent} · ROMA ${fmtMonth(s.date)}`);
-    lines.push(`${nG} av ${rel.length} grønne${changed.filter(S => !S.sensitive).length ? ` · endret siden sist: ${changed.filter(S => !S.sensitive).map(S => `${sigName(S, s)} ${LIGHT_EMOJI[prev.sig[S.id].status]}→${LIGHT_EMOJI[s.sig[S.id].status]}`).join(", ")}` : prev ? " · som sist" : ""}`);
-  } else lines.push(`${s.project.prosjekt}:`);
-  redFlags(s, false).forEach(x => lines.push(`! ${x}`));
-  fl.forEach(S => { const a = s.sig[S.id]; const n = monthsSameStatus(s, S); lines.push(`${LIGHT_EMOJI[a.status]} ${sigName(S, s)}${n >= 2 ? ` (${n}. måned)` : ""}${sigFieldText(S, s) ? ` (${sigFieldText(S, s)})` : ""}${a.comment ? `: ${a.comment}` : ""}`); });
-  punkterFor(s).forEach(P => { const v = (s.punkter[P.k] || "").trim(); if (v && !NOTHING.test(v)) lines.push(`• ${P.l}: ${v}`); });
-  collectTiltak(s).forEach(t => lines.push(`→ Tiltak: ${t.tekst} (${t.ansvarlig}, ${fmtDate(t.frist) || "frist?"})`));
-  if (s.deep) { const dr = deepRows(s).filter(r => r.status !== "OK" && !r.q.sensitive); lines.push(`Full ROMA gjennomgått${s.deepConfirmed ? " (bekreftet grønt)" : ""}: ${dr.length ? dr.map(r => `${LIGHT_EMOJI[r.status]} ${r.q.t}${r.ans.comment ? " – " + r.ans.comment : ""}`).join("; ") : "alt grønt"}`); }
-  if (compact) return lines.join("\n");
-  lines.push(`Neste ROMA: ${fmtDate(addMonths(s.date, 1))}`);
-  return lines.join("\n");
+  return lines;
+}
+function mellomBlock(s) {
+  const P = s.person || {}; const ms = mellomStreak(s.date); const lines = [];
+  lines.push(`${AMPEL_EMOJI[ampel(s)]} Mellom oppdrag${ms >= 2 ? `, ${ordMonth(ms)}${ms >= 2 ? " (Involveds rutine: ledergruppen får beskjed)" : ""}` : ""}`);
+  ["N1", "N3"].forEach(k => { const a = P[k]; if (a && a.status !== "OK") lines.push(`${LIGHT_EMOJI[a.status]} ${k === "N1" ? "Neste oppdrag" : "Innhold i dagene"}: ${a.comment ? sent(lc1(a.comment)) : k === "N1" ? "har ikke fått dato ennå." : "for lite å gjøre."}`); });
+  if (hasText(s, "endret")) lines.push(`Gjør nå: ${sent(lc1(s.punkter.endret))}`);
+  return lines;
+}
+function overviewLine(s) {
+  if (s.projectId === "") return mellomBlock(s)[0];
+  const fl = flaggedSignals(s).filter(S => !S.sensitive); const p = s.project;
+  const bits = fl.map(S => { const w = sigWords(S, s); return `${sigName(S, s).toLowerCase()} ${LIGHT[s.sig[S.id].status].toLowerCase()}${w ? ": " + w : ""}`; });
+  const ut = !fl.some(S => S.id === "S7") ? sigWords(SIG_BY.S7, s) : ""; if (ut && !isKunde(p)) bits.push(ut);
+  return `${AMPEL_EMOJI[ampel(s, false)]} ${p.prosjekt}${isSalg(p) ? ` (salgsarbeid${p.kunde ? ", " + p.kunde : ""})` : isIntern(p) ? "" : p.kunde ? ` (${p.kunde})` : ""} ${p.andel ? p.andel + " %" : ""}${bits.length ? " · " + bits.join(" · ") : ""}`.replace(/\s+·/g, " ·").trim();
 }
 function noAnswerTwice() { const l = allSessionsSorted(); const months = []; for (let i = l.length - 1; i >= 0 && months.length < 2; i--) { if (!months.includes(l[i].date.slice(0, 7))) months.push(l[i].date.slice(0, 7)); } return months.length === 2 && months.every(m => l.some(x => x.date.slice(0, 7) === m && x.lederSvar === "Nei")); }
 function noAnswerLast(s0) { const l = allSessionsSorted().filter(x => x.date.slice(0, 7) < s0.date.slice(0, 7)); const last = l[l.length - 1]; return last && last.lederSvar === "Nei" ? last : null; }
-function leaderHead(s0, sessions) {
-  const pv = s0.pulse || {}; const pw = pulseWarnings(s0); const mode = s0.mode || "Balansert"; const P = s0.person || {};
-  const utv = (s0.utvikling || []).map(u => UTV_BY[u.k] ? `${UTV_BY[u.k].l}, ca. ${u.t} t, klart ${u.m ? fmtMonth(u.m + "-01") : fmtMonth(addMonths(s0.date, 1))}` : "").filter(Boolean);
-  const list = sessions || [s0]; const tr = list.filter(s => s.sig && s.sig.S6 && s.sig.S6.status !== "OK" && s.sig.S6.status !== NR);
-  const trygg = tr.map(s => `${LIGHT_EMOJI[s.sig.S6.status]} Trygghet ${s.project.prosjekt}: ${s.sig.S6.status === "Krever tiltak" ? "rødt, tas muntlig, ingen detaljer i tekst" : s.sig.S6.comment ? s.sig.S6.comment : "gult"}`);
-  const act = activeProjects(); const sum = act.reduce((n, p) => n + num(p.andel), 0); const belegg = act.length && !act.some(isIntern) && sum < LEDIG_GRENSE ? `\nBelegg ca. ${sum} %, ${100 - sum} % ledig` : sum > 100 ? `\nAndeler summerer til ${sum} %` : "";
-  const ended = store.projects.filter(p => p.avsluttet && p.slutt && monthsBetween(p.avsluttet, s0.date) <= 1 && p.avsluttet <= s0.date).map(p => `Avsluttet ${fmtDate(p.avsluttet)}: ${p.prosjekt}${p.slutt.levert ? " · levert: " + p.slutt.levert : ""}${p.slutt.annerledes ? " · lærdom: " + p.slutt.annerledes : ""}${p.slutt.uavsluttet ? " · uavsluttet: " + p.slutt.uavsluttet : ""}`);
-  const na = noAnswerLast(s0);
-  return `Kun til nærmeste leder, ikke i prosjektkanal. Lagres i leders HR-mappe, ikke i prosjektmappen.\nPuls ${fmtMonth(s0.date)} · ${store.me.konsulent}: belastning ${pv.belastning || "–"} · trivsel ${pv.trivsel || "–"}${P.timer_uke ? ` · ${P.timer_uke} t/uke` : ""} · ${MODE_LABEL[mode].toLowerCase()}${P.kontakt ? ` · Involved-kontakt: ${P.kontakt}` : ""}${belegg}${pw.length ? "\n" + pw.map(x => `! ${x}`).join("\n") : ""}${trygg.length ? "\n" + trygg.join("\n") : ""}${utv.length ? "\nForeslår utvikling: " + utv.join("; ") + ". OK?" : ""}${ended.length ? "\n" + ended.join("\n") : ""}${noAnswerTwice() ? "\n! Har ikke fått svar på ROMA to måneder på rad. Send kopi til daglig leder." : na ? `\n! Fikk ikke svar på ROMA i ${fmtMonth(na.date)}.` : ""}`;
-}
 function newest(l) { return l.slice().sort((a, b) => cmp(a.date, b.date))[l.length - 1]; }
-function leaderText(sessions) {
-  const tail = `Svar gjerne med ett av: Har lest · Ringer deg · Tar dette videre${sessions.some(s => (s.utvikling || []).length) ? " · OK til utvikling" : ""}.`;
-  const hasText = (s, k) => (s.punkter[k] || "").trim() && !NOTHING.test(s.punkter[k]);
-  const ord = { "Rødt": 0, "Gult": 1, "Grønt": 2 }; sessions = sessions.slice().sort((a, b) => ord[ampel(a, false)] - ord[ampel(b, false)] || num(b.project.andel) - num(a.project.andel));
-  if (sessions.length >= 3) {
-    const need = sessions.filter(s => ampel(s, false) !== "Grønt" || changedSignals(s).length || collectTiltak(s).length || hasText(s, "risiko") || hasText(s, "endret") || (s.person && s.projectId === ""));
-    const quiet = sessions.filter(s => !need.includes(s));
-    const summary = sessions.map(s => { const fl = flaggedSignals(s).filter(S => !S.sensitive); if (s.projectId === "") { const P = s.person || {}; const pf = ["N1", "N3"].filter(k => P[k] && P[k].status !== "OK").map(k => `${k === "N1" ? "neste oppdrag" : "innhold i dagene"} ${LIGHT[P[k].status].toLowerCase()}`); return `${AMPEL_EMOJI[ampel(s)]} Mellom oppdrag${pf.length ? " · " + pf.join(", ") : " · ok"}${(s.punkter.trenger || "").trim() && !NOTHING.test(s.punkter.trenger) ? ` · Trenger: ${s.punkter.trenger.trim()}` : ""}`; } const s3t = s.sig.S3 ? sigFieldText(SIG_BY.S3, s) : ""; const ut = !isIntern(s.project) && s.project.sluttdato ? `${isSalg(s.project) ? "frist" : "løper ut"} ${fmtDate(s.project.sluttdato)}` : ""; return `${AMPEL_EMOJI[ampel(s, false)]} ${s.project.prosjekt}${s.project.andel ? ` ${s.project.andel} %` : ""}${fl.length ? ` · ${fl.map(S => `${sigName(S, s).toLowerCase()} ${LIGHT[s.sig[S.id].status].toLowerCase()}`).join(", ")}` : " · grønt"}${s3t ? ` · ${s3t}` : ""}${ut ? ` · ${ut}` : ""}${hasText(s, "risiko") ? ` · Risiko: ${s.punkter.risiko.trim()}` : ""}${hasText(s, "trenger") ? ` · Trenger: ${s.punkter.trenger.trim()}` : ""}`; }).join("\n");
-    return [leaderHead(newest(sessions), sessions), summary + (quiet.length ? `\nGrønt${quiet.every(s => s.prevId) ? " og som sist" : ""}: ${quiet.map(s => s.project.prosjekt).join(", ")}.` : ""), ...need.map(s => teamsText(s, true)), tail].filter(Boolean).join("\n\n");
-  }
-  return [leaderHead(newest(sessions), sessions), ...sessions.map(s => teamsText(s)), tail].join("\n\n");
+function svarFrist(iso) { let d = iso, n = 0; while (n < 3) { d = addDays(d, 1); const wd = new Date(d + "T12:00:00").getDay(); if (wd !== 0 && wd !== 6) n++; } return d; }
+function pulsLine(s0) {
+  const pv = s0.pulse || {}; const P = s0.person || {}; if (!pv.belastning) return "";
+  const prevP = allSessionsSorted().filter(x => x.pulse && x.pulse.belastning && x.date.slice(0, 7) < s0.date.slice(0, 7)).pop(); const pp = prevP && monthsBetween(prevP.date, s0.date) === 1 ? prevP.pulse : null;
+  const bits = [`belastning ${pv.belastning}/5${pp && pp.belastning >= 4 && pv.belastning >= 4 ? ", andre måned på rad" : pp && pv.belastning - pp.belastning >= 2 ? `, opp fra ${pp.belastning}` : ""}`, `trivsel ${pv.trivsel}/5${pp && pp.trivsel <= 2 && pv.trivsel <= 2 ? ", andre måned på rad" : pp && pp.trivsel - pv.trivsel >= 2 ? `, ned fra ${pp.trivsel}` : ""}`];
+  if (P.timer_uke) bits.push(`${String(P.timer_uke).replace(".", ",")} t/uke${num(P.timer_uke) > HOURS.varsel ? ", over 45" : ""}`);
+  if (P.S1 && P.S1.status !== "OK") bits.push(`restitusjon ${LIGHT[P.S1.status].toLowerCase()}${P.S1.comment ? ": " + lc1(P.S1.comment).replace(/\.$/, "") : ""}`);
+  const mwc = P.kontakt === "nei" ? monthsWithoutContact(s0.date) : 0;
+  bits.push(mwc >= 2 ? `ingen reell kontakt med Involved på ${mwc} måneder` : mwc === 1 ? "ingen reell kontakt med Involved denne måneden" : "kontakt med Involved: ja");
+  return `Puls: ${bits.join(" · ")}`;
 }
+function fraDeg(sessions, s0) {
+  const items = []; const heavy = isHeavy(s0.pulse, s0.person, sessions); const P = s0.person || {};
+  if (heavy || (s0.pulse || {}).belastning >= 4) items.push(`en telefon innen ${fmtShort(svarFrist(s0.date), s0.date)} (Involveds rutine ved tunge signaler)`);
+  sessions.forEach(s => { if (hasText(s, "trenger")) items.push(`${lc1(s.punkter.trenger).replace(/\.$/, "")}${sessions.length > 1 && s.projectId ? ` (${s.project.prosjekt})` : ""}`); });
+  if (s0.projectId === "" || sessions.some(s => s.projectId === "")) { const m = sessions.find(s => s.projectId === ""); if (m && m.person && m.person.N1 && m.person.N1.status !== "OK" && !hasText(m, "trenger")) items.push("en dato for når jeg får vite om neste oppdrag"); if (m && m.person && m.person.N3 && m.person.N3.status !== "OK") items.push("innhold for de neste to ukene"); }
+  (s0.utvikling || []).forEach(u => { const U = UTV_BY[u.k]; if (U) items.push(`OK til ${lc1(U.l)}, ca. ${u.t} t, ferdig i ${u.m ? monthWord(u.m + "-01") : monthWord(addMonths(s0.date, 1))}?`); });
+  return items;
+}
+function leaderHead(s0, sessions) {
+  const list = sessions || [s0]; const L = [];
+  L.push(`ROMA ${monthName(s0.date)} · ${store.me.konsulent} · kun til nærmeste leder, HR-mappe`);
+  const pl = pulsLine(s0); if (pl) L.push(pl);
+  const act = activeProjects(); const sum = act.reduce((n, p) => n + num(p.andel), 0);
+  if (act.length && !act.some(isIntern) && sum < LEDIG_GRENSE) L.push(`Belegg ${sum} %, ${100 - sum} % ledig`); else if (sum > 100) L.push(`Andeler summerer til ${sum} %`);
+  const fd = fraDeg(list, s0); if (fd.length) L.push(`Fra deg: ${fd.join(" · ")}`);
+  list.filter(s => s.sig && s.sig.S6 && s.sig.S6.status !== "OK" && s.sig.S6.status !== NR).forEach(s => L.push(`${LIGHT_EMOJI[s.sig.S6.status]} Trygghet i ${s.project.prosjekt}${s.sig.S6.status === "Krever tiltak" ? ". Tar det muntlig, ingen detaljer her." : s.sig.S6.comment ? `: ${sent(lc1(s.sig.S6.comment))} Tar det på telefonen.` : ". Tar det på telefonen."}`));
+  const na = noAnswerLast(s0); if (noAnswerTwice()) L.push(`Fikk ikke svar i ${na ? monthWord(na.date) : "forrige måned"} heller, denne går derfor også til daglig leder.`); else if (na) L.push(`Fikk ikke svar på runden i ${monthWord(na.date)}.`);
+  store.projects.filter(p => p.avsluttet && p.slutt && monthsBetween(p.avsluttet, s0.date) <= 1 && p.avsluttet <= s0.date && !p.sluttMeldt).forEach(p => L.push(`Avsluttet ${fmtShort(p.avsluttet, s0.date)}: ${p.prosjekt}${p.slutt.levert ? ". " + sent(p.slutt.levert) : ""}${p.slutt.annerledes ? " Lærdom: " + sent(lc1(p.slutt.annerledes)) : ""}${p.slutt.uavsluttet && !NOTHING.test(p.slutt.uavsluttet) ? " Uavsluttet: " + sent(lc1(p.slutt.uavsluttet)) : ""}`));
+  return L.join("\n");
+}
+function closingLine(sessions, s0) {
+  const heavy = isHeavy(s0.pulse, s0.person, sessions); const fd = fraDeg(sessions, s0); const utv = (s0.utvikling || []).length;
+  const opts = heavy ? ["Ringer", "Tar videre"] : fd.length ? ["Lest", "Ringer", "Tar videre"] : ["Lest"]; if (utv && !heavy) opts.push("OK");
+  return `Svar gjerne med ett ord: ${opts.join(" · ")}. Neste ROMA rundt ${fmtShort(addMonths(s0.date, 1), s0.date).replace(/\.$/, "")}.`;
+}
+function teamsText(s, compact = false) { return (compact ? projectBlock(s, { noHead: true }) : projectBlock(s)).join("\n"); }
+function leaderText(sessions) {
+  const ord = { "Rødt": 0, "Gult": 1, "Grønt": 2 }; sessions = sessions.slice().sort((a, b) => ord[ampel(a, false)] - ord[ampel(b, false)] || num(b.project.andel) - num(a.project.andel));
+  const s0 = newest(sessions); const head = leaderHead(s0, sessions); const tail = closingLine(sessions, s0);
+  if (sessions.length >= 3) {
+    const flagged = sessions.filter(s => ampel(s, false) !== "Grønt"); const green = sessions.filter(s => ampel(s, false) === "Grønt");
+    const over = flagged.map(overviewLine); const prev = green.map(prevOf).find(Boolean);
+    if (green.length) over.push(`🟢 ${green.map(s => `${s.project.prosjekt} ${s.project.andel ? s.project.andel + " %" : ""}${hasText(s, "endret") ? ` (${lc1(s.punkter.endret).replace(/\.$/, "")})` : ""}`.trim()).join(" · ")} · grønt${green.every(s => prevOf(s) && !changedSignals(s).length) && prev ? `, som i ${monthWord(prev.date)}` : ""}`);
+    const detail = sessions.filter(s => s.projectId !== "" && (flaggedSignals(s).some(S => !S.sensitive && (s.sig[S.id].comment || "").trim()) || hasText(s, "risiko") || hasText(s, "endret") && ampel(s, false) !== "Grønt" || ownTiltak(s).some(t => !/^Følg opp:/.test(t.tekst)) || s.deep)).map(s => { const b = projectBlock(s, { noHead: true }); return b.slice(0, 5).join("\n"); });
+    const mellom = sessions.filter(s => s.projectId === "").map(s => mellomBlock(s).join("\n"));
+    return [head, over.join("\n"), ...mellom, ...detail, tail].filter(Boolean).join("\n\n");
+  }
+  return [head, ...sessions.map(s => projectBlock(s).join("\n")), tail].join("\n\n");
+}
+
 function firstSentence(s) {
   const pv = s.pulse || {}; const P = s.person || {};
   if (s.sig.S6 && s.sig.S6.status === "Krever tiltak") return "Jeg ringer fordi du markerte trygghet. Du bestemmer hvor mye vi tar på telefon.";
@@ -1199,15 +1327,15 @@ function renderDone(sessions) {
         ${!heavy && !mellom ? `<p class="quote">${esc((ROMA_QUOTES[mode] || ROMA_QUOTES.Balansert).replace("__TID__", fmtMin(totalSec)))}</p>` : ""}
       </div>
       <div class="card export">
-        <div class="btn-row"><button type="button" class="btn primary" id="copy-all">Kopier til Teams${multi ? " (samlet)" : ""}</button>${mellom ? "" : `<button type="button" class="btn" id="xlsx-btn">Excel per prosjekt</button>`}<button type="button" class="btn" id="leder-btn">Ledereksport med puls</button><button type="button" class="btn ghost" id="print-btn">Skriv ut / PDF</button></div>
-        <p class="muted small" style="margin-top:8px">Teams-teksten er nok, og går kun til nærmeste leder.${mellom ? "" : sessions.every(s => !isKunde(s.project)) ? " Excel per rolle eller tilbud lagres hos leder, ikke i en prosjektmappe." : " Excel per prosjekt lagres i prosjektmappen og inneholder ikke puls, belastning eller Trygghet."}${multi && !mellom ? " Nettleseren kan spørre om lov til å laste ned flere filer." : ""}</p>
+        <div class="btn-row"><button type="button" class="btn primary" id="copy-all">Kopier til Teams${multi ? " (samlet)" : ""}</button>${mellom ? "" : `<button type="button" class="btn" id="xlsx-btn">Excel per prosjekt</button>`}<button type="button" class="btn" id="leder-btn">Ledereksport med puls (Excel)</button><button type="button" class="btn ghost" id="print-btn">Månedsrapport PDF</button></div>
+        <p class="muted small" style="margin-top:8px">Teams-teksten er nok, og går kun til nærmeste leder. Ledereksport og månedsrapport inneholder puls og Trygghet og lagres i leders HR-mappe.${mellom ? "" : sessions.every(s => !isKunde(s.project)) ? " Excel per rolle eller tilbud lagres hos leder, ikke i en prosjektmappe." : " Excel per prosjekt er hele prosjekthistorikken, lagres i prosjektmappen og inneholder ikke puls, belastning eller Trygghet."}${multi && !mellom ? " Nettleseren kan spørre om lov til å laste ned flere filer." : ""}</p>
       </div>
       ${heavy && pw.length ? `<div class="note gold"><b>Puls</b><ul>${pw.map(x => `<li>${esc(x)}</li>`).join("")}</ul><p class="small" style="margin-top:6px">Dette går bare til ${esc(store.me.teamleder || "leder")}. Involveds rutine er at leder ringer ${SVAR}. Vil du heller ringe selv nå, er det greit.</p></div>` : ""}
       ${allFlags.length ? `<div class="note red"><b>${heavy ? "Røde flagg. Send Teams-teksten, resten er leders jobb." : "Røde flagg. Meld til leder, alvorlige forhold også i Planner."}</b><ul>${allFlags.map(f => `<li>${multi ? `<b>${esc(f.p)}:</b> ` : ""}${esc(f.x)}</li>`).join("")}</ul></div>` : ""}
       ${!heavy && pw.length ? `<div class="note gold"><b>Puls og belastning som leder følger opp</b><ul>${pw.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>` : ""}
       ${utv.length ? `<div class="note"><b>Foreslått utvikling:</b> ${utv.map(u => esc(u.l)).join(", ")}. Ligger i tiltaksloggen som forslag, og blir avtale når leder svarer.</div>` : ""}
       ${multi ? `<div class="card psum"><div class="head"><h3>Samlet til leder</h3></div><pre class="teams">${esc(leaderText(sessions))}</pre></div>` : ""}
-      ${sessions.map(s => `<div class="card psum"><div class="head"><h3>${esc(s.project.prosjekt)}</h3><button type="button" class="btn small" data-copy="${esc(s.id)}">Kopier</button></div><pre class="teams" id="teams-${esc(s.id)}">${esc(multi ? teamsText(s) : leaderText([s]))}</pre>${s.projectId ? `<div class="field"><label for="ta-${esc(s.id)}">Én setning du tar med deg til neste måned (valgfritt, vises bare for deg)</label><input id="ta-${esc(s.id)}" data-takeaway="${esc(s.id)}" value="${esc(s.takeaway || "")}" placeholder="F.eks. be om skriftlig bestilling før jeg sier ja" autocomplete="off"></div>` : ""}</div>`).join("")}
+      ${sessions.map(s => `<div class="card psum"><div class="head"><h3>${esc(s.project.prosjekt)}</h3><div class="btn-row"><button type="button" class="btn small" data-copy="${esc(s.id)}">Kopier</button>${s.projectId ? `<button type="button" class="btn ghost small" data-xl="${esc(s.id)}" title="Hele prosjekthistorikken, uten puls og Trygghet">Excel</button><button type="button" class="btn ghost small" data-print-proj="${esc(s.id)}" title="Uten puls og Trygghet">PDF til prosjektmappe</button>` : ""}</div></div><pre class="teams" id="teams-${esc(s.id)}">${esc(multi ? teamsText(s) : leaderText([s]))}</pre>${s.projectId ? `<div class="field"><label for="ta-${esc(s.id)}">Én setning du tar med deg til neste måned (valgfritt, vises bare for deg)</label><input id="ta-${esc(s.id)}" data-takeaway="${esc(s.id)}" value="${esc(s.takeaway || "")}" placeholder="F.eks. be om skriftlig bestilling før jeg sier ja" autocomplete="off"></div>` : ""}</div>`).join("")}
       ${allTiltak.length ? `<div class="card"><div class="area-head" style="margin-bottom:8px"><h3>Tiltak</h3><span class="muted small">${allTiltak.length} stk i tiltaksloggen · alvorlige også i Planner</span></div><div class="table-wrap"><table><thead><tr>${multi ? "<th>Prosjekt</th>" : ""}<th>Fra</th><th>Tiltak</th><th>Ansvarlig</th><th>Frist</th></tr></thead><tbody>${allTiltak.map(t => `<tr>${multi ? `<td>${esc(t.p)}</td>` : ""}<td>${esc(t.area)}</td><td>${esc(t.tekst)}</td><td>${esc(t.ansvarlig)}</td><td class="mono">${fmtDate(t.frist)}</td></tr>`).join("")}</tbody></table></div></div>` : ""}
       <div class="btn-row no-print"><button type="button" class="btn" id="overview-btn">Se oversikt</button><button type="button" class="btn ghost" id="home-btn">Til forsiden</button></div>
     </div>`;
@@ -1216,14 +1344,16 @@ function renderDone(sessions) {
   $$("[data-copy]", el).forEach(b => b.addEventListener("click", () => { const s = sessions.find(x => x.id === b.dataset.copy); copy(multi ? teamsText(s) : leaderText([s]), "Kopiert"); }));
   const xb = $("#xlsx-btn", el); if (xb) xb.addEventListener("click", async () => { let i = 0; for (const s of sessions) { if (!s.projectId) continue; if (i++) await new Promise(r => setTimeout(r, 900)); const ok = await exportProject(s); if (!ok) break; } });
   $("#leder-btn", el).addEventListener("click", () => exportLeader(sessions));
-  $("#print-btn", el).addEventListener("click", () => window.print());
+  $("#print-btn", el).addEventListener("click", () => printLeder(sessions));
+  $$("[data-xl]", el).forEach(b => b.addEventListener("click", () => { const s = sessions.find(x => x.id === b.dataset.xl); if (s) exportProject(s); }));
+  $$("[data-print-proj]", el).forEach(b => b.addEventListener("click", () => { const s = sessions.find(x => x.id === b.dataset.printProj); if (s) printProsjekt(s); }));
   $$("[data-takeaway]", el).forEach(inp => inp.addEventListener("input", () => { const s = sessions.find(x => x.id === inp.dataset.takeaway); if (s) { s.takeaway = inp.value; saveStore(); } }));
   $("#overview-btn", el).addEventListener("click", renderOverview);
   $("#home-btn", el).addEventListener("click", renderHome);
 }
 
 /* =====================================================================
-   EKSPORT
+   EKSPORT (ExcelJS)
    ===================================================================== */
 let downloadsCap = null;
 if (window.claude && typeof window.claude.use === "function") { window.claude.use("downloads").then(d => { downloadsCap = d; }).catch(() => {}); }
@@ -1233,51 +1363,201 @@ async function saveFile(filename, data) {
   catch (e) { toast("Nedlasting er ikke tilgjengelig her. Bruk «Kopier til Teams»."); return false; }
 }
 const XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-function sheet(wb, name, rows, widths) { const ws = XLSX.utils.aoa_to_sheet(rows); ws["!cols"] = widths.map(w => ({ wch: w })); XLSX.utils.book_append_sheet(wb, ws, name); }
-function infoRows(sessions) {
-  const rows = [["Konsulent", "Teamleder", "Prosjekt / rolle", "Type", "Andel %", "Prosjektnummer", "Kunde", "Rolle", "Kontraktstype", "Kontrakt signert og lagret på SP?", "Oppdraget løper ut / neste vurdering", "Avtalt fordeling", "Mål", "Kundeundersøkelse sendt", "Score siste kundeundersøkelse"]]; const seen = new Set();
-  sessions.forEach(s => { if (!s.projectId || seen.has(s.projectId)) return; seen.add(s.projectId); const p = s.project; rows.push([p.konsulent, p.teamleder, p.prosjekt, typeLabel(p) + (p.vunnet ? ", vunnet " + fmtDate(p.vunnet) : ""), p.andel || "", p.prosjektnummer, p.kunde, p.rolle, p.kontraktstype || "", p.kontrakt, fmtDate(p.sluttdato), p.plan || "", p.mal || "", fmtDate(p.ku_dato), p.ku_score]); });
-  return rows;
+const XC = { ink: "FF1F2A30", muted: "FF5B6B70", head: "FF1F3A3A", stripe: "FFF4F6F3", line: "FFD4DAD5", warnFill: "FFFBEAE8", warnInk: "FF8A2A20", edit: "FFFFFDF2", accent: "FF257A6B",
+  ok: ["FFDCEFE3", "FF1E5A3A"], risk: ["FFFBEFD0", "FF7A5A10"], tiltak: ["FFF8D7D3", "FF8A2A20"], nr: ["FFF2F2F2", "FF8A8F98"], section: "FFE8ECF0" };
+const xdate = iso => iso && /^\d{4}-\d{2}-\d{2}/.test(iso) ? new Date(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10))) : null;
+const xnum = v => (v === "" || v === null || v === undefined || isNaN(Number(String(v).replace(",", ".")))) ? null : Number(String(v).replace(",", "."));
+const statusStyle = st => st === "Krever tiltak" || st === "Rødt" ? XC.tiltak : st === "Risiko" || st === "Gult" ? XC.risk : st === "OK" || st === "Grønt" ? XC.ok : st === NR ? XC.nr : null;
+function paintStatus(cell, st, bold) { const c = statusStyle(st); if (!c) return; cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: c[0] } }; cell.font = { name: "Calibri", size: 10, bold: !!bold, color: { argb: c[1] }, italic: st === NR }; cell.alignment = { horizontal: "center", vertical: "top" }; }
+function ampelText(a) { return `● ${a}`; }
+function xTitle(ws, title, sub, warn, ncols) {
+  ws.getCell("A1").value = title; ws.getCell("A1").font = { name: "Calibri", size: 16, bold: true, color: { argb: XC.ink } }; ws.getRow(1).height = 26;
+  ws.getCell("A2").value = sub; ws.getCell("A2").font = { name: "Calibri", size: 10, color: { argb: XC.muted } };
+  if (warn) { ws.mergeCells(3, 1, 3, ncols); const c = ws.getCell("A3"); c.value = warn; c.font = { name: "Calibri", size: 10, bold: true, color: { argb: XC.warnInk } }; c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: XC.warnFill } }; c.border = { left: { style: "medium", color: { argb: "FFC94B3D" } } }; c.alignment = { vertical: "middle", wrapText: true }; ws.getRow(3).height = 22; }
+  ws.getRow(4).height = 6;
 }
-function skjemaRows(sessions, withSensitive) {
-  const rows = [["Dato", "Tema", "Spørsmål", "Status / Kommentar", "Tiltak / Ansvar", "Frist", "Endret siden sist", "Status (OK/Risiko/Tiltak)", "Verdi"]]; const personDone = new Set();
-  sessions.forEach(s => {
-    const prev = s.prevId ? store.sessions.find(x => x.id === s.prevId) : null;
-    if (s.projectId === "") { const P = s.person || {}; ["N1", "N3"].forEach(k => { const a = P[k] || {}; rows.push([fmtDate(s.date), "Mellom oppdrag", PERSON[k].t, a.comment || "", "", "", "", a.status || "OK", ""]); }); }
-    else SIGNALS.forEach(S => { const a = s.sig[S.id]; const hide = S.sensitive && !withSensitive; const changed = prev && prev.sig && prev.sig[S.id] ? (prev.sig[S.id].status !== a.status ? "Ja" : "Nei") : "";
-      rows.push([fmtDate(s.date), `${S.roma} · ${sigName(S, s)}`, sigText(S, s), hide ? "Se ledereksport" : a.comment, hide || a.status === "OK" || a.status === NR ? "" : (a.tiltak ? `${a.tiltak} / ${a.ansvarlig}` : ""), hide || a.status === "OK" || a.status === NR ? "" : fmtDate(a.frist), hide ? "" : changed, hide ? "Se ledereksport" : a.status, hide ? "" : sigFieldText(S, s)]); });
-    if (withSensitive && s.person && !personDone.has(s.date)) { personDone.add(s.date); rows.push([fmtDate(s.date), "R · Restitusjon (person)", PERSON.S1.t, s.person.S1 ? s.person.S1.comment : "", "", "", "", s.person.S1 ? s.person.S1.status : "", s.person.timer_uke ? `${s.person.timer_uke} t/uke` : ""]); rows.push([fmtDate(s.date), "M · Tilhørighet (person)", "Reell kontakt med Involved siste måned", "", "", "", "", s.person.kontakt === "nei" ? "Risiko" : "OK", s.person.kontakt || ""]); }
-    (s.projectId === "" ? PUNKTER_MELLOM : PUNKTER).forEach(P => { if ((s.punkter[P.k] || "").trim() && !NOTHING.test(s.punkter[P.k])) rows.push([fmtDate(s.date), "Viktigste punkter", P.l, s.punkter[P.k].trim(), P.k === "trenger" ? `${s.punkter[P.k].trim()} / ${s.project.teamleder || "Leder"}` : "", "", "", "", ""]); });
-    const flags = redFlags(s, withSensitive); if (flags.length) rows.push([fmtDate(s.date), "Røde flagg", "", flags.join(" · "), "Meldt til leder / Planner", "", "", "Krever tiltak", ""]);
-    if (s.deep) areasFor(s.project).forEach(a => { rows.push([fmtDate(s.date), `Full ROMA · ${a.name}`, s.deepConfirmed ? "Bekreftet lest, alt grønt" : "Vurdert", "", "", "", "", "", ""]); a.qs.forEach(q => { const ans = s.answers[q.id]; const hide = q.sensitive && !withSensitive; rows.push([fmtDate(s.date), `Full ROMA · ${a.name}`, q.t, hide ? "Se ledereksport" : ans.comment, hide || ans.status === "OK" ? "" : (ans.tiltak ? `${ans.tiltak} / ${ans.ansvarlig}` : ""), hide || ans.status === "OK" ? "" : fmtDate(ans.frist), "", hide ? "Se ledereksport" : ans.status, fieldText(q, ans)]); }); });
-    const p = projectById(s.projectId); const lastS = s.projectId ? lastSessionFor(s.projectId) : null; if (p && p.slutt && p.avsluttet && lastS && lastS.id === s.id) { const SQ = SLUTT_Q[p.type] || SLUTT_Q.prosjekt; rows.push([fmtDate(p.avsluttet), "Sluttevaluering", SQ[0], p.slutt.levert, "", "", "", "", ""]); rows.push([fmtDate(p.avsluttet), "Sluttevaluering", SQ[1], p.slutt.annerledes, "", "", "", "", ""]); rows.push([fmtDate(p.avsluttet), "Sluttevaluering", "Noe uavsluttet?", p.slutt.uavsluttet, "", "", "", "", ""]); }
-  });
-  return rows;
+function xHeader(ws, row, cols) {
+  const r = ws.getRow(row); r.height = 30;
+  cols.forEach((c, i) => { const cell = r.getCell(i + 1); cell.value = c.h; cell.font = { name: "Calibri", size: 10, bold: true, color: { argb: "FFFFFFFF" } }; cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: XC.head } }; cell.alignment = { wrapText: true, vertical: "middle", horizontal: c.align || "left" }; cell.border = { bottom: { style: "thin", color: { argb: XC.head } } }; ws.getColumn(i + 1).width = c.w; if (c.note) cell.note = c.note; });
 }
-function tiltakRows(list) { const rows = [["Dato opprettet", "Prosjekt", "Tiltak", "Ansvarlig", "Frist", "Status (åpen/lukket)", "Kommentar / oppfølging"]]; list.forEach(t => rows.push([fmtDate(t.dato), t.prosjekt, t.tekst, t.ansvarlig, fmtDate(t.frist), t.status, [t.area, t.kommentar].filter(Boolean).join(": ")])); return rows; }
-function statusRows(sessions, withPulse) {
-  const rows = [["Dato", "Konsulent", "Prosjekt / rolle", "Sist samtale", "Neste samtale", "Antall åpne tiltak", "Belastning (1–5)", "Trivsel (1–5)", "Ampel", "Kommentar"]];
-  sessions.forEach(s => { const prev = sessionsFor(s.projectId).filter(x => x.id !== s.id && (x.date < s.date || (x.date === s.date && (x.finishedAt || "") < (s.finishedAt || "")))).pop(); rows.push([fmtDate(s.date), s.project.konsulent, s.project.prosjekt, prev ? fmtDate(prev.date) : "", fmtDate(addMonths(s.date, 1)), openTiltak(s.projectId).length, withPulse ? (s.pulse || {}).belastning || "" : "se ledereksport", withPulse ? (s.pulse || {}).trivsel || "" : "se ledereksport", ampel(s, withPulse), [NOTHING.test(s.punkter.risiko || "") ? "" : s.punkter.risiko, s.punkter.trenger && !NOTHING.test(s.punkter.trenger) ? "Trenger: " + s.punkter.trenger : ""].filter(Boolean).join(" · ")]); });
-  return rows;
+function xRow(ws, rowIdx, cols, vals, opts = {}) {
+  const r = ws.getRow(rowIdx); let lines = 1;
+  cols.forEach((c, i) => { const cell = r.getCell(i + 1); let v = vals[i]; if (v instanceof Date) { cell.value = v; cell.numFmt = "dd.mm.yyyy"; } else if (typeof v === "number") { cell.value = v; if (c.fmt) cell.numFmt = c.fmt; } else cell.value = v == null ? "" : String(v);
+    cell.font = { name: "Calibri", size: 10, color: { argb: opts.muted ? XC.muted : XC.ink } }; cell.alignment = { vertical: "top", wrapText: !!c.wrap, horizontal: c.align || (typeof v === "number" ? "right" : "left") }; cell.border = { top: { style: "hair", color: { argb: XC.line } }, bottom: { style: "hair", color: { argb: XC.line } }, left: { style: "hair", color: { argb: XC.line } }, right: { style: "hair", color: { argb: XC.line } } };
+    if (opts.stripe) cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: XC.stripe } };
+    if (c.edit) cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: XC.edit } };
+    if (c.status && typeof v === "string") paintStatus(cell, v.replace(/^● /, ""), c.bold);
+    if (c.wrap && typeof v === "string" && v) lines = Math.max(lines, Math.ceil(v.length / (c.w * 1.15)) + (v.split("\n").length - 1)); });
+  r.height = Math.min(90, Math.max(18, 15 * lines)); return r;
 }
-function kortRows(sessions) {
-  const rows = [["Ampel", "Prosjekt / rolle", "Type", "Andel %", "Konsulent", "Dato", "Modus", "Belastning", "Trivsel", "Timer/uke", "Involved-kontakt", "Ramme/kalkyle %", "Fremdrift %", "Utestående >30 d", "Kunde/internt", "Løper ut / neste vurdering", "Åpne tiltak", "Over frist", "Endret siden sist", "Risiko nå", "Trenger fra leder", "Røde flagg", "Fikk svar sist", "Forslag til første setning"]];
-  const ord = { "Rødt": 0, "Gult": 1, "Grønt": 2 };
-  sessions.slice().sort((a, b) => ord[ampel(a)] - ord[ampel(b)] || ((b.pulse || {}).belastning || 0) - ((a.pulse || {}).belastning || 0) || num(b.project.andel) - num(a.project.andel)).forEach(s => { const F = s.fields || {}; const P = s.person || {}; const ot = openTiltak(s.projectId); const hasNums = s.projectId && sigFields(SIG_BY.S3, s).length > 0; rows.push([ampel(s), s.project.prosjekt, s.projectId === "" ? "Mellom oppdrag" : typeLabel(s.project), s.project.andel || "", s.project.konsulent, fmtDate(s.date), MODE_LABEL[s.mode || "Balansert"], (s.pulse || {}).belastning || "", (s.pulse || {}).trivsel || "", P.timer_uke || "", P.kontakt || "", hasNums ? F.ramme || "" : "", hasNums ? F.fremdrift || "" : "", F.utestaende ? "Ja" : "", s.sig.S5 ? LIGHT[s.sig.S5.status] : "", fmtDate(s.project.sluttdato), ot.length, ot.filter(t => t.frist && t.frist < isoToday()).length, s.punkter.endret, s.punkter.risiko, s.punkter.trenger, redFlags(s).join(" · "), s.lederSvar || "", firstSentence(s)]); });
-  return rows;
+function xSection(ws, rowIdx, text, ncols) { ws.mergeCells(rowIdx, 1, rowIdx, ncols); const c = ws.getCell(rowIdx, 1); c.value = text; c.font = { name: "Calibri", size: 10, bold: true, color: { argb: XC.ink } }; c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: XC.section } }; c.alignment = { vertical: "middle" }; ws.getRow(rowIdx).height = 20; }
+function xFoot(ws, rowIdx, text, ncols) { ws.mergeCells(rowIdx, 1, rowIdx, ncols); const c = ws.getCell(rowIdx, 1); c.value = text; c.font = { name: "Calibri", size: 9, italic: true, color: { argb: XC.muted } }; c.alignment = { wrapText: true, vertical: "top" }; ws.getRow(rowIdx).height = 28; }
+function xPage(ws, landscape, titleRow, head, foot) { ws.pageSetup = { paperSize: 9, orientation: landscape ? "landscape" : "portrait", fitToPage: true, fitToWidth: 1, fitToHeight: 0, margins: { left: 0.4, right: 0.4, top: 0.6, bottom: 0.6, header: 0.3, footer: 0.3 }, horizontalCentered: true, printTitlesRow: titleRow || undefined }; ws.headerFooter = { oddHeader: head, oddFooter: foot }; ws.views = ws.views && ws.views.length ? ws.views : [{}]; ws.views[0].showGridLines = false; }
+const cfStatus = (ws, ref) => ws.addConditionalFormatting({ ref, rules: [["Rødt", XC.tiltak], ["Krever tiltak", XC.tiltak], ["Gult", XC.risk], ["Risiko", XC.risk], ["Grønt", XC.ok], ["OK", XC.ok]].map(([t, c]) => ({ type: "containsText", operator: "containsText", text: t, style: { fill: { type: "pattern", pattern: "solid", bgColor: { argb: c[0] } }, font: { color: { argb: c[1] } } } })) });
+function colLetter(n) { let s = ""; while (n > 0) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; }
+
+/* ---------- Lederarbeidsbok ---------- */
+function latestPerProject(sessions) { const m = {}; sessions.forEach(s => { const k = s.projectId; if (!m[k] || cmp(s.date, m[k].date) > 0) m[k] = s; }); return Object.values(m); }
+function leaderTodo(sessions, s0) {
+  const out = []; const leder = store.me.teamleder || "Leder";
+  pulseWarnings(s0, "leder").forEach(x => out.push([1, store.me.konsulent, x, svarFrist(s0.date)]));
+  sessions.filter(s => s.sig && s.sig.S6 && s.sig.S6.status !== "OK" && s.sig.S6.status !== NR).forEach(s => out.push([1, s.project.prosjekt, `Trygghet ${LIGHT[s.sig.S6.status].toLowerCase()}: tas muntlig`, svarFrist(s0.date)]));
+  sessions.forEach(s => redFlags(s).filter(x => !/Uønsket atferd/.test(x)).forEach(x => out.push([1, s.project.prosjekt, x, svarFrist(s0.date)])));
+  store.tiltak.filter(t => t.status === "Åpen" && (t.ansvarlig === leder) && t.frist && t.frist <= addDays(isoToday(), 7)).forEach(t => out.push([2, t.prosjekt, `Tiltak: ${t.tekst}`, t.frist]));
+  sessions.forEach(s => { if (hasText(s, "trenger")) out.push([2, s.project.prosjekt, `Ønsker: ${s.punkter.trenger.trim()}`, svarFrist(s0.date)]); });
+  if (noAnswerTwice()) out.push([3, store.me.konsulent, "Ikke fått svar to måneder på rad. Send kopi til daglig leder.", svarFrist(s0.date)]);
+  (s0.utvikling || []).forEach(u => { const U = UTV_BY[u.k]; if (U) out.push([3, store.me.konsulent, `Utvikling foreslått: ${U.l}, ca. ${u.t} t. OK eller ikke nå?`, svarFrist(s0.date)]); });
+  store.projects.filter(p => p.avsluttet && p.slutt && monthsBetween(p.avsluttet, s0.date) <= 1).forEach(p => out.push([3, p.prosjekt, `Avsluttet ${fmtDate(p.avsluttet)}${p.slutt.uavsluttet && !NOTHING.test(p.slutt.uavsluttet) ? ": uavsluttet, " + p.slutt.uavsluttet : ""}`, null]));
+  const seen = new Set(); return out.filter(r => { const k = r[1] + "|" + r[2]; if (seen.has(k)) return false; seen.add(k); return true; }).sort((a, b) => a[0] - b[0]).slice(0, 12);
 }
-function buildProjectWorkbook(s) { const wb = XLSX.utils.book_new(); const intern = isIntern(s.project); wb.Props = { Title: `ROMA-samtale ${s.project.prosjekt} ${fmtMonth(s.date)}` }; sheet(wb, intern ? "Rolleinfo" : isSalg(s.project) ? "Tilbudsinfo" : "Prosjektinfo", infoRows([s]), [18, 18, 26, 14, 8, 14, 22, 18, 16, 30, 14, 30, 30, 16, 16]); sheet(wb, "ROMA-samtale", skjemaRows([s], false), [11, 22, 60, 40, 36, 11, 14, 22, 30]); sheet(wb, "Tiltak & Oppfølging", tiltakRows(store.tiltak.filter(t => t.projectId === s.projectId)), [13, 24, 50, 18, 11, 18, 40]); sheet(wb, "Statusoversikt", statusRows([s], false), [11, 18, 24, 12, 12, 16, 16, 16, 8, 50]); return wb; }
 function buildLeaderWorkbook(sessions) {
-  const wb = XLSX.utils.book_new(); wb.Props = { Title: "ROMA lederoversikt – kun til nærmeste leder (puls, belastning, trygghet)" }; const sorted = sessions.slice().sort((a, b) => cmp(b.date, a.date) || cmp(a.project.prosjekt, b.project.prosjekt));
-  sheet(wb, "Prosjektkort", [["KUN TIL NÆRMESTE LEDER. Inneholder puls, belastning og Trygghet. Skal ikke i prosjektmappen."], ...kortRows(sorted)], [7, 24, 12, 8, 16, 11, 14, 10, 8, 10, 10, 14, 11, 12, 10, 11, 10, 9, 40, 40, 40, 50, 12, 60]);
-  sheet(wb, "Statusoversikt", statusRows(sorted, true), [11, 18, 24, 12, 12, 16, 12, 12, 8, 50]);
-  sheet(wb, "Tiltak & Oppfølging", tiltakRows(store.tiltak.filter(t => t.area === "Utvikling" || sorted.some(s => s.projectId === t.projectId))), [13, 24, 50, 18, 11, 18, 40]);
-  sheet(wb, "ROMA-samtale", skjemaRows(sorted, true), [11, 22, 60, 40, 36, 11, 14, 22, 30]);
+  const wb = new ExcelJS.Workbook(); wb.creator = "Via ROMA"; wb.title = "ROMA lederoversikt – kun til nærmeste leder"; wb.keywords = "Konfidensielt;HR"; wb.created = new Date();
+  const kons = store.me.konsulent; const leder = store.me.teamleder || ""; const sorted = sessions.slice().sort((a, b) => cmp(b.date, a.date) || cmp(a.project.prosjekt, b.project.prosjekt));
+  const s0 = newest(sessions); const latest = latestPerProject(sessions.filter(s => !projectById(s.projectId) || !projectById(s.projectId).avsluttet || s.projectId === ""));
+  const per = fmtMonth(sorted[sorted.length - 1].date) + (sorted.length > 1 && sorted[0].date.slice(0, 7) !== sorted[sorted.length - 1].date.slice(0, 7) ? "–" + fmtMonth(sorted[0].date) : "");
+  const sub = `Eksportert ${fmtDate(isoToday())} · Periode ${per}${leder ? ` · Leder: ${leder}` : ""}`;
+  const warn = "KUN TIL NÆRMESTE LEDER. Inneholder puls, belastning og Trygghet. Lagres i leders HR-mappe, ikke i prosjektmappen.";
+  const foot = "Kilde: Via ROMA, konsulentens egen registrering. Inneholder personopplysninger (belastning, trivsel, trygghet). Slett når formålet er oppfylt. Ikke videresend.";
+  const hdr = `&L&"Calibri,Bold"ROMA lederoversikt · ${kons}&R&"Calibri,Bold"&KC94B3D KUN TIL NÆRMESTE LEDER`; const ftr = "&L&D&CSide &P av &N&R&A";
+  const ord = { "Rødt": 0, "Gult": 1, "Grønt": 2 };
+  /* 1 Oversikt */
+  { const ws = wb.addWorksheet("1 Oversikt", { views: [{ state: "frozen", ySplit: 4, showGridLines: false }] }); [3, 22, 14, 14, 14, 14, 14, 14].forEach((w, i) => { ws.getColumn(i + 1).width = w; });
+    xTitle(ws, `ROMA lederoversikt · ${kons}`, sub, warn, 8);
+    const kpi = (label, val, warnK) => ({ label, val, warnK });
+    const act = activeProjects(); const sum = act.reduce((n, p) => n + num(p.andel), 0); const openT = store.tiltak.filter(t => t.status === "Åpen" && t.area !== "Utvikling"); const overdue = openT.filter(t => t.frist && t.frist < isoToday()).length;
+    const amp = latest.map(s => ampel(s)); const mwc = s0.person && s0.person.kontakt === "nei" ? monthsWithoutContact(s0.date) : 0;
+    const K = [kpi("Rødt", amp.filter(a => a === "Rødt").length, v => v > 0 && XC.tiltak), kpi("Gult", amp.filter(a => a === "Gult").length, v => v > 0 && XC.risk), kpi("Grønt", amp.filter(a => a === "Grønt").length, () => XC.ok), kpi("Åpne tiltak", openT.length), kpi("Forfalte tiltak", overdue, v => v > 0 && XC.tiltak), kpi("Belegg %", act.length ? sum : null, v => v !== null && (v < LEDIG_GRENSE || v > 100) && XC.risk), kpi("Mnd uten kontakt", mwc, v => v >= 2 && XC.risk)];
+    K.forEach((k, i) => { const col = i + 2; const lc = ws.getCell(6, col); lc.value = k.label; lc.font = { name: "Calibri", size: 9, color: { argb: XC.muted } }; lc.alignment = { horizontal: "center" }; lc.fill = { type: "pattern", pattern: "solid", fgColor: { argb: XC.stripe } }; const vc = ws.getCell(7, col); vc.value = k.val === null ? "–" : k.val; vc.font = { name: "Calibri", size: 22, bold: true, color: { argb: XC.ink } }; vc.alignment = { horizontal: "center", vertical: "middle" }; vc.fill = { type: "pattern", pattern: "solid", fgColor: { argb: XC.stripe } }; const wc = k.warnK && k.warnK(k.val); if (wc) { vc.fill = { type: "pattern", pattern: "solid", fgColor: { argb: wc[0] } }; vc.font.color = { argb: wc[1] }; } }); ws.getRow(7).height = 34;
+    const sec = (r, t) => { const c = ws.getCell(r, 2); c.value = t; c.font = { name: "Calibri", size: 12, bold: true, color: { argb: XC.accent } }; c.border = { bottom: { style: "thin", color: { argb: XC.accent } } }; ws.getRow(r).height = 22; };
+    sec(9, "Puls siste 6 måneder"); const months = []; for (let i = 5; i >= 0; i--) months.push(addMonths(s0.date.slice(0, 7) + "-15", -i).slice(0, 7)); const byM = {}; allSessionsSorted().forEach(x => { if (x.pulse && x.pulse.belastning) byM[x.date.slice(0, 7)] = x; });
+    ws.getCell(10, 2).value = ""; months.forEach((m, i) => { const c = ws.getCell(10, 3 + i); c.value = `${MONTHS[Number(m.slice(5, 7)) - 1]} ${m.slice(2, 4)}`; c.font = { name: "Calibri", size: 9, bold: true, color: { argb: XC.muted } }; c.alignment = { horizontal: "center" }; });
+    [["Belastning", x => x.pulse.belastning, v => v >= 4 && XC.tiltak], ["Trivsel", x => x.pulse.trivsel, v => v <= 2 && XC.tiltak], ["Timer/uke", x => xnum((x.person || {}).timer_uke), v => v > HOURS.varsel ? XC.tiltak : v > HOURS.gul ? XC.risk : null], ["Ampel måned", x => { const ss = store.sessions.filter(y => y.date.slice(0, 7) === x.date.slice(0, 7)); return ss.map(ampel).sort((a, b) => ord[a] - ord[b])[0]; }, null]].forEach(([lab, fn, wf], ri) => { const r = 11 + ri; ws.getCell(r, 2).value = lab; ws.getCell(r, 2).font = { name: "Calibri", size: 10, color: { argb: XC.ink } }; months.forEach((m, i) => { const c = ws.getCell(r, 3 + i); const x = byM[m]; const v = x ? fn(x) : null; c.value = v === null || v === undefined ? "–" : v; c.alignment = { horizontal: "center" }; c.font = { name: "Calibri", size: 10, color: { argb: XC.ink } }; if (typeof v === "string") paintStatus(c, v, true); else if (wf && v !== null) { const wc = wf(v); if (wc) { c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: wc[0] } }; c.font = { name: "Calibri", size: 10, bold: true, color: { argb: wc[1] } }; } } }); });
+    let r = 16; sec(r, "Dette må du gjøre denne uken"); r++;
+    const todoCols = [{ h: "", w: 3 }, { h: "Gjelder", w: 22, wrap: true }, { h: "Hva", w: 56, wrap: true }, { h: "Frist", w: 11, align: "center" }, { h: "Prio", w: 6, align: "center" }, { h: "Min status", w: 14, edit: true, note: "Har lest · Ringt · Tatt videre" }, { h: "Min dato", w: 11, edit: true }, { h: "Min kommentar", w: 30, edit: true, wrap: true }];
+    xHeader(ws, r, todoCols); ws.getColumn(3).width = 56; r++; const todo = leaderTodo(sessions, s0);
+    if (!todo.length) { xRow(ws, r, todoCols, ["", kons, "Ingenting som haster. Svar «Lest».", null, "", "", "", ""]); r++; }
+    todo.forEach((t, i) => { xRow(ws, r, todoCols, ["", t[1], t[2], t[3] ? xdate(t[3]) : "", t[0], "", "", ""], { stripe: i % 2 === 1 }); ws.getCell(r, 5).alignment = { horizontal: "center" }; r++; });
+    ws.dataValidations.add(`F18:F${r + 2}`, { type: "list", allowBlank: true, formulae: ['"Har lest,Ringt,Tatt videre,Ikke nå"'] });
+    r++; sec(r, "Forslag til første setning"); r++;
+    latest.forEach(s => { ws.getCell(r, 2).value = s.project.prosjekt; ws.getCell(r, 2).font = { name: "Calibri", size: 10, bold: true, color: { argb: XC.ink } }; ws.getCell(r, 2).alignment = { vertical: "top", wrapText: true }; ws.mergeCells(r, 3, r, 8); const c = ws.getCell(r, 3); c.value = firstSentence(s); c.font = { name: "Calibri", size: 10, italic: true, color: { argb: XC.ink } }; c.alignment = { wrapText: true, vertical: "top" }; ws.getRow(r).height = 30; r++; });
+    r++; sec(r, "Prosjekter og roller"); r++;
+    const pc = [{ h: "", w: 3 }, { h: "Prosjekt / rolle", w: 22, wrap: true }, { h: "Ampel", w: 14, status: true, bold: true, align: "center" }, { h: "Type", w: 14 }, { h: "Andel %", w: 14, fmt: "0", align: "center" }, { h: "Åpne tiltak", w: 14, fmt: "0", align: "center" }, { h: "Over frist", w: 14, fmt: "0", align: "center" }, { h: "Løper ut / frist", w: 14, align: "center" }];
+    xHeader(ws, r, pc); r++;
+    latest.slice().sort((a, b) => ord[ampel(a)] - ord[ampel(b)]).forEach((s, i) => { const ot = openTiltak(s.projectId); xRow(ws, r, pc, ["", s.project.prosjekt, ampelText(ampel(s)), s.projectId === "" ? "Mellom oppdrag" : typeLabel(s.project), xnum(s.project.andel), ot.length, ot.filter(t => t.frist && t.frist < isoToday()).length, xdate(s.project.sluttdato) || ""], { stripe: i % 2 === 1 }); r++; });
+    r++; xFoot(ws, r, foot, 8); xPage(ws, false, null, hdr, ftr); }
+  /* 2 Prosjektkort */
+  { const cols = [{ h: "Konsulent", w: 16 }, { h: "Ampel", w: 9, status: true, bold: true, align: "center" }, { h: "Prosjekt / rolle", w: 26, wrap: true }, { h: "Type", w: 13 }, { h: "Kunde", w: 18, wrap: true }, { h: "Andel %", w: 8, fmt: "0", align: "right" }, { h: "Dato", w: 11, align: "center" }, { h: "Røde flagg", w: 48, wrap: true }, { h: "Trenger fra leder", w: 40, wrap: true }, { h: "Risiko nå", w: 40, wrap: true }, { h: "Endret siden sist", w: 32, wrap: true }, { h: "Åpne tiltak", w: 8, fmt: "0", align: "center" }, { h: "Over frist", w: 8, fmt: "0", align: "center" }, { h: "Ramme/kalkyle %", w: 10, fmt: "0", align: "right" }, { h: "Fremdrift %", w: 10, fmt: "0", align: "right" }, { h: "Utestående >30 d", w: 10, align: "center" }, { h: "Kundesignal", w: 11, status: true, align: "center" }, { h: "Løper ut / frist", w: 11, align: "center" }, { h: "Fikk svar sist", w: 9, align: "center" }];
+    const ws = wb.addWorksheet("2 Prosjektkort", { views: [{ state: "frozen", xSplit: 3, ySplit: 5, showGridLines: false }] }); xTitle(ws, `Prosjektkort · ${kons}`, sub, warn, cols.length); xHeader(ws, 5, cols);
+    let r = 6; sorted.slice().sort((a, b) => ord[ampel(a)] - ord[ampel(b)] || cmp(b.date, a.date) || num(b.project.andel) - num(a.project.andel)).forEach((s, i) => { const F = s.fields || {}; const ot = openTiltak(s.projectId); const hasNums = s.projectId && isKunde(s.project) && sigFields(SIG_BY.S3, s).length > 0; const clean = k => hasText(s, k) ? s.punkter[k].trim() : "";
+      xRow(ws, r, cols, [kons, ampelText(ampel(s)), s.project.prosjekt, s.projectId === "" ? "Mellom oppdrag" : typeLabel(s.project), s.project.kunde || "", xnum(s.project.andel), xdate(s.date), redFlags(s).join("\n"), clean("trenger"), clean("risiko"), clean("endret"), ot.length, ot.filter(t => t.frist && t.frist < isoToday()).length, hasNums ? xnum(F.ramme) : null, hasNums ? xnum(F.fremdrift) : null, F.utestaende ? "Ja" : "", s.sig.S5 ? LIGHT[s.sig.S5.status] : "", xdate(s.project.sluttdato) || "", s.lederSvar || ""], { stripe: i % 2 === 1 }); r++; });
+    ws.autoFilter = { from: { row: 5, column: 1 }, to: { row: r - 1, column: cols.length } };
+    ws.addConditionalFormatting({ ref: `M6:M${r}`, rules: [{ type: "cellIs", operator: "greaterThan", formulae: [0], style: { fill: { type: "pattern", pattern: "solid", bgColor: { argb: XC.tiltak[0] } }, font: { bold: true, color: { argb: XC.tiltak[1] } } } }] });
+    ws.addConditionalFormatting({ ref: `S6:S${r}`, rules: [{ type: "containsText", operator: "containsText", text: "Nei", style: { fill: { type: "pattern", pattern: "solid", bgColor: { argb: XC.risk[0] } } } }] });
+    ws.addConditionalFormatting({ ref: `R6:R${r}`, rules: [{ type: "expression", formulae: ['AND(R6<>"",R6<=TODAY()+60)'], style: { fill: { type: "pattern", pattern: "solid", bgColor: { argb: XC.risk[0] } } } }] });
+    r++; xFoot(ws, r, foot, cols.length); xPage(ws, true, "1:5", hdr, ftr); }
+  /* 3 Tiltak */
+  { const cols = [{ h: "Konsulent", w: 16 }, { h: "Nr", w: 5, fmt: "0", align: "center" }, { h: "Opprettet", w: 11, align: "center" }, { h: "Prosjekt", w: 24, wrap: true }, { h: "Tiltak", w: 50, wrap: true }, { h: "Ansvarlig", w: 16 }, { h: "Frist", w: 11, align: "center" }, { h: "Status", w: 10, align: "center" }, { h: "Område / kommentar", w: 34, wrap: true }, { h: "Leders oppfølging", w: 40, wrap: true, edit: true, note: "Skriv hva du gjorde og når. Lagres i din HR-mappe." }, { h: "Lukket", w: 11, align: "center" }];
+    const ws = wb.addWorksheet("3 Tiltak", { views: [{ state: "frozen", ySplit: 5, showGridLines: false }] }); xTitle(ws, `Tiltak · ${kons}`, sub, warn, cols.length); xHeader(ws, 5, cols);
+    const cutoff = addMonths(isoToday(), -3); const list = store.tiltak.filter(t => (t.area === "Utvikling" || sorted.some(s => s.projectId === t.projectId)) && (t.status === "Åpen" || !t.lukket || t.lukket >= cutoff)).sort((a, b) => (a.status === b.status ? cmp(a.frist || "9", b.frist || "9") : a.status === "Åpen" ? -1 : 1));
+    let r = 6; list.forEach((t, i) => { xRow(ws, r, cols, [kons, i + 1, xdate(t.dato), t.prosjekt, t.tekst, t.ansvarlig, xdate(t.frist) || "", t.status, [t.area, t.kommentar].filter(Boolean).join(": "), "", xdate(t.lukket) || ""], { stripe: i % 2 === 1, muted: t.status === "Lukket" }); r++; });
+    if (!list.length) { xRow(ws, r, cols, [kons, "", "", "", "Ingen tiltak registrert.", "", "", "", "", "", ""]); r++; }
+    ws.autoFilter = { from: { row: 5, column: 1 }, to: { row: r - 1, column: cols.length } };
+    ws.dataValidations.add(`H6:H${Math.max(r, 500)}`, { type: "list", allowBlank: false, formulae: ['"Åpen,Lukket"'], showErrorMessage: true, errorTitle: "Status", error: "Velg Åpen eller Lukket" });
+    ws.addConditionalFormatting({ ref: `A6:K${r - 1}`, rules: [{ type: "expression", formulae: ['$H6="Lukket"'], style: { font: { color: { argb: "FF8A9599" } } } }, { type: "expression", formulae: ['AND($G6<>"",$G6<TODAY(),$H6="Åpen")'], style: { fill: { type: "pattern", pattern: "solid", bgColor: { argb: XC.tiltak[0] } } } }, { type: "expression", formulae: ['AND($G6<>"",$G6<=TODAY()+7,$G6>=TODAY(),$H6="Åpen")'], style: { fill: { type: "pattern", pattern: "solid", bgColor: { argb: XC.risk[0] } } } }] });
+    r++; xFoot(ws, r, foot, cols.length); xPage(ws, true, "1:5", hdr, ftr); }
+  /* 4 ROMA-samtale */
+  { const cols = [{ h: "Konsulent", w: 16 }, { h: "Prosjekt / rolle", w: 24, wrap: true }, { h: "Dato", w: 11, align: "center" }, { h: "Tema", w: 22 }, { h: "Påstand / spørsmål", w: 50, wrap: true }, { h: "Status", w: 13, status: true, align: "center" }, { h: "Kommentar", w: 44, wrap: true }, { h: "Verdi", w: 24, wrap: true }, { h: "Tiltak / ansvarlig", w: 34, wrap: true }, { h: "Frist", w: 11, align: "center" }, { h: "Endret siden sist", w: 9, align: "center" }];
+    const ws = wb.addWorksheet("4 ROMA-samtale", { views: [{ state: "frozen", xSplit: 2, ySplit: 5, showGridLines: false }] }); xTitle(ws, `ROMA-samtale, signal for signal · ${kons}`, sub, warn, cols.length); xHeader(ws, 5, cols);
+    let r = 6, i = 0; const push = vals => { xRow(ws, r, cols, vals, { stripe: i % 2 === 1 }); r++; i++; };
+    sorted.forEach(s => { const prev = prevOf(s); const pn = s.projectId === "" ? "Mellom oppdrag" : s.project.prosjekt;
+      if (s.projectId === "") { ["N1", "N3"].forEach(k => { const a = (s.person || {})[k] || {}; if (a.status && a.status !== "OK") push([kons, pn, xdate(s.date), "Mellom oppdrag", PERSON[k].t, a.status, a.comment || "", "", "", "", ""]); }); }
+      else SIGNALS.forEach(S => { const a = s.sig[S.id]; if (!a || a.status === NR || (a.status === "OK" && !(a.comment || "").trim())) return; const changed = prev && prev.sig && prev.sig[S.id] ? (prev.sig[S.id].status !== a.status ? "Ja" : "Nei") : ""; push([kons, pn, xdate(s.date), `${S.roma} · ${sigName(S, s)}`, sigText(S, s), a.status, a.comment || "", sigFieldText(S, s), a.tiltak ? `${a.tiltak} / ${a.ansvarlig}` : "", xdate(a.frist) || "", changed]); });
+      if (s.person) { if (s.person.S1 && s.person.S1.status !== "OK") push([kons, pn, xdate(s.date), "R · Restitusjon (person)", PERSON.S1.t, s.person.S1.status, s.person.S1.comment || "", s.person.timer_uke ? `${s.person.timer_uke} t/uke` : "", "", "", ""]); if (s.person.kontakt === "nei") push([kons, pn, xdate(s.date), "M · Tilhørighet (person)", "Reell kontakt med Involved siste måned", "Risiko", "", "nei", "", "", ""]); }
+      punkterFor(s).forEach(P => { if (hasText(s, P.k)) push([kons, pn, xdate(s.date), "Viktigste punkter", P.l, "", s.punkter[P.k].trim(), "", "", "", ""]); });
+      const flags = redFlags(s); if (flags.length) push([kons, pn, xdate(s.date), "Røde flagg", "", "Krever tiltak", flags.join("\n"), "", "", "", ""]);
+      if (s.deep) areasFor(s.project).forEach(a => a.qs.forEach(q => { const ans = s.answers[q.id]; if (ans.status === "OK" && !(ans.comment || "").trim()) return; push([kons, pn, xdate(s.date), `Full ROMA · ${a.name}`, q.t, ans.status, ans.comment || "", fieldText(q, ans), ans.tiltak ? `${ans.tiltak} / ${ans.ansvarlig}` : "", xdate(ans.frist) || "", ""]); })); });
+    if (i === 0) { push([kons, "", "", "", "Alt grønt uten kommentarer i perioden.", "", "", "", "", "", ""]); }
+    ws.autoFilter = { from: { row: 5, column: 1 }, to: { row: r - 1, column: cols.length } }; r++; xFoot(ws, r, foot, cols.length); xPage(ws, true, "1:5", hdr, ftr); }
+  /* 5 Team-rad */
+  { const cols = [{ h: "Konsulent", w: 18 }, { h: "Måned", w: 10 }, { h: "Leder", w: 16 }, { h: "Ampel person", w: 12, status: true, bold: true, align: "center" }, { h: "Belastning", w: 10, fmt: "0", align: "center" }, { h: "Trivsel", w: 8, fmt: "0", align: "center" }, { h: "Timer/uke", w: 9, fmt: "0.0", align: "center" }, { h: "Kontakt", w: 8, align: "center" }, { h: "Belegg %", w: 9, fmt: "0", align: "center" }, { h: "Røde prosjekter", w: 9, fmt: "0", align: "center" }, { h: "Gule prosjekter", w: 9, fmt: "0", align: "center" }, { h: "Handlinger til leder", w: 10, fmt: "0", align: "center" }, { h: "Første frist", w: 11, align: "center" }, { h: "Fikk svar sist", w: 9, align: "center" }];
+    const ws = wb.addWorksheet("5 Team-rad", { views: [{ state: "frozen", ySplit: 1, showGridLines: false }] }); xHeader(ws, 1, cols);
+    const act = activeProjects(); const sum = act.reduce((n, p) => n + num(p.andel), 0); const amp = latest.map(s => ampel(s)); const todo = leaderTodo(sessions, s0); const pa = isHeavy(s0.pulse, s0.person, sessions) ? "Rødt" : (s0.pulse || {}).belastning >= 4 || (s0.person && s0.person.kontakt === "nei") ? "Gult" : "Grønt";
+    xRow(ws, 2, cols, [kons, s0.date.slice(0, 7), leder, ampelText(pa), xnum((s0.pulse || {}).belastning), xnum((s0.pulse || {}).trivsel), xnum((s0.person || {}).timer_uke), (s0.person || {}).kontakt || "", act.length ? sum : null, amp.filter(a => a === "Rødt").length, amp.filter(a => a === "Gult").length, todo.length, todo.filter(t => t[3]).map(t => t[3]).sort()[0] ? xdate(todo.filter(t => t[3]).map(t => t[3]).sort()[0]) : "", noAnswerLast(s0) ? "Nei" : ""]);
+    xFoot(ws, 4, "Én rad per konsulent, identiske overskrifter i alle filer. Slå sammen med Power Query (mappe → kombiner) eller lim inn i teamarket.", cols.length); xPage(ws, true, null, hdr, ftr); }
   return wb;
 }
-function xlsxBlob(wb) { return new Blob([XLSX.write(wb, { type: "array", bookType: "xlsx" })], { type: XLSX_MIME }); }
-async function exportProject(s) { if (!window.XLSX) { toast("Excel-biblioteket er ikke lastet. Sjekk nett og prøv igjen."); return false; } try { return await saveFile(`${s.date.replace(/-/g, "")}_Involved_${isIntern(s.project) ? "ROMArolle" : isSalg(s.project) ? "ROMAsalg" : "ROMAsamtale"}_${slug(s.project.prosjekt)}_${slug(s.project.konsulent)}.xlsx`, xlsxBlob(buildProjectWorkbook(s))); } catch (e) { console.error(e); toast("Excel-eksport feilet. Bruk «Kopier til Teams»."); return false; } }
-async function exportLeader(sessions) { if (!window.XLSX) { toast("Excel-biblioteket er ikke lastet. Sjekk nett og prøv igjen."); return false; } if (!sessions.length) { toast("Ingen runder å eksportere ennå"); return false; } try { return await saveFile(`${isoToday().replace(/-/g, "")}_Involved_ROMA_lederoversikt_${slug(store.me.konsulent)}.xlsx`, xlsxBlob(buildLeaderWorkbook(sessions))); } catch (e) { console.error(e); toast("Excel-eksport feilet."); return false; } }
+
+/* ---------- Prosjektarbeidsbok (kumulativ per prosjekt, uten sensitive felt) ---------- */
+function buildProjectWorkbook(sOrPid) {
+  const pid = typeof sOrPid === "string" ? sOrPid : sOrPid.projectId; const p = projectById(pid) || (typeof sOrPid === "object" ? sOrPid.project : null); const ss = sessionsFor(pid);
+  const wb = new ExcelJS.Workbook(); wb.creator = store.me.konsulent; wb.title = `ROMA-samtale ${p.prosjekt}`; wb.subject = "Prosjektsikring"; wb.keywords = "ISO 9001 8.1 9.1"; wb.created = new Date();
+  const intern = isIntern(p), salg = isSalg(p); const kind = intern ? "Rolle" : salg ? "Tilbud" : "Prosjekt";
+  const hdr = `&L&"Calibri,Bold"${p.prosjekt}&C${kind}mappe – ROMA-samtale&R&A`; const ftr = `&LInvolved Consulting AS&CGenerert ${fmtDate(isoToday())}&RSide &P av &N`;
+  const kv = (ws, r, k, v, opts = {}) => { ws.getCell(r, 1).value = k; ws.getCell(r, 1).font = { name: "Calibri", size: 10, bold: true, color: { argb: XC.ink } }; ws.getCell(r, 1).alignment = { vertical: "top" }; const c = ws.getCell(r, 2); if (v instanceof Date) { c.value = v; c.numFmt = "dd.mm.yyyy"; } else c.value = v == null ? "" : v; c.font = { name: "Calibri", size: 10, color: { argb: XC.ink } }; c.alignment = { wrapText: true, vertical: "top" }; if (opts.warn) { c.fill = { type: "pattern", pattern: "solid", fgColor: { argb: XC.risk[0] } }; c.font.color = { argb: XC.risk[1] }; } if (typeof v === "string" && v.length > 70) ws.getRow(r).height = Math.min(120, 15 * Math.ceil(v.length / 75)); };
+  const openT = store.tiltak.filter(t => t.projectId === pid && t.status === "Åpen"); const deepN = ss.filter(s => s.deep).length;
+  /* Forside */
+  { const ws = wb.addWorksheet("Forside", { properties: { tabColor: { argb: "FF9AA5B1" } }, views: [{ showGridLines: false }] }); ws.getColumn(1).width = 30; ws.getColumn(2).width = 70;
+    ws.getCell("A1").value = `ROMA-samtale – ${kind.toLowerCase()}mappe`; ws.getCell("A1").font = { name: "Calibri", size: 16, bold: true, color: { argb: XC.ink } }; ws.getRow(1).height = 26;
+    ws.getCell("A2").value = `${p.prosjekt}${p.kunde ? " · " + p.kunde : ""}`; ws.getCell("A2").font = { name: "Calibri", size: 12, color: { argb: XC.muted } };
+    let r = 4; xSection(ws, r++, "Formål", 2); kv(ws, r++, "Formål", "Sikre at prosjektet leverer i henhold til kontrakt og forventninger, at risiko fanges opp tidlig, og at konsulenten har den støtten som trengs. R Ressurs · O Oversikt · M Menneske · A Ansvar."); kv(ws, r++, "Frekvens", "Månedlig, 3 minutter per prosjekt. Full ROMA kvartalsvis, ved oppstart og ved avslutning."); kv(ws, r++, "Gjennomføres av", `${p.konsulent || store.me.konsulent}${(p.teamleder || store.me.teamleder) ? " med " + (p.teamleder || store.me.teamleder) : ""}`);
+    r++; xSection(ws, r++, "Metadata", 2); kv(ws, r++, kind, p.prosjekt); if (p.prosjektnummer) kv(ws, r++, "Prosjektnummer", p.prosjektnummer); kv(ws, r++, "Type", typeLabel(p) + (p.vunnet ? `, vunnet ${fmtDate(p.vunnet)}` : "")); kv(ws, r++, "Konsulent", p.konsulent || store.me.konsulent); kv(ws, r++, "Teamleder", p.teamleder || store.me.teamleder || ""); kv(ws, r++, "Første runde", ss.length ? xdate(ss[0].date) : ""); kv(ws, r++, "Status", p.avsluttet ? `Avsluttet ${fmtDate(p.avsluttet)}` : "Aktiv");
+    r++; xSection(ws, r++, "Dokumentkontroll", 2); kv(ws, r++, "Generert", new Date().toLocaleString("nb-NO")); kv(ws, r++, "Generert av", store.me.konsulent); kv(ws, r++, "Verktøy", "Via ROMA v6"); kv(ws, r++, "Malreferanse", "Erstatter ROMAsamtaleskjema V1.10"); kv(ws, r++, "Rutinereferanse", "Beskrivelse og Rutine for ROMA-samtale");
+    r++; xSection(ws, r++, "Omfang", 2); kv(ws, r++, "Runder", `${ss.length}${ss.length ? ` · første ${fmtDate(ss[0].date)} · siste ${fmtDate(ss[ss.length - 1].date)}` : ""} · full ROMA ${deepN} ${deepN === 1 ? "gang" : "ganger"} · åpne tiltak ${openT.length}`);
+    r++; xSection(ws, r++, "Personvern", 2); kv(ws, r++, "Merknad", "Dette dokumentet inneholder ikke puls, belastning, restitusjon eller trygghet. Slike opplysninger dokumenteres kun hos nærmeste leder (HR-mappe).");
+    r++; xSection(ws, r++, "Revisjonsspor", 2); const rc = [{ h: "Dato", w: 30, align: "center" }, { h: "Runde · type · varighet · ampel", w: 70, wrap: true }]; xHeader(ws, r++, rc); ws.getColumn(1).width = 30; ws.getColumn(2).width = 70;
+    ss.forEach((s, i) => { const typ = [i === 0 && isKunde(p) ? "Oppstart" : "", isShortRound(s) ? "Kort runde" : "Månedlig", s.deep ? "+ Full ROMA" : ""].filter(Boolean).join(" · "); xRow(ws, r++, rc, [xdate(s.date), `Runde ${i + 1} · ${typ} · ${fmtMin(s.elapsed || 0)} · ${ampel(s, false)}`], { stripe: i % 2 === 1 }); });
+    if (p.avsluttet) xRow(ws, r++, rc, [xdate(p.avsluttet), `Avsluttet · sluttevaluering${p.slutt ? " registrert" : " mangler"}`]);
+    xPage(ws, false, null, hdr, ftr); }
+  /* Prosjektinfo */
+  { const ws = wb.addWorksheet(intern ? "Rolleinfo" : salg ? "Tilbudsinfo" : "Prosjektinfo", { properties: { tabColor: { argb: "FF4A6FA5" } }, views: [{ showGridLines: false }] }); ws.getColumn(1).width = 34; ws.getColumn(2).width = 60; let r = 1;
+    xSection(ws, r++, "Oppdrag", 2); kv(ws, r++, kind, p.prosjekt); kv(ws, r++, "Type", typeLabel(p)); kv(ws, r++, "Andel av konsulentens tid", p.andel ? `${p.andel} %` : ""); kv(ws, r++, "Rolle", p.rolle || ""); if (intern) { kv(ws, r++, "Avtalt fordeling", p.plan || ""); kv(ws, r++, "Mål denne perioden", p.mal || ""); kv(ws, r++, "Neste vurdering", xdate(p.sluttdato) || ""); } else { kv(ws, r++, salg ? "Tilbudsfrist / avgjørelse" : "Oppdraget løper ut", xdate(p.sluttdato) || ""); if (salg && p.verdi) kv(ws, r++, "Anslått omfang", `${p.verdi} t`); }
+    if (!intern) { r++; xSection(ws, r++, "Kontrakt", 2); kv(ws, r++, salg ? "Forventet kontraktstype" : "Kontraktstype", p.kontraktstype || ""); if (isKunde(p)) { kv(ws, r++, "Kontrakt signert og lagret på SharePoint", p.kontrakt || "ikke registrert", { warn: p.kontrakt !== "Ja" }); if (p.prosjektnummer) kv(ws, r++, "Prosjektnummer", p.prosjektnummer); } if (p.vunnet) kv(ws, r++, "Vunnet", xdate(p.vunnet));
+      r++; xSection(ws, r++, "Kunde", 2); kv(ws, r++, "Kunde / oppdragsgiver", p.kunde || ""); if (isKunde(p)) { kv(ws, r++, "Kundeundersøkelse sendt", xdate(p.ku_dato) || "ikke registrert"); kv(ws, r++, "Score siste kundeundersøkelse", p.ku_score || ""); } }
+    xPage(ws, false, null, hdr, ftr); }
+  /* Månedslogg */
+  { const cols = [{ h: "Måned", w: 10, align: "center" }, { h: "Dato", w: 11, align: "center" }, { h: "Ampel", w: 9, status: true, bold: true, align: "center" }, ...SIGNALS.filter(S => !S.sensitive).map(S => ({ h: sigName(S, ss[0] || { project: p }), w: 12, status: true, align: "center" })), { h: "Full ROMA", w: 12 }, { h: "Ramme %", w: 9, fmt: "0", align: "right" }, { h: "Fremdrift %", w: 9, fmt: "0", align: "right" }, { h: "Utestående >30 d", w: 9, align: "center" }, { h: "Timer uten bestilling", w: 9, fmt: "0", align: "right" }, { h: "Endret siden sist", w: 34, wrap: true }, { h: "Risiko nå", w: 34, wrap: true }, { h: "Trenger fra Involved", w: 34, wrap: true }, { h: "Røde flagg", w: 34, wrap: true }, { h: "Åpne tiltak", w: 8, fmt: "0", align: "center" }];
+    const ws = wb.addWorksheet("Månedslogg", { properties: { tabColor: { argb: "FF4A6FA5" } }, views: [{ state: "frozen", xSplit: 2, ySplit: 1, showGridLines: false }] }); xHeader(ws, 1, cols); let r = 2;
+    ss.forEach((s, i) => { const F = s.fields || {}; const openAt = store.tiltak.filter(t => t.projectId === pid && t.dato <= s.date && (t.status === "Åpen" || (t.lukket && t.lukket > s.date))).length; const clean = k => hasText(s, k) ? s.punkter[k].trim() : "";
+      xRow(ws, r++, cols, [`${MONTHS[Number(s.date.slice(5, 7)) - 1]} ${s.date.slice(0, 4)}`, xdate(s.date), s.deep && s.deepConfirmed ? ampel(s, false) : ampel(s, false), ...SIGNALS.filter(S => !S.sensitive).map(S => (s.sig[S.id] || {}).status || "OK"), s.deep ? (s.deepConfirmed ? "Bekreftet grønt" : "Vurdert") : "", xnum(F.ramme), xnum(F.fremdrift), F.utestaende ? "Ja" : "", xnum(F.endringstimer), clean("endret"), clean("risiko"), clean("trenger"), redFlags(s, false).join("\n"), openAt], { stripe: i % 2 === 1 }); });
+    ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: Math.max(2, r - 1), column: cols.length } }; cfStatus(ws, `C2:${colLetter(3 + SIGNALS.filter(S => !S.sensitive).length)}${r}`); xPage(ws, true, "1:1", hdr, ftr); }
+  /* ROMA-samtale */
+  { const cols = [{ h: "Dato", w: 11, align: "center" }, { h: "Runde", w: 6, fmt: "0", align: "center" }, { h: "Tema", w: 24 }, { h: "Påstand / spørsmål", w: 48, wrap: true }, { h: "Status", w: 13, status: true, align: "center" }, { h: "Kommentar", w: 44, wrap: true }, { h: "Verdi", w: 20, wrap: true }, { h: "Tiltak", w: 36, wrap: true }, { h: "Ansvarlig", w: 16 }, { h: "Frist", w: 11, align: "center" }, { h: "Endret siden sist", w: 9, align: "center" }];
+    const ws = wb.addWorksheet("ROMA-samtale", { properties: { tabColor: { argb: "FF4A6FA5" } }, views: [{ state: "frozen", xSplit: 3, ySplit: 1, showGridLines: false }] }); xHeader(ws, 1, cols); let r = 2, i = 0;
+    ss.forEach((s, n) => { const prev = prevOf(s); xSection(ws, r++, `Runde ${n + 1} · ${monthName(s.date)} · ${fmtMin(s.elapsed || 0)}${isShortRound(s) ? " · kort runde" : ""}`, cols.length);
+      SIGNALS.filter(S => !S.sensitive).forEach(S => { const a = s.sig[S.id]; if (!a || a.status === NR) return; const changed = prev && prev.sig && prev.sig[S.id] ? (prev.sig[S.id].status !== a.status ? "Ja" : "Nei") : ""; xRow(ws, r++, cols, [xdate(s.date), n + 1, `${S.roma} · ${sigName(S, s)}`, sigText(S, s), a.status, a.comment || "", sigFieldText(S, s), a.status === "OK" ? "" : a.tiltak || "", a.status === "OK" ? "" : a.ansvarlig || "", a.status === "OK" ? "" : xdate(a.frist) || "", changed], { stripe: i++ % 2 === 1 }); });
+      punkterFor(s).forEach(P => { if (hasText(s, P.k)) xRow(ws, r++, cols, [xdate(s.date), n + 1, "Viktigste punkter", P.l, "", s.punkter[P.k].trim(), "", "", "", "", ""], { stripe: i++ % 2 === 1 }); });
+      const flags = redFlags(s, false); if (flags.length) xRow(ws, r++, cols, [xdate(s.date), n + 1, "Røde flagg", "", "Krever tiltak", flags.join("\n"), "", "Meldt til leder / Planner", "", "", ""], { stripe: i++ % 2 === 1 }); });
+    ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: Math.max(2, r - 1), column: cols.length } }; xPage(ws, true, "1:1", hdr, ftr); }
+  /* Tiltak & Oppfølging */
+  { const cols = [{ h: "Tiltak nr", w: 8, align: "center" }, { h: "Dato opprettet", w: 11, align: "center" }, { h: "Opprinnelse", w: 18 }, { h: "Tiltak", w: 50, wrap: true }, { h: "Ansvarlig", w: 16 }, { h: "Frist", w: 11, align: "center" }, { h: "Status", w: 10, align: "center" }, { h: "Lukket dato", w: 11, align: "center" }, { h: "Dager åpen", w: 9, fmt: "0", align: "center" }, { h: "Kommentar / oppfølging", w: 44, wrap: true }];
+    const ws = wb.addWorksheet("Tiltak & Oppfølging", { properties: { tabColor: { argb: "FFD98E2B" } }, views: [{ state: "frozen", xSplit: 4, ySplit: 1, showGridLines: false }] }); xHeader(ws, 1, cols); let r = 2;
+    const list = store.tiltak.filter(t => t.projectId === pid).sort((a, b) => (a.status === b.status ? cmp(a.frist || "9", b.frist || "9") : a.status === "Åpen" ? -1 : 1));
+    list.forEach((t, i) => { xRow(ws, r, cols, [`T-${pad(i + 1).padStart(3, "0")}`, xdate(t.dato), t.area, t.tekst, t.ansvarlig, xdate(t.frist) || "", t.status, xdate(t.lukket) || "", null, t.kommentar || ""], { stripe: i % 2 === 1, muted: t.status === "Lukket" }); ws.getCell(r, 9).value = { formula: `IF(H${r}="",TODAY()-B${r},H${r}-B${r})` }; ws.getCell(r, 9).numFmt = "0"; r++; });
+    if (!list.length) { xRow(ws, r++, cols, ["", "", "", "Ingen tiltak registrert.", "", "", "", "", null, ""]); }
+    ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: Math.max(2, r - 1), column: cols.length } };
+    ws.dataValidations.add(`G2:G${Math.max(r, 300)}`, { type: "list", allowBlank: false, formulae: ['"Åpen,Lukket"'], showErrorMessage: true, errorTitle: "Status", error: "Bruk Åpen eller Lukket" });
+    ws.addConditionalFormatting({ ref: `F2:F${r}`, rules: [{ type: "expression", formulae: ['AND(F2<>"",F2<TODAY(),G2="Åpen")'], style: { font: { bold: true, color: { argb: XC.tiltak[1] } } } }] });
+    ws.addConditionalFormatting({ ref: `H2:H${r}`, rules: [{ type: "expression", formulae: ['AND(G2="Lukket",H2="")'], style: { fill: { type: "pattern", pattern: "solid", bgColor: { argb: XC.risk[0] } } } }] });
+    xPage(ws, true, "1:1", hdr, ftr); }
+  /* Full ROMA */
+  if (deepN) { const cols = [{ h: "Dato", w: 11, align: "center" }, { h: "Område", w: 22 }, { h: "Spørsmål", w: 60, wrap: true }, { h: "Status", w: 13, status: true, align: "center" }, { h: "Kommentar", w: 44, wrap: true }, { h: "Tiltak", w: 34, wrap: true }, { h: "Ansvarlig", w: 16 }, { h: "Frist", w: 11, align: "center" }, { h: "Verdi", w: 24, wrap: true }];
+    const ws = wb.addWorksheet("Full ROMA", { properties: { tabColor: { argb: "FF3E8E5E" } }, views: [{ state: "frozen", xSplit: 2, ySplit: 1, showGridLines: false }] }); xHeader(ws, 1, cols); let r = 2, i = 0;
+    ss.filter(s => s.deep).forEach(s => { const flagged = deepRows(s).filter(x => x.status !== "OK" && !x.q.sensitive).length; xSection(ws, r++, `Full ROMA ${fmtDate(s.date)} – ${s.deepConfirmed ? "Bekreftet lest, alt grønt" : `Vurdert, ${flagged} flagg`}`, cols.length);
+      areasFor(s.project).forEach(a => { if (a.privacy) { xRow(ws, r++, cols, [xdate(s.date), a.name, "Dokumentert i ledereksport.", "", "", "", "", "", ""], { muted: true }); return; } a.qs.forEach(q => { const ans = s.answers[q.id]; xRow(ws, r++, cols, [xdate(s.date), a.name, q.t, ans.status, ans.comment || "", ans.status === "OK" ? "" : ans.tiltak || "", ans.status === "OK" ? "" : ans.ansvarlig || "", ans.status === "OK" ? "" : xdate(ans.frist) || "", fieldText(q, ans)], { stripe: i++ % 2 === 1 }); }); }); });
+    ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: r - 1, column: cols.length } }; xPage(ws, true, "1:1", hdr, ftr); }
+  /* Sluttevaluering */
+  if (p.slutt && p.avsluttet) { const ws = wb.addWorksheet("Sluttevaluering", { properties: { tabColor: { argb: "FF3E8E5E" } }, views: [{ showGridLines: false }] }); ws.getColumn(1).width = 34; ws.getColumn(2).width = 80; let r = 1; xSection(ws, r++, "Sluttevaluering (rutinens trinn 4)", 2); const SQ = SLUTT_Q[p.type] || SLUTT_Q.prosjekt;
+    kv(ws, r++, "Avsluttet", xdate(p.avsluttet)); kv(ws, r++, "Utført av", store.me.konsulent); kv(ws, r++, SQ[0], p.slutt.levert || ""); kv(ws, r++, SQ[1], p.slutt.annerledes || ""); kv(ws, r++, SQ[2], p.slutt.uavsluttet || ""); const closedAt = store.tiltak.filter(t => t.projectId === pid && t.status === "Lukket" && t.lukket === p.avsluttet); kv(ws, r++, "Åpne tiltak ved avslutning", openT.length ? openT.map(t => `${t.tekst} (${t.ansvarlig})`).join("\n") : "Ingen"); kv(ws, r++, "Tiltak lukket ved avslutning", closedAt.length ? closedAt.map(t => t.tekst).join("\n") : "Ingen"); xPage(ws, false, null, hdr, ftr); }
+  /* Statusoversikt */
+  { const cols = [{ h: "Dato", w: 11, align: "center" }, { h: "Konsulent", w: 18 }, { h: "Prosjekt / rolle", w: 26 }, { h: "Sist samtale", w: 12, align: "center" }, { h: "Neste samtale", w: 12, align: "center" }, { h: "Åpne tiltak", w: 10, fmt: "0", align: "center" }, { h: "Over frist", w: 10, fmt: "0", align: "center" }, { h: "Ampel", w: 9, status: true, bold: true, align: "center" }, { h: "Kommentar", w: 60, wrap: true }];
+    const ws = wb.addWorksheet("Statusoversikt", { properties: { tabColor: { argb: "FF9AA5B1" } }, views: [{ state: "frozen", ySplit: 1, showGridLines: false }] }); xHeader(ws, 1, cols); let r = 2;
+    ss.forEach((s, i) => { const prev = i ? ss[i - 1] : null; const ot = store.tiltak.filter(t => t.projectId === pid && t.dato <= s.date && (t.status === "Åpen" || (t.lukket && t.lukket > s.date))); xRow(ws, r++, cols, [xdate(s.date), s.project.konsulent, s.project.prosjekt, prev ? xdate(prev.date) : "", xdate(addMonths(s.date, 1)), ot.length, ot.filter(t => t.frist && t.frist < s.date).length, ampel(s, false), [hasText(s, "risiko") ? s.punkter.risiko.trim() : "", hasText(s, "trenger") ? "Trenger: " + s.punkter.trenger.trim() : ""].filter(Boolean).join(" · ")], { stripe: i % 2 === 1 }); });
+    ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: Math.max(2, r - 1), column: cols.length } }; xPage(ws, true, "1:1", hdr, ftr); }
+  return wb;
+}
+async function xlsxBlob(wb) { const buf = await wb.xlsx.writeBuffer(); return new Blob([buf], { type: XLSX_MIME }); }
+async function exportProject(s) { if (!window.ExcelJS) { toast("Excel-biblioteket er ikke lastet. Sjekk nett og prøv igjen."); return false; } try { const p = projectById(s.projectId) || s.project; return await saveFile(`${isoToday().replace(/-/g, "")}_Involved_${isIntern(p) ? "ROMArolle" : isSalg(p) ? "ROMAsalg" : "ROMAsamtale"}_${slug(p.prosjektnummer || p.prosjekt)}_${slug(store.me.konsulent)}.xlsx`, await xlsxBlob(buildProjectWorkbook(s))); } catch (e) { console.error(e); toast("Excel-eksport feilet. Bruk «Kopier til Teams»."); return false; } }
+async function exportLeader(sessions) { if (!window.ExcelJS) { toast("Excel-biblioteket er ikke lastet. Sjekk nett og prøv igjen."); return false; } if (!sessions.length) { toast("Ingen runder å eksportere ennå"); return false; } try { return await saveFile(`${isoToday().replace(/-/g, "")}_Involved_ROMA_lederoversikt_${slug(store.me.konsulent)}_KUN-LEDER.xlsx`, await xlsxBlob(buildLeaderWorkbook(sessions))); } catch (e) { console.error(e); toast("Excel-eksport feilet."); return false; } }
 
 /* =====================================================================
    OVERSIKT
@@ -1309,32 +1589,123 @@ function normSession(s) {
   ALL_Q.forEach(({ q }) => { const a = (s.answers && s.answers[q.id] && typeof s.answers[q.id] === "object") ? s.answers[q.id] : {}; const b = blankAnswer(); b.status = STATUS.includes(a.status) ? a.status : "OK"; ["value", "comment", "tiltak", "ansvarlig", "frist"].forEach(k => { b[k] = String(a[k] || ""); }); b.fields = a.fields && typeof a.fields === "object" ? Object.fromEntries(Object.entries(a.fields).map(([k, v]) => [String(k), String(v)])) : {}; b.carried = !!a.carried; o.answers[q.id] = b; });
   return o;
 }
-function yearReport() {
-  const today = isoToday(); const from = addMonths(today, -12); const L = [];
-  L.push(`Årsutskrift ROMA · ${store.me.konsulent} · ${fmtDate(from)} til ${fmtDate(today)}`);
-  L.push("Til medarbeidersamtalen. Kun for deg og nærmeste leder.");
+/* =====================================================================
+   UTSKRIFT / PDF
+   ===================================================================== */
+const PSYM = { "Krever tiltak": "■", "Risiko": "▲", "OK": "●", "Ikke relevant": "○", "Rødt": "■", "Gult": "▲", "Grønt": "●" };
+const pcls = st => ({ "Krever tiltak": "st-Tiltak", "Risiko": "st-Risiko", "OK": "st-OK", "Ikke relevant": "st-NR", "Rødt": "st-Tiltak", "Gult": "st-Risiko", "Grønt": "st-OK" })[st] || "";
+const ppill = (st, label) => `<span class="prt-pill ${pcls(st)}">${PSYM[st] || ""} ${esc(label)}</span>`;
+let printPrev = "";
+function printDoc(kind, html, title) {
+  const root = $("#print-root"); root.innerHTML = html; document.documentElement.dataset.print = kind; printPrev = document.title; document.title = title;
+  const done = () => { if (!document.documentElement.dataset.print) return; delete document.documentElement.dataset.print; root.innerHTML = ""; document.title = printPrev || "Via ROMA"; };
+  window.addEventListener("afterprint", done, { once: true }); const mq = matchMedia("print"); const onmq = e => { if (!e.matches) { mq.removeEventListener("change", onmq); setTimeout(done, 100); } }; mq.addEventListener("change", onmq); setTimeout(done, 120000);
+  setTimeout(() => { window.print(); }, 50);
+}
+function prtHead(eyebrow, h1, right, foot) { return `<header class="prt-head"><div><span class="prt-eyebrow">${esc(eyebrow)}</span><h1>${esc(h1)}</h1></div><div class="prt-meta">${right.map(esc).join("<br>")}</div></header>`; }
+function prtProject(s, withSensitive, opts = {}) {
+  const p = s.project; const fl = flaggedSignals(s).filter(S => withSensitive || !S.sensitive); const prev = prevOf(s);
+  const sigs = SIGNALS.filter(S => (withSensitive || !S.sensitive) && s.sig[S.id] && s.sig[S.id].status !== NR).map(S => ppill(s.sig[S.id].status, sigName(S, s))).join(" ");
+  const lines = fl.map(S => { const a = s.sig[S.id]; const n = monthsSameStatus(s, S); return `<li><b>${esc(sigName(S, s))}</b>${n >= 2 ? ` (${esc(ordMonth(n))})` : ""}${sigWords(S, s) ? `: ${esc(sigWords(S, s))}` : ""}${a.comment && !(S.sensitive && a.status === "Krever tiltak") ? `. ${esc(sent(a.comment))}` : S.sensitive ? ". Tas muntlig." : ""}</li>`; }).join("");
+  const pk = punkterFor(s).filter(P => hasText(s, P.k)).map(P => `<dt>${esc(P.l)}</dt><dd>${esc(s.punkter[P.k].trim())}</dd>`).join("");
+  const tl = collectTiltak(s).filter(t => withSensitive || t.area !== "Neste oppdrag");
+  const flags = redFlags(s, withSensitive);
+  const pr = projectById(s.projectId); const slutt = pr && pr.slutt && pr.avsluttet && monthsBetween(pr.avsluttet, s.date) <= 1 ? pr : null;
+  return `<section class="prt-proj prt-block">
+    <div class="prt-proj-head"><span class="prt-amp ${pcls(ampel(s, withSensitive))}">${PSYM[ampel(s, withSensitive)]}</span><div><h2>${esc(p.prosjekt)}</h2><span class="prt-sub">${esc([isIntern(p) ? "intern rolle" : isSalg(p) ? "salgsarbeid" : "", p.kunde, p.andel ? p.andel + " %" : "", p.kontraktstype].filter(Boolean).join(" · "))}</span></div><div class="prt-right mono">${esc(statusLine(s))}</div></div>
+    <div class="prt-pills">${sigs}</div>
+    ${flags.length ? `<ul class="prt-flags">${flags.map(x => `<li>■ ${esc(x)}</li>`).join("")}</ul>` : ""}
+    ${lines ? `<ul class="prt-lines">${lines}</ul>` : ""}
+    ${pk ? `<dl class="prt-pk">${pk}</dl>` : ""}
+    ${tl.length ? `<table class="prt-table"><thead><tr><th>Fra</th><th>Tiltak</th><th>Ansvarlig</th><th>Frist</th></tr></thead><tbody>${tl.map(t => `<tr><td>${esc(t.area)}</td><td>${esc(t.tekst)}</td><td>${esc(t.ansvarlig)}</td><td class="mono">${fmtDate(t.frist)}</td></tr>`).join("")}</tbody></table>` : ""}
+    ${slutt ? `<dl class="prt-pk"><dt>Avsluttet ${fmtDate(slutt.avsluttet)}</dt><dd>${esc([slutt.slutt.levert, slutt.slutt.annerledes ? "Lærdom: " + slutt.slutt.annerledes : "", slutt.slutt.uavsluttet ? "Uavsluttet: " + slutt.slutt.uavsluttet : ""].filter(Boolean).join(" · "))}</dd></dl>` : ""}
+    ${withSensitive && opts.quote ? `<p class="prt-quote">${esc(firstSentence(s))}</p>` : ""}
+  </section>`;
+}
+function printLeder(sessions) {
+  const ord = { "Rødt": 0, "Gult": 1, "Grønt": 2 }; sessions = sessions.slice().sort((a, b) => ord[ampel(a)] - ord[ampel(b)] || num(b.project.andel) - num(a.project.andel)); const s0 = newest(sessions); const pv = s0.pulse || {}; const P = s0.person || {};
+  const act = activeProjects(); const sum = act.reduce((n, p) => n + num(p.andel), 0); const pw = pulseWarnings(s0, "leder"); const todo = leaderTodo(sessions, s0); const totalSec = sessions.reduce((n, s) => n + (s.elapsed || 0), 0);
+  const amp = sessions.map(s => `<div class="prt-ampbox ${pcls(ampel(s))}"><span class="prt-amp">${PSYM[ampel(s)]}</span><b>${esc(s.projectId === "" ? "Mellom oppdrag" : s.project.prosjekt)}</b><span class="prt-sub">${esc(s.project.andel ? s.project.andel + " %" : "")}</span><span class="prt-sub">${esc(s.projectId === "" ? mellomBlock(s).slice(1).join(" ") || "ok" : flaggedSignals(s).length ? flaggedSignals(s).map(S => `${sigName(S, s).toLowerCase()} ${LIGHT[s.sig[S.id].status].toLowerCase()}`).join(" · ") : "grønt")}</span></div>`).join("");
+  const kpi = (l, v) => `<div class="prt-kpi"><span>${esc(l)}</span><b>${esc(v)}</b></div>`;
+  const utv = (s0.utvikling || []).map(u => UTV_BY[u.k]).filter(Boolean).map(u => u.l);
+  const html = `<div class="prt prt-leder">
+    ${prtHead("Via ROMA · Månedsrapport", `${store.me.konsulent} · ${monthName(s0.date)}`, [store.me.teamleder ? `Til ${store.me.teamleder}` : "Til nærmeste leder", `Levert ${fmtDate(s0.date)} · ${MODE_LABEL[s0.mode || "Balansert"].toLowerCase()}`, `${sessions.length} ${sessions.length === 1 ? "runde" : "runder"} · ${fmtMin(totalSec)}`])}
+    <div class="prt-ampel">${amp}</div>
+    <section class="prt-puls prt-block"><div class="prt-kpis">${kpi("Belastning", `${pv.belastning || "–"}/5`)}${kpi("Trivsel", `${pv.trivsel || "–"}/5`)}${kpi("Timer/uke", P.timer_uke ? String(P.timer_uke).replace(".", ",") : "–")}${kpi("Involved-kontakt", P.kontakt || "–")}${act.length ? kpi("Belegg", `${sum} %`) : ""}</div>${utv.length ? `<p class="prt-sub">Foreslår utvikling: ${esc(utv.join(", "))}. OK?</p>` : ""}</section>
+    <section class="prt-todo prt-block"><h2>Det leder må gjøre</h2>${todo.length ? `<ol>${todo.map(t => `<li><b>${esc(t[1])}:</b> ${esc(t[2])}${t[3] ? ` <span class="mono">innen ${fmtDate(t[3])}</span>` : ""}</li>`).join("")}</ol>` : `<p>Ingenting som haster. Svar «Lest».</p>`}<p class="prt-quote">${esc(firstSentence(s0))}</p><p class="prt-sub">${esc(closingLine(sessions, s0))}</p></section>
+    ${sessions.map(s => s.projectId === "" ? `<section class="prt-proj prt-block"><div class="prt-proj-head"><span class="prt-amp ${pcls(ampel(s))}">${PSYM[ampel(s)]}</span><div><h2>Mellom oppdrag</h2></div></div><ul class="prt-lines">${mellomBlock(s).slice(1).map(l => `<li>${esc(l.replace(/^[🔴🟡🟢] /, ""))}</li>`).join("")}</ul></section>` : prtProject(s, true, { quote: firstSentence(s) !== firstSentence(s0) })).join("")}
+    <footer class="prt-foot">Kun til nærmeste leder · lagres i HR-mappe · Via ROMA · Involved Consulting AS</footer>
+  </div>`;
+  printDoc("leder", html, `${s0.date.replace(/-/g, "")}_Involved_ROMA_leder_${slug(store.me.konsulent)}`);
+}
+function printProsjekt(s) {
+  const p = projectById(s.projectId) || s.project; const ss = sessionsFor(s.projectId); const hist = ss.slice(-12);
+  const html = `<div class="prt prt-prosjekt">
+    ${prtHead("Via ROMA · Prosjektutskrift", `${p.prosjekt} · ${monthName(s.date)}`, [esc([typeLabel(p), p.kunde, p.kontraktstype].filter(Boolean).join(" · ")), `Konsulent ${store.me.konsulent}`, `Runde ${ss.indexOf(s) + 1 || ss.length} av ${ss.length}`])}
+    ${prtProject(s, false)}
+    <section class="prt-block"><h2>Historikk</h2><table class="prt-table"><thead><tr><th>Måned</th><th>Ampel</th>${SIGNALS.filter(S => !S.sensitive).map(S => `<th>${esc(sigName(S, s))}</th>`).join("")}<th>Risiko nå</th></tr></thead><tbody>${hist.map(x => `<tr><td class="mono">${esc(fmtMonth(x.date))}</td><td class="${pcls(ampel(x, false))}">${PSYM[ampel(x, false)]} ${esc(ampel(x, false))}</td>${SIGNALS.filter(S => !S.sensitive).map(S => `<td class="${pcls((x.sig[S.id] || {}).status)}">${PSYM[(x.sig[S.id] || {}).status] || ""}</td>`).join("")}<td>${esc(hasText(x, "risiko") ? x.punkter.risiko : "")}</td></tr>`).join("")}</tbody></table></section>
+    <footer class="prt-foot">Prosjektmappe · inneholder ikke puls, belastning eller trygghet · Via ROMA · Involved Consulting AS</footer>
+  </div>`;
+  printDoc("prosjekt", html, `${s.date.replace(/-/g, "")}_Involved_ROMAsamtale_${slug(p.prosjekt)}_${slug(store.me.konsulent)}`);
+}
+function yearData() {
+  const today = isoToday(); const from = addMonths(today, -12); const months = []; for (let i = 11; i >= 0; i--) months.push(addMonths(today.slice(0, 7) + "-15", -i).slice(0, 7));
   const pids = Array.from(new Set(store.sessions.filter(x => x.date >= from).map(x => x.projectId)));
-  pids.forEach(pid => { const ss = store.sessions.filter(x => x.projectId === pid && x.date >= from).sort((a, b) => cmp(a.date, b.date)); if (!ss.length) return; const p = projectById(pid) || ss[ss.length - 1].project; L.push(""); L.push(`${p.prosjekt}${isIntern(p) ? " (intern rolle)" : isSalg(p) ? " (salgsarbeid)" : p.kunde ? " (" + p.kunde + ")" : ""}${p.vunnet ? ", vunnet " + fmtDate(p.vunnet) : ""}${p.avsluttet ? ", avsluttet " + fmtDate(p.avsluttet) : ""}: ${ss.length} runde${ss.length > 1 ? "r" : ""} · ${ss.map(x => `${MONTHS[Number(x.date.slice(5, 7)) - 1]} ${AMPEL_EMOJI[ampel(x)]}`).join(" ")}`); const risks = ss.map(x => x.punkter && x.punkter.risiko).filter(v => v && !NOTHING.test(v)); if (risks.length) L.push(`  Risiko meldt: ${risks.slice(-3).join(" · ")}`); if (p.slutt) { if (p.slutt.levert) L.push(`  Levert: ${p.slutt.levert}`); if (p.slutt.annerledes) L.push(`  Lærdom: ${p.slutt.annerledes}`); if (p.slutt.uavsluttet && !NOTHING.test(p.slutt.uavsluttet)) L.push(`  Uavsluttet: ${p.slutt.uavsluttet}`); } });
-  const fag = []; store.sessions.filter(x => x.date >= from && x.deep).forEach(x => { const A = x.answers || {}; const pn = x.project.prosjekt; if (A.m2 && A.m2.comment) fag.push(`${pn}: miljø, ${A.m2.comment}`); ["l2", "l3"].forEach(k => { if (A[k] && A[k].status !== "OK" && A[k].comment) fag.push(`${pn}: ${A[k].comment}`); }); }); store.projects.filter(p => p.slutt && p.slutt.annerledes && p.avsluttet >= from).forEach(p => fag.push(`${p.prosjekt}: ${p.slutt.annerledes}`)); if (fag.length) { L.push(""); L.push("Til fag- og erfaringsrapporten:"); fag.forEach(x => L.push(`  ${x}`)); }
-  const ps = store.sessions.filter(x => x.date >= from && x.pulse && x.pulse.belastning); if (ps.length) { const byM = {}; ps.forEach(x => { byM[x.date.slice(0, 7)] = x; }); L.push(""); L.push(`Puls per måned: ${Object.keys(byM).sort().map(m => `${MONTHS[Number(m.slice(5, 7)) - 1]} ${byM[m].pulse.belastning}/${byM[m].pulse.trivsel}${byM[m].person && byM[m].person.timer_uke ? " · " + byM[m].person.timer_uke + " t" : ""}`).join(" · ")} (belastning/trivsel)`); }
-  const closed = store.tiltak.filter(t => t.status === "Lukket" && t.lukket && t.lukket >= from); const utv = store.tiltak.filter(t => t.area === "Utvikling" && t.dato >= from);
-  L.push(""); L.push(`Tiltak lukket: ${closed.length}${closed.length ? ": " + closed.map(t => t.tekst).join(" · ") : ""}`);
-  L.push(`Utvikling: ${utv.length ? utv.map(t => `${t.tekst} (${t.status.toLowerCase()})`).join(" · ") : "ingen registrert"}`);
-  const deep = store.sessions.filter(x => x.date >= from && x.deep).length; L.push(`Full ROMA gjennomført: ${deep} ${deep === 1 ? "gang" : "ganger"}`); const mm = new Set(store.sessions.filter(x => x.date >= from && x.projectId === "").map(x => x.date.slice(0, 7))).size; if (mm) L.push(`Måneder mellom oppdrag: ${mm}`);
+  const rows = pids.map(pid => { const ss = store.sessions.filter(x => x.projectId === pid && x.date >= from).sort((a, b) => cmp(a.date, b.date)); const p = projectById(pid) || ss[ss.length - 1].project; const cells = months.map(m => { const l = ss.filter(x => x.date.slice(0, 7) === m).pop(); return l ? { a: ampel(l), deep: l.deep } : null; }); return { pid, p, ss, cells }; });
+  const byM = {}; store.sessions.filter(x => x.date >= from && x.pulse && x.pulse.belastning).forEach(x => { byM[x.date.slice(0, 7)] = x; });
+  const answered = Object.keys(byM).length; const svar = store.sessions.filter(x => x.date >= from && x.lederSvar === "Ja").map(x => x.date.slice(0, 7)); const svarN = new Set(svar).size; const asked = new Set(store.sessions.filter(x => x.date >= from && x.lederSvar !== undefined).map(x => x.date.slice(0, 7))).size;
+  const timer = Object.values(byM).map(x => xnum((x.person || {}).timer_uke)).filter(v => v !== null); const tAvg = timer.length ? Math.round(timer.reduce((a, b) => a + b, 0) / timer.length * 10) / 10 : null;
+  const closed = store.tiltak.filter(t => t.status === "Lukket" && t.lukket && t.lukket >= from && t.area !== "Utvikling"); const open = store.tiltak.filter(t => t.status === "Åpen" && t.area !== "Utvikling"); const utv = store.tiltak.filter(t => t.area === "Utvikling" && t.dato >= from);
+  const fag = []; store.sessions.filter(x => x.date >= from && x.deep).forEach(x => { const A = x.answers || {}; const pn = x.project.prosjekt; if (A.m2 && A.m2.comment) fag.push(`${pn}: miljø, ${A.m2.comment}`); ["l2", "l3"].forEach(k => { if (A[k] && A[k].status !== "OK" && A[k].comment) fag.push(`${pn}: ${A[k].comment}`); }); }); store.projects.filter(p => p.slutt && p.slutt.annerledes && p.avsluttet >= from).forEach(p => fag.push(`${p.prosjekt}: ${p.slutt.annerledes}`));
+  const mm = new Set(store.sessions.filter(x => x.date >= from && x.projectId === "").map(x => x.date.slice(0, 7))).size; const deep = store.sessions.filter(x => x.date >= from && x.deep).length;
+  const qs = []; rows.forEach(r => { let run = 0, best = null; r.cells.forEach((c, i) => { if (c && c.a !== "Grønt") { run++; if (run >= 2 && !best) best = months[i]; } else run = 0; }); if (best) qs.push(`Hva skjedde i ${r.p.prosjekt} i ${monthWord(best + "-01")}, og hva gjorde vi?`); });
+  const bel = Object.keys(byM).sort().map(m => byM[m].pulse.belastning); if (bel.filter(b => b >= 4).length >= 2) qs.push("Når var uka tyngst, og hva skal vi endre?"); if (utv.some(t => t.status === "Åpen")) qs.push("Hva vil du bli god på neste år?"); if (mm) qs.push("Hva lærte du i månedene mellom oppdrag, og hva trenger du for å komme raskere i gang neste gang?"); qs.push("Hva er du stolt av?"); qs.push("Hva vil du ha mer av, og mindre av, neste år?");
+  return { today, from, months, rows, byM, answered, svarN, asked, tAvg, closed, open, utv, fag, mm, deep, qs: qs.slice(0, 3) };
+}
+function yearReport() {
+  const Y = yearData(); const L = [];
+  L.push(`Årsutskrift ROMA · ${store.me.konsulent} · ${fmtDate(Y.from)} til ${fmtDate(Y.today)}`); L.push("Til medarbeidersamtalen. Kun for deg og nærmeste leder.");
+  L.push(""); L.push(`Måneder besvart: ${Y.answered} av 12${Y.asked ? ` · leder svarte ${Y.svarN} av ${Y.asked}` : ""}${Y.tAvg !== null ? ` · snitt ${String(Y.tAvg).replace(".", ",")} t/uke` : ""}${Y.mm ? ` · ${Y.mm} måneder mellom oppdrag` : ""}`);
+  Y.rows.forEach(r => { const p = r.p; const ss = r.ss; L.push(""); L.push(`${p.prosjekt}${isIntern(p) ? " (intern rolle)" : isSalg(p) ? " (salgsarbeid)" : p.kunde ? " (" + p.kunde + ")" : ""}${p.vunnet ? ", vunnet " + fmtDate(p.vunnet) : ""}${p.avsluttet ? ", avsluttet " + fmtDate(p.avsluttet) : ""}: ${ss.length} runde${ss.length > 1 ? "r" : ""} · ${ss.map(x => `${MONTHS[Number(x.date.slice(5, 7)) - 1]} ${AMPEL_EMOJI[ampel(x)]}`).join(" ")}`);
+    const tc = store.tiltak.filter(t => t.projectId === r.pid); const cl = tc.filter(t => t.status === "Lukket").length; if (tc.length) L.push(`  Tiltak: ${cl} lukket, ${tc.length - cl} åpne`);
+    const risks = ss.map(x => x.punkter && x.punkter.risiko).filter(v => v && !NOTHING.test(v)); if (risks.length) L.push(`  Risiko meldt: ${risks.slice(-3).join(" · ")}`);
+    if (p.slutt) { if (p.slutt.levert) L.push(`  Levert: ${p.slutt.levert}`); if (p.slutt.annerledes) L.push(`  Lærdom: ${p.slutt.annerledes}`); if (p.slutt.uavsluttet && !NOTHING.test(p.slutt.uavsluttet)) L.push(`  Uavsluttet: ${p.slutt.uavsluttet}`); } });
+  if (Y.fag.length) { L.push(""); L.push("Til fag- og erfaringsrapporten:"); Y.fag.forEach(x => L.push(`  ${x}`)); }
+  const ms = Object.keys(Y.byM).sort(); if (ms.length) { L.push(""); L.push(`Puls per måned: ${ms.map(m => `${MONTHS[Number(m.slice(5, 7)) - 1]} ${Y.byM[m].pulse.belastning}/${Y.byM[m].pulse.trivsel}${(Y.byM[m].person || {}).timer_uke ? " · " + Y.byM[m].person.timer_uke + " t" : ""}`).join(" · ")} (belastning/trivsel)`); }
+  L.push(""); L.push(`Tiltak lukket: ${Y.closed.length}${Y.open.length ? ` · åpne nå: ${Y.open.length}` : ""}${Y.closed.length ? ": " + Y.closed.map(t => t.tekst).join(" · ") : ""}`);
+  L.push(`Utvikling: ${Y.utv.length ? Y.utv.map(t => `${t.tekst} (${t.status === "Lukket" ? "fullført" : /^Avtalt/.test(t.kommentar || "") ? "avtalt" : "foreslått"})`).join(" · ") : "ingen registrert"}`);
+  L.push(`Full ROMA gjennomført: ${Y.deep} ${Y.deep === 1 ? "gang" : "ganger"}`);
+  L.push(""); L.push("Tre spørsmål til samtalen:"); Y.qs.forEach((q, i) => L.push(`  ${i + 1}. ${q}`));
   return L.join("\n");
 }
+function printAar() {
+  const Y = yearData(); const ms = Object.keys(Y.byM).sort();
+  const spark = (() => { const pts = Y.months.map(m => Y.byM[m]).filter(Boolean); if (pts.length < 2) return ""; const x = i => 10 + i * (380 / 11); const y = v => 52 - ((v - 1) / 4) * 44; const path = k => Y.months.map((m, i) => Y.byM[m] ? `${x(i).toFixed(1)},${y(Y.byM[m].pulse[k]).toFixed(1)}` : null).filter(Boolean).map((p, i) => (i ? "L" : "M") + p).join(" "); return `<svg viewBox="0 0 400 60" class="prt-spark"><line x1="10" y1="${y(3)}" x2="390" y2="${y(3)}"/><line x1="10" y1="${y(5)}" x2="390" y2="${y(5)}"/><path class="bel" d="${path("belastning")}"/><path class="triv" d="${path("trivsel")}"/></svg>`; })();
+  const html = `<div class="prt prt-aar">
+    ${prtHead("Via ROMA · Årsutskrift", store.me.konsulent, [`${fmtDate(Y.from)} – ${fmtDate(Y.today)}`, "Kun for deg og nærmeste leder", `Besvart ${Y.answered} av 12 måneder${Y.asked ? ` · leder svarte ${Y.svarN} av ${Y.asked}` : ""}`])}
+    <section class="prt-block"><h2>Tolv måneder</h2><table class="prt-table prt-year"><thead><tr><th>Prosjekt</th>${Y.months.map(m => `<th>${MONTHS[Number(m.slice(5, 7)) - 1]}</th>`).join("")}</tr></thead><tbody>${Y.rows.map(r => `<tr><td><b>${esc(r.p.prosjekt)}</b><br><span class="prt-sub">${esc([isIntern(r.p) ? "intern rolle" : isSalg(r.p) ? "salgsarbeid" : r.p.kunde, r.p.avsluttet ? "avsluttet " + fmtDate(r.p.avsluttet) : ""].filter(Boolean).join(" · "))}</span></td>${r.cells.map(c => `<td class="${c ? pcls(c.a) : ""}">${c ? PSYM[c.a] : ""}${c && c.deep ? "<small>F</small>" : ""}</td>`).join("")}</tr>`).join("")}</tbody></table><p class="prt-sub">● grønt · ▲ gult · ■ rødt · F = full ROMA</p>
+    ${Y.rows.map(r => { const tc = store.tiltak.filter(t => t.projectId === r.pid); const cl = tc.filter(t => t.status === "Lukket").length; const risks = r.ss.map(x => x.punkter && x.punkter.risiko).filter(v => v && !NOTHING.test(v)).slice(-3); return `<p class="prt-small"><b>${esc(r.p.prosjekt)}</b>: ${r.ss.length} runder${tc.length ? ` · tiltak ${cl} lukket, ${tc.length - cl} åpne` : ""}${risks.length ? ` · risiko meldt: ${esc(risks.join("; "))}` : ""}${r.p.slutt ? ` · levert: ${esc(r.p.slutt.levert || "")}${r.p.slutt.annerledes ? " · lærdom: " + esc(r.p.slutt.annerledes) : ""}` : ""}</p>`; }).join("")}</section>
+    <section class="prt-block"><h2>Puls</h2>${spark}<table class="prt-table prt-year"><thead><tr><th></th>${Y.months.map(m => `<th>${MONTHS[Number(m.slice(5, 7)) - 1]}</th>`).join("")}</tr></thead><tbody><tr><td>B / T</td>${Y.months.map(m => `<td class="mono">${Y.byM[m] ? `${Y.byM[m].pulse.belastning}/${Y.byM[m].pulse.trivsel}` : "–"}</td>`).join("")}</tr><tr><td>t/uke</td>${Y.months.map(m => `<td class="mono">${Y.byM[m] && (Y.byM[m].person || {}).timer_uke ? esc(Y.byM[m].person.timer_uke) : "–"}</td>`).join("")}</tr></tbody></table><p class="prt-sub">B = belastning, T = trivsel (1–5)${Y.tAvg !== null ? ` · snitt ${String(Y.tAvg).replace(".", ",")} t/uke` : ""}${Y.mm ? ` · ${Y.mm} måneder mellom oppdrag` : ""}</p></section>
+    <section class="prt-block"><h2>Tiltak og utvikling</h2><p><b>Tiltak lukket:</b> ${Y.closed.length}${Y.open.length ? ` · åpne nå: ${Y.open.length}` : ""}</p>${Y.closed.length ? `<ul class="prt-lines">${Y.closed.slice(-12).map(t => `<li><span class="mono">${fmtDate(t.lukket)}</span> · ${esc(t.prosjekt)} · ${esc(t.tekst)}</li>`).join("")}</ul>` : ""}<p><b>Utvikling:</b> ${Y.utv.length ? esc(Y.utv.map(t => `${t.tekst} (${t.status === "Lukket" ? "fullført" : /^Avtalt/.test(t.kommentar || "") ? "avtalt" : "foreslått"})`).join(" · ")) : "ingen registrert"}</p><p><b>Full ROMA gjennomført:</b> ${Y.deep} ${Y.deep === 1 ? "gang" : "ganger"}</p></section>
+    ${Y.fag.length ? `<section class="prt-block prt-fag"><h2>Til fag- og erfaringsrapporten</h2><ul class="prt-lines">${Y.fag.map(x => `<li>${esc(x)}</li>`).join("")}</ul></section>` : ""}
+    <section class="prt-page"><h2 class="prt-big">Tre spørsmål til samtalen</h2>${Y.qs.map(q => `<div class="prt-q"><p>${esc(q)}</p><div class="prt-line"></div><div class="prt-line"></div><div class="prt-line"></div></div>`).join("")}</section>
+    <footer class="prt-foot">Kun til medarbeidersamtalen · lagres i HR-mappe · Via ROMA · Involved Consulting AS</footer>
+  </div>`;
+  printDoc("aar", html, `${Y.today.slice(0, 4)}_Involved_ROMA_aarsutskrift_${slug(store.me.konsulent)}`);
+}
+
 function renderOverview() {
   if (okt) { saveDraft(); stopTimer(); okt = null; }
   hudMode = "idle"; renderHud(); show("overview");
   const el = $("#screen-overview"); const today = isoToday(); const openT = store.tiltak.filter(t => t.status === "Åpen");
   const all = allSessionsSorted(); const act = activeProjects(); const ended = store.projects.filter(p => p.avsluttet);
   const projRow = p => { const list = sessionsFor(p.id); const last = list[list.length - 1]; const next = last ? addMonths(last.date, 1) : null; const overdue = !p.avsluttet && next && next < today; const open = openTiltak(p.id).length;
-    return `<div class="card proj"><div><b>${esc(p.prosjekt)}</b> ${p.avsluttet ? `<span class="pill closed">avsluttet ${fmtDate(p.avsluttet)}</span>` : ""}<br><span class="muted small">${isIntern(p) ? "intern rolle" : isSalg(p) ? "salgsarbeid" + (p.kunde ? " · " + esc(p.kunde) : "") : esc(p.kunde)}${p.andel ? ` · ${p.andel} %` : ""}</span><br><span class="small">${last ? `sist <b class="mono">${fmtDate(last.date)}</b>${p.avsluttet ? "" : ` · neste <b class="mono" style="${overdue ? "color:var(--tiltak-ink)" : ""}">${fmtDate(next)}</b>${overdue ? " · forfalt" : ""}`}<br><span class="lights-mini">${SIGNALS.map(S => `<i class="${SC[(last.sig[S.id] || {}).status || "OK"]}"></i>`).join("")}</span> ${esc(ampel(last))}` : "ingen runder ennå"}</span></div><div><div class="kpi ${open ? "tiltak" : "ok"}"><b>${open}</b><small>Åpne tiltak</small></div><div class="year" style="margin-top:8px" title="Siste 12 måneder">${yearDots(p.id, today)}</div></div><div>${p.avsluttet ? `<button type="button" class="btn ghost small" data-reopen="${esc(p.id)}">Gjenåpne</button>` : ""}</div></div>`; };
+    return `<div class="card proj"><div><b>${esc(p.prosjekt)}</b> ${p.avsluttet ? `<span class="pill closed">avsluttet ${fmtDate(p.avsluttet)}</span>` : ""}<br><span class="muted small">${isIntern(p) ? "intern rolle" : isSalg(p) ? "salgsarbeid" + (p.kunde ? " · " + esc(p.kunde) : "") : esc(p.kunde)}${p.andel ? ` · ${p.andel} %` : ""}</span><br><span class="small">${last ? `sist <b class="mono">${fmtDate(last.date)}</b>${p.avsluttet ? "" : ` · neste <b class="mono" style="${overdue ? "color:var(--tiltak-ink)" : ""}">${fmtDate(next)}</b>${overdue ? " · forfalt" : ""}`}<br><span class="lights-mini">${SIGNALS.map(S => `<i class="${SC[(last.sig[S.id] || {}).status || "OK"]}"></i>`).join("")}</span> ${esc(ampel(last))}` : "ingen runder ennå"}</span></div><div><div class="kpi ${open ? "tiltak" : "ok"}"><b>${open}</b><small>Åpne tiltak</small></div><div class="year" style="margin-top:8px" title="Siste 12 måneder">${yearDots(p.id, today)}</div></div><div class="btn-row">${last ? `<button type="button" class="btn ghost small" data-pxl="${esc(p.id)}" title="Hele historikken, uten puls og Trygghet">Excel</button>` : ""}${p.avsluttet ? `<button type="button" class="btn ghost small" data-reopen="${esc(p.id)}">Gjenåpne</button>` : ""}</div></div>`; };
   el.innerHTML = `
     <div class="overview">
       <div class="area-head">
         <div><span class="eyebrow">Oversikt</span><h2>Deg og prosjektene dine</h2><p class="muted">${store.sessions.length} runder levert${personStreak(today) >= 2 ? ` · ${personStreak(today)} måneder på rad` : ""}</p></div>
-        <div class="btn-row"><button type="button" class="btn" id="all-leder-btn" ${store.sessions.length ? "" : "disabled"}>Ledereksport, alle runder</button><button type="button" class="btn ghost" id="backup-btn">Sikkerhetskopi (JSON)</button><button type="button" class="btn ghost" id="import-btn">Hent sikkerhetskopi</button><input type="file" id="import-inp" accept="application/json" hidden><button type="button" class="btn ghost" id="year-btn" ${store.sessions.length ? "" : "disabled"}>Årsutskrift</button></div>
+        <div class="btn-row"><button type="button" class="btn" id="all-leder-btn" ${store.sessions.length ? "" : "disabled"}>Ledereksport, alle runder</button><button type="button" class="btn ghost" id="backup-btn">Sikkerhetskopi (JSON)</button><button type="button" class="btn ghost" id="import-btn">Hent sikkerhetskopi</button><input type="file" id="import-inp" accept="application/json" hidden><button type="button" class="btn ghost" id="year-btn" ${store.sessions.length ? "" : "disabled"}>Årsutskrift</button><button type="button" class="btn ghost" id="year-print" ${store.sessions.length ? "" : "disabled"}>Årsutskrift PDF</button></div>
       </div>
       ${all.some(s => s.pulse && s.pulse.belastning) ? `<div class="card proj"><div><b>Puls</b><br><span class="muted small">${new Set(all.filter(s => s.pulse && s.pulse.belastning).map(s => s.date.slice(0, 7))).size} måneder${mellomStreak(today) ? ` · ${mellomStreak(today)}. måned mellom oppdrag` : ""}</span></div><div></div><div>${sparkSvg(Object.values(all.filter(s => s.pulse && s.pulse.belastning).reduce((m, s) => { m[s.date.slice(0, 7)] = s; return m; }, {})).sort((a, b) => cmp(a.date, b.date)))}<div class="legend"><span><i style="background:var(--tiltak)"></i>Belastning</span><span><i style="background:var(--accent)"></i>Trivsel</span></div></div></div>` : ""}
       ${act.length ? act.map(projRow).join("") : `<div class="empty">Ingen aktive prosjekter eller roller.</div>`}
@@ -1350,6 +1721,8 @@ function renderOverview() {
     </div>`;
   $("#all-leder-btn", el).addEventListener("click", () => exportLeader(store.sessions));
   $("#year-btn", el).addEventListener("click", () => { const box = $("#yearbox", el); box.hidden = false; box.open = true; $("#year-pre", el).textContent = yearReport(); box.scrollIntoView({ block: "start" }); });
+  $("#year-print", el).addEventListener("click", () => printAar());
+  $$("[data-pxl]", el).forEach(b => b.addEventListener("click", () => { const s = lastSessionFor(b.dataset.pxl); if (s) exportProject(s); }));
   $("#year-copy", el).addEventListener("click", async () => { try { await navigator.clipboard.writeText(yearReport()); toast("Kopiert"); } catch (e) { toast("Kunne ikke kopiere"); } });
   $("#backup-btn", el).addEventListener("click", ev => { const b = ev.currentTarget; if (!b.dataset.armed) { b.dataset.armed = "1"; b.textContent = "Filen inneholder alt, også puls og Trygghet. Lagre privat, aldri i prosjektmappen. Last ned"; return; } saveFile(`${isoToday().replace(/-/g, "")}_ViaROMA_sikkerhetskopi.json`, JSON.stringify(store, null, 2)); });
   $$("[data-reopen]", el).forEach(b => b.addEventListener("click", () => { const p = projectById(b.dataset.reopen); if (!p) return; p.avsluttet = ""; saveStore(); toast(`${p.prosjekt} er aktivt igjen. Sluttevalueringen er beholdt.`); renderOverview(); }));
